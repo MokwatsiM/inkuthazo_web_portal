@@ -1,6 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 
 export type UserRole = 'admin' | 'member';
+export type MemberStatus = 'pending' | 'approved' | 'inactive';
 
 export interface Member {
   id: string;
@@ -8,7 +9,7 @@ export interface Member {
   email: string;
   phone: string;
   join_date: Timestamp;
-  status: 'active' | 'inactive';
+  status: MemberStatus;
   role: UserRole;
 }
 

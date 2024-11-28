@@ -53,17 +53,17 @@ const Layout: React.FC = () => {
                 Burial Society Portal
               </h1>
             </div>
-            <div className="flex items-center">
-              <span className="hidden md:block mr-4 text-sm text-gray-600">
+            <div className="flex items-center space-x-4">
+              <span className="hidden md:block text-sm text-gray-600">
                 {userDetails?.full_name} ({userDetails?.role})
               </span>
               <Button
                 variant="secondary"
-                icon={LogOut}
                 onClick={handleSignOut}
-                className="hidden md:flex"
+                className="flex items-center"
               >
-                Sign Out
+                <span className="hidden md:inline">Sign Out</span>
+                <LogOut className="md:hidden h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -160,7 +160,7 @@ const Layout: React.FC = () => {
             </div>
             <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
               <div className="flex items-center">
-                <div className="ml-3">
+                <div>
                   <p className="text-sm font-medium text-gray-700">
                     {userDetails?.full_name}
                   </p>

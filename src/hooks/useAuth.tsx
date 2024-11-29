@@ -6,6 +6,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   sendEmailVerification,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
@@ -27,6 +28,7 @@ interface AuthContextType {
   isApproved: boolean;
   refreshUserDetails: () => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -133,6 +135,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const resetPassword = async (email: string): Promise<void> => {
+    await sendPasswordResetEmail(auth, email);
+  };
+
   const value = {
     user,
     userDetails,
@@ -145,6 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       userDetails?.status === "approved" || userDetails?.status === "active",
     refreshUserDetails,
     resendVerificationEmail,
+    resetPassword,
   };
 
   return (

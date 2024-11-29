@@ -5,6 +5,7 @@ import Layout from "./components/Layout";
 import AuthLayout from "./components/auth/AuthLayout";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
+import ForgotPassword from "./components/auth/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Members from "./pages/Members";
 import MemberDetail from "./pages/MemberDetail";
@@ -43,6 +44,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
       </Route>
 
       {/* Protected routes */}

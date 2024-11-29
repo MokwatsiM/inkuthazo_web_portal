@@ -72,7 +72,6 @@ const Layout: React.FC = () => {
               )}
               <Button
                 variant="secondary"
-                icon={LogOut}
                 onClick={handleSignOut}
                 className="flex items-center"
               >

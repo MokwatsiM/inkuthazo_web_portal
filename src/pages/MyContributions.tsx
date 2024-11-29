@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { PlusCircle, ExternalLink } from "lucide-react";
-import { format } from "date-fns";
 import { useContributions } from "../hooks/useContributions";
 import { useAuth } from "../hooks/useAuth";
 import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
 import SearchInput from "../components/ui/SearchInput";
 import AddContributionModal from "../components/contributions/AddContributionModal";
+import { formatFirestoreDate } from "../utils/dateUtils";
 import type { Contribution } from "../types";
 
 const MyContributions: React.FC = () => {
@@ -75,7 +75,7 @@ const MyContributions: React.FC = () => {
             myContributions.map((contribution) => (
               <tr key={contribution.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {format(contribution.date.toDate(), "dd MMM yyyy")}
+                  {formatFirestoreDate(contribution.date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap capitalize">
                   {contribution.type}

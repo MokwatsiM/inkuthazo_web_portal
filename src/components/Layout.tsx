@@ -51,7 +51,7 @@ const Layout: React.FC = () => {
                 )}
               </button>
               <h1 className="text-xl font-bold text-gray-900 ml-2 md:ml-0">
-                Burial Society Portal
+                Inkuthazo Social Club Portal
               </h1>
             </div>
             <div className="flex items-center space-x-4">

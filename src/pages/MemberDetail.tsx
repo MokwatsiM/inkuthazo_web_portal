@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Download, User, Edit } from "lucide-react";
+import { Download, User, Edit, UserPlus } from "lucide-react";
 import {
   doc,
   getDoc,
@@ -14,16 +14,20 @@ import { db } from "../config/firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useMembers } from "../hooks/useMembers";
 import { uploadAvatar } from "../services/avatarService";
+import { addDependant, removeDependant } from "../services/dependantService";
 import type {
   MemberDetail as MemberDetailType,
   Contribution,
   Payout,
+  Dependant,
 } from "../types";
 import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
 import StatCard from "../components/stats/StatCard";
 import EditMemberModal from "../components/members/EditMemberModal";
 import AvatarUpload from "../components/avatar/AvatarUpload";
+import DependantsList from "../components/dependants/DependantsList";
+import AddDependantModal from "../components/dependants/AddDependantModal";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -35,12 +39,17 @@ const MemberDetail: React.FC = () => {
   const [member, setMember] = useState<MemberDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddDependantModalOpen, setIsAddDependantModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showMaxDependantsMessage, setShowMaxDependantsMessage] =
+    useState(false);
+
+  const dependantsCount = member?.dependants?.length || 0;
+  const canAddDependant = dependantsCount < 3;
 
   useEffect(() => {
     if (!id) return;
 
-    // Only allow access if user is admin or viewing their own profile
     if (!isAdmin && userDetails?.id !== id) {
       navigate("/");
       return;
@@ -49,20 +58,18 @@ const MemberDetail: React.FC = () => {
     fetchMemberDetails();
   }, [id, isAdmin, userDetails]);
 
-  const fetchMemberDetails = async (): Promise<void> => {
+  const fetchMemberDetails = async () => {
     if (!id) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch member data
       const memberDoc = await getDoc(doc(db, "members", id));
       if (!memberDoc.exists()) {
         throw new Error("Member not found");
       }
 
-      // Fetch contributions
       const contributionsRef = collection(db, "contributions");
       const contributionsQuery = query(
         contributionsRef,
@@ -74,7 +81,6 @@ const MemberDetail: React.FC = () => {
         ...doc.data(),
       })) as Contribution[];
 
-      // Fetch payouts
       const payoutsRef = collection(db, "payouts");
       const payoutsQuery = query(payoutsRef, where("member_id", "==", id));
       const payoutsSnapshot = await getDocs(payoutsQuery);
@@ -97,16 +103,14 @@ const MemberDetail: React.FC = () => {
     }
   };
 
-  const handleUpdateMember = async (
-    data: Partial<MemberDetailType>
-  ): Promise<void> => {
+  const handleUpdateMember = async (data: Partial<MemberDetailType>) => {
     if (!member) return;
 
     try {
       await updateMember(member.id, data);
-      await fetchMemberDetails(); // Refresh member data
+      await fetchMemberDetails();
       if (member.id === userDetails?.id) {
-        await refreshUserDetails(); // Refresh auth context if updating own profile
+        await refreshUserDetails();
       }
       setIsEditModalOpen(false);
     } catch (error) {
@@ -114,7 +118,7 @@ const MemberDetail: React.FC = () => {
     }
   };
 
-  const handleAvatarUpload = async (file: File): Promise<void> => {
+  const handleAvatarUpload = async (file: File) => {
     if (!member) return;
 
     try {
@@ -125,16 +129,48 @@ const MemberDetail: React.FC = () => {
     }
   };
 
-  const generateInvoice = (): void => {
+  const handleAddDependant = async (
+    data: Omit<Dependant, "id">,
+    file: File
+  ) => {
+    if (!member) return;
+
+    try {
+      await addDependant(member.id, data, file);
+      await fetchMemberDetails();
+    } catch (error) {
+      console.error("Error adding dependant:", error);
+    }
+  };
+
+  const handleDeleteDependant = async (dependant: Dependant) => {
+    if (!member) return;
+
+    try {
+      await removeDependant(member.id, dependant);
+      await fetchMemberDetails();
+    } catch (error) {
+      console.error("Error deleting dependant:", error);
+    }
+  };
+
+  const handleAddDependantClick = () => {
+    if (!canAddDependant) {
+      setShowMaxDependantsMessage(true);
+      setTimeout(() => setShowMaxDependantsMessage(false), 3000);
+    } else {
+      setIsAddDependantModalOpen(true);
+    }
+  };
+
+  const generateStatement = () => {
     if (!member) return;
 
     const doc = new jsPDF();
 
-    // Header
     doc.setFontSize(20);
     doc.text("Member Statement", 20, 20);
 
-    // Member Details
     doc.setFontSize(12);
     doc.text(`Name: ${member.full_name}`, 20, 35);
     doc.text(`Email: ${member.email}`, 20, 45);
@@ -146,7 +182,6 @@ const MemberDetail: React.FC = () => {
     );
     doc.text(`Status: ${member.status}`, 20, 75);
 
-    // Contributions Table
     const contributionsData = member.contributions.map((contribution) => [
       format(contribution.date.toDate(), "dd/MM/yyyy"),
       contribution.type,
@@ -160,7 +195,6 @@ const MemberDetail: React.FC = () => {
       headStyles: { fillColor: [79, 70, 229] },
     });
 
-    // Payouts Table
     const payoutsData = member.payouts.map((payout) => [
       format(payout.date.toDate(), "dd/MM/yyyy"),
       payout.reason,
@@ -209,7 +243,7 @@ const MemberDetail: React.FC = () => {
           <Button icon={Edit} onClick={() => setIsEditModalOpen(true)}>
             Edit Member
           </Button>
-          <Button icon={Download} onClick={generateInvoice}>
+          <Button icon={Download} onClick={generateStatement}>
             Generate Statement
           </Button>
         </div>
@@ -224,7 +258,7 @@ const MemberDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div>
             <p className="text-sm text-gray-500">Phone</p>
             <p className="font-medium">{member.phone}</p>
@@ -239,7 +273,7 @@ const MemberDetail: React.FC = () => {
             <p className="text-sm text-gray-500">Status</p>
             <span
               className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                member.status === "active" || member.status === "approved"
+                member.status === "active"
                   ? "bg-green-100 text-green-800"
                   : "bg-red-100 text-red-800"
               }`}
@@ -276,7 +310,42 @@ const MemberDetail: React.FC = () => {
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Dependants</h3>
+            <div className="relative">
+              <Button
+                icon={UserPlus}
+                onClick={handleAddDependantClick}
+                disabled={!canAddDependant}
+                className={
+                  !canAddDependant ? "opacity-50 cursor-not-allowed" : ""
+                }
+              >
+                Add Dependant
+                {!canAddDependant && (
+                  <span className="ml-2">({dependantsCount}/3)</span>
+                )}
+              </Button>
+              {showMaxDependantsMessage && !canAddDependant && (
+                <div className="absolute right-0 top-full mt-2 bg-red-100 text-red-800 px-4 py-2 rounded-md shadow-lg z-10 whitespace-nowrap">
+                  Maximum limit of 3 dependants reached
+                </div>
+              )}
+            </div>
+          </div>
+
+          {(member.dependants ?? []).length > 0 ? (
+            <DependantsList
+              dependants={member.dependants!}
+              onDelete={handleDeleteDependant}
+            />
+          ) : (
+            <p className="text-gray-500">No dependants added yet.</p>
+          )}
+        </div>
+
+        <div className="space-y-6 mt-8">
           <div>
             <h4 className="text-lg font-semibold mb-4">
               Contributions History
@@ -337,6 +406,13 @@ const MemberDetail: React.FC = () => {
         onClose={() => setIsEditModalOpen(false)}
         onSubmit={handleUpdateMember}
         member={member}
+      />
+
+      <AddDependantModal
+        isOpen={isAddDependantModalOpen}
+        onClose={() => setIsAddDependantModalOpen(false)}
+        onSubmit={handleAddDependant}
+        currentDependantsCount={dependantsCount}
       />
     </div>
   );

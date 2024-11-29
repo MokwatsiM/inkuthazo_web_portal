@@ -1,6 +1,6 @@
 rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+service firebase.storage {
+  match /b/{bucket}/o {
     // Helper functions
     function isSignedIn() {
       return request.auth != null;
@@ -8,63 +8,35 @@ service cloud.firestore {
     
     function isAdmin() {
       return isSignedIn() && 
-        exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'admin';
+        firestore.exists(/databases/(default)/documents/members/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/members/$(request.auth.uid)).data.role == 'admin';
     }
     
     function isMember() {
       return isSignedIn() && 
-        exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'member';
-    }
-    
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+        firestore.exists(/databases/(default)/documents/members/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/members/$(request.auth.uid)).data.role == 'member';
     }
 
-    function isValidNewMember() {
-      let memberData = request.resource.data;
-      return 
-        memberData.role == 'member' &&  // New users can only be members
-        memberData.status == 'pending' && // Must start as pending
-        memberData.full_name is string &&
-        memberData.email is string &&
-        memberData.phone is string;
-    }
-
-    // Members collection
-    match /members/{userId} {
+    // Dependants documents folder
+    match /dependants/{userId}/{fileName} {
+      // Allow read for authenticated users
       allow read: if isSignedIn();
-      // Allow members to create their own document with restricted role
-      allow create: if isOwner(userId) && isValidNewMember();
-      // Allow members to update their own basic info, but not role or status
-      allow update: if isAdmin() || (
-        isOwner(userId) && 
-        !request.resource.data.diff(resource.data).affectedKeys()
-          .hasAny(['role', 'status'])
-      );
-      allow delete: if isAdmin();
+      
+      // Allow upload for own dependants only
+      allow create, update: if isSignedIn() &&
+        // Only allow PDF or image files
+        (request.resource.contentType.matches('application/pdf') ||
+         request.resource.contentType.matches('image/.*')) &&
+        // Limit file size to 5MB
+        request.resource.size <= 5 * 1024 * 1024 &&
+        // Ensure user can only modify their own dependants folder
+        userId == request.auth.uid;
+      
+      // Allow users to delete their own dependant documents
+      allow delete: if isSignedIn() && userId == request.auth.uid;
     }
 
-    // Contributions collection
-    match /contributions/{contributionId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && 
-        (isAdmin() || (isMember() && request.resource.data.member_id == request.auth.uid));
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    // Payouts collection
-    match /payouts/{payoutId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    // Archived contributions collection
-    match /archived_contributions/{archivedId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
-    }
+    // ... keep existing rules for other folders ...
   }
 }

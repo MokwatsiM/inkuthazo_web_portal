@@ -44,9 +44,6 @@ const Dashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const start = startOfMonth(parseISO(dateRange.startDate));
-      const end = endOfMonth(parseISO(dateRange.endDate));
-
       if (isAdmin) {
         // Admin dashboard data
         const membersRef = collection(db, "members");

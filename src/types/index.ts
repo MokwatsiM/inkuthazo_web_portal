@@ -3,6 +3,15 @@ import { Timestamp } from 'firebase/firestore';
 export type UserRole = 'admin' | 'member';
 export type MemberStatus = 'pending' | 'approved' | 'inactive' | 'active';
 
+export interface Dependant {
+  id: string;
+  full_name: string;
+  date_of_birth: Timestamp;
+  relationship: 'spouse' | 'child' | 'parent';
+  id_number: string;
+  id_document_url?: string;
+}
+
 export interface Member {
   id: string;
   full_name: string;
@@ -12,8 +21,10 @@ export interface Member {
   status: MemberStatus;
   role: UserRole;
   avatar_url?: string;
+  dependants?: Dependant[];
 }
 
+// ... rest of the types remain the same
 export interface Contribution {
   id: string;
   member_id: string;

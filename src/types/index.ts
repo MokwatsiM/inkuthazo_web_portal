@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 
 export type UserRole = 'admin' | 'member';
-export type MemberStatus = 'pending' | 'approved' | 'inactive';
+export type MemberStatus = 'pending' | 'approved' | 'inactive' | 'active';
 
 export interface Member {
   id: string;
@@ -11,6 +11,7 @@ export interface Member {
   join_date: Timestamp;
   status: MemberStatus;
   role: UserRole;
+  avatar_url?: string;
 }
 
 export interface Contribution {
@@ -19,7 +20,7 @@ export interface Contribution {
   amount: number;
   date: Timestamp;
   type: 'monthly' | 'registration' | 'other';
-  proof_of_payment?: string; // URL to the uploaded file
+  proof_of_payment?: string;
   members?: {
     full_name: string;
   };

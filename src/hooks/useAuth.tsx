@@ -5,6 +5,7 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  sendEmailVerification,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
@@ -24,6 +25,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isApproved: boolean;
+  refreshUserDetails: () => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -84,6 +87,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         password
       );
 
+      // Send email verification
+      if (result.user) {
+        await sendEmailVerification(result.user);
+      }
+
       const newMember: Omit<Member, "id"> = {
         full_name: fullName,
         email,
@@ -113,6 +121,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUserDetails(null);
   };
 
+  const refreshUserDetails = async (): Promise<void> => {
+    if (user) {
+      await fetchUserDetails(user);
+    }
+  };
+
+  const resendVerificationEmail = async (): Promise<void> => {
+    if (user) {
+      await sendEmailVerification(user);
+    }
+  };
+
   const value = {
     user,
     userDetails,
@@ -121,7 +141,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     signUp,
     signOut,
     isAdmin: userDetails?.role === "admin",
-    isApproved: userDetails?.status === "approved",
+    isApproved:
+      userDetails?.status === "approved" || userDetails?.status === "active",
+    refreshUserDetails,
+    resendVerificationEmail,
   };
 
   return (

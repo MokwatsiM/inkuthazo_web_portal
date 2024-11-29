@@ -8,6 +8,7 @@ import SearchInput from "../components/ui/SearchInput";
 import AddMemberModal from "../components/members/AddMemberModal";
 import DeleteMemberModal from "../components/members/DeleteMemberModal";
 import ApproveMemberModal from "../components/members/ApproveMemberModal";
+import Avatar from "../components/avatar/Avatar";
 import { useMembers } from "../hooks/useMembers";
 import type { Member } from "../types";
 
@@ -80,17 +81,28 @@ const Members: React.FC = () => {
         </div>
 
         <Table
-          headers={["Name", "Email", "Phone", "Join Date", "Status", "Actions"]}
+          headers={[
+            "",
+            "Name",
+            "Email",
+            "Phone",
+            "Join Date",
+            "Status",
+            "Actions",
+          ]}
         >
           {loading ? (
             <tr>
-              <td colSpan={6} className="px-6 py-4 text-center">
+              <td colSpan={7} className="px-6 py-4 text-center">
                 Loading...
               </td>
             </tr>
           ) : (
             filteredMembers.map((member) => (
               <tr key={member.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <Avatar member={member} size="sm" />
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {member.full_name}
                 </td>
@@ -102,7 +114,7 @@ const Members: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      member.status === "approved"
+                      member.status === "approved" || member.status === "active"
                         ? "bg-green-100 text-green-800"
                         : member.status === "pending"
                         ? "bg-yellow-100 text-yellow-800"

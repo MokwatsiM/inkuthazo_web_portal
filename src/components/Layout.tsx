@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
+import Avatar from "./avatar/Avatar";
 
 const Layout: React.FC = () => {
   const { signOut, userDetails, isAdmin } = useAuth();
@@ -54,11 +55,24 @@ const Layout: React.FC = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="hidden md:block text-sm text-gray-600">
-                {userDetails?.full_name} ({userDetails?.role})
-              </span>
+              {userDetails && (
+                <div className="hidden md:flex items-center space-x-3">
+                  <Link to={`/members/${userDetails.id}`}>
+                    <Avatar member={userDetails} size="sm" />
+                  </Link>
+                  <div className="text-sm">
+                    <p className="font-medium text-gray-700">
+                      {userDetails.full_name}
+                    </p>
+                    <p className="text-gray-500 text-xs capitalize">
+                      {userDetails.role}
+                    </p>
+                  </div>
+                </div>
+              )}
               <Button
                 variant="secondary"
+                icon={LogOut}
                 onClick={handleSignOut}
                 className="flex items-center"
               >
@@ -160,11 +174,12 @@ const Layout: React.FC = () => {
             </div>
             <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
               <div className="flex items-center">
-                <div>
+                {userDetails && <Avatar member={userDetails} size="sm" />}
+                <div className="ml-3">
                   <p className="text-sm font-medium text-gray-700">
                     {userDetails?.full_name}
                   </p>
-                  <p className="text-xs font-medium text-gray-500">
+                  <p className="text-xs font-medium text-gray-500 capitalize">
                     {userDetails?.role}
                   </p>
                 </div>

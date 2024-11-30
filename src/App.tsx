@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
+import { NotificationProvider } from "./context/NotificationContext";
+import NotificationContainer from "./components/notifications/NotificationContainer";
+import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
+import ConnectionStatus from "./components/ui/ConnectionStatus";
+import { initializeConnectionHandler } from "./utils/firebaseConnection";
 import Layout from "./components/Layout";
 import AuthLayout from "./components/auth/AuthLayout";
 import Login from "./components/auth/Login";
@@ -13,6 +18,7 @@ import Contributions from "./pages/Contributions";
 import MyContributions from "./pages/MyContributions";
 import Reports from "./pages/Reports";
 import Payouts from "./pages/Payouts";
+import Analytics from "./pages/Analytics";
 import RoleBasedRoute from "./components/RoleBasedRoute";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -40,14 +46,12 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      {/* Auth routes */}
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
       </Route>
 
-      {/* Protected routes */}
       <Route
         path="/"
         element={
@@ -58,7 +62,6 @@ const AppRoutes: React.FC = () => {
       >
         <Route index element={<Dashboard />} />
 
-        {/* Admin-only routes */}
         <Route
           path="members"
           element={
@@ -68,10 +71,8 @@ const AppRoutes: React.FC = () => {
           }
         />
 
-        {/* Member can view their own details */}
         <Route path="members/:id" element={<MemberDetail />} />
 
-        {/* Admin-only routes */}
         <Route
           path="contributions"
           element={
@@ -81,7 +82,6 @@ const AppRoutes: React.FC = () => {
           }
         />
 
-        {/* Member-only routes */}
         <Route
           path="my-contributions"
           element={
@@ -99,6 +99,16 @@ const AppRoutes: React.FC = () => {
             </RoleBasedRoute>
           }
         />
+
+        <Route
+          path="analytics"
+          element={
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <Analytics />
+            </RoleBasedRoute>
+          }
+        />
+
         <Route
           path="reports"
           element={
@@ -109,7 +119,6 @@ const AppRoutes: React.FC = () => {
         />
       </Route>
 
-      {/* Redirect to dashboard if logged in, otherwise to login */}
       <Route
         path="*"
         element={
@@ -124,14 +133,24 @@ const AppRoutes: React.FC = () => {
   );
 };
 
-function App() {
+const App: React.FC = () => {
+  useEffect(() => {
+    initializeConnectionHandler();
+  }, []);
+
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <NotificationProvider>
+        <AnalyticsProvider>
+          <BrowserRouter>
+            <NotificationContainer />
+            <ConnectionStatus />
+            <AppRoutes />
+          </BrowserRouter>
+        </AnalyticsProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
-}
+};
 
 export default App;

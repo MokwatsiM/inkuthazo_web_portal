@@ -10,14 +10,15 @@ import {
   UserCircle,
   Menu,
   X,
+  BarChart2,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
 import Avatar from "./avatar/Avatar";
 
 const Layout: React.FC = () => {
-  const { signOut, userDetails, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { signOut, userDetails, isAdmin } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -32,6 +33,27 @@ const Layout: React.FC = () => {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  const adminMenuItems = [
+    { path: "/", icon: PieChart, label: "Dashboard" },
+    { path: "/members", icon: Users, label: "Members" },
+    { path: "/contributions", icon: CreditCard, label: "Contributions" },
+    { path: "/payouts", icon: DollarSign, label: "Payouts" },
+    { path: "/analytics", icon: BarChart2, label: "Analytics" },
+    { path: "/reports", icon: FileText, label: "Reports" },
+  ];
+
+  const memberMenuItems = [
+    { path: "/", icon: PieChart, label: "Dashboard" },
+    {
+      path: `/members/${userDetails?.id}`,
+      icon: UserCircle,
+      label: "My Profile",
+    },
+    { path: "/my-contributions", icon: CreditCard, label: "My Contributions" },
+  ];
+
+  const menuItems = isAdmin ? adminMenuItems : memberMenuItems;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -72,6 +94,7 @@ const Layout: React.FC = () => {
               )}
               <Button
                 variant="secondary"
+                icon={LogOut}
                 onClick={handleSignOut}
                 className="flex items-center"
               >
@@ -85,170 +108,70 @@ const Layout: React.FC = () => {
 
       <div className="flex">
         {/* Mobile Sidebar */}
-        <aside
-          className={`${
-            isMobileMenuOpen ? "block" : "hidden"
-          } fixed inset-0 z-40 md:hidden`}
-        >
-          <div
-            className="fixed inset-0 bg-gray-600 bg-opacity-75"
-            onClick={toggleMobileMenu}
-          ></div>
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-            <div className="absolute top-0 right-0 -mr-12 pt-2">
-              <button
-                onClick={toggleMobileMenu}
-                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              >
-                <X className="h-6 w-6 text-white" />
-              </button>
-            </div>
-            <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-              <nav className="mt-5 px-2 space-y-1">
-                <Link
-                  to="/"
-                  className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+        {isMobileMenuOpen && (
+          <aside className="fixed inset-0 z-40 md:hidden">
+            <div
+              className="fixed inset-0 bg-gray-600 bg-opacity-75"
+              onClick={toggleMobileMenu}
+            ></div>
+            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+              <div className="absolute top-0 right-0 -mr-12 pt-2">
+                <button
                   onClick={toggleMobileMenu}
+                  className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                 >
-                  <PieChart className="mr-4 h-6 w-6" />
-                  Dashboard
-                </Link>
-
-                {isAdmin ? (
-                  <>
-                    <Link
-                      to="/members"
-                      className="mt-1 group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      onClick={toggleMobileMenu}
-                    >
-                      <Users className="mr-4 h-6 w-6" />
-                      Members
-                    </Link>
-                    <Link
-                      to="/contributions"
-                      className="mt-1 group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      onClick={toggleMobileMenu}
-                    >
-                      <CreditCard className="mr-4 h-6 w-6" />
-                      Contributions
-                    </Link>
-                    <Link
-                      to="/payouts"
-                      className="mt-1 group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      onClick={toggleMobileMenu}
-                    >
-                      <DollarSign className="mr-4 h-6 w-6" />
-                      Payouts
-                    </Link>
-                    <Link
-                      to="/reports"
-                      className="mt-1 group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      onClick={toggleMobileMenu}
-                    >
-                      <FileText className="mr-4 h-6 w-6" />
-                      Reports
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to={`/members/${userDetails?.id}`}
-                      className="mt-1 group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      onClick={toggleMobileMenu}
-                    >
-                      <UserCircle className="mr-4 h-6 w-6" />
-                      My Profile
-                    </Link>
-                    <Link
-                      to="/my-contributions"
-                      className="mt-1 group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      onClick={toggleMobileMenu}
-                    >
-                      <CreditCard className="mr-4 h-6 w-6" />
-                      My Contributions
-                    </Link>
-                  </>
-                )}
-              </nav>
-            </div>
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-              <div className="flex items-center">
-                {userDetails && <Avatar member={userDetails} size="sm" />}
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-700">
-                    {userDetails?.full_name}
-                  </p>
-                  <p className="text-xs font-medium text-gray-500 capitalize">
-                    {userDetails?.role}
-                  </p>
-                </div>
+                  <X className="h-6 w-6 text-white" />
+                </button>
               </div>
+              <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                <nav className="mt-5 px-2 space-y-1">
+                  {menuItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      onClick={toggleMobileMenu}
+                    >
+                      <item.icon className="mr-4 h-6 w-6" />
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+              {userDetails && (
+                <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+                  <div className="flex items-center">
+                    <Avatar member={userDetails} size="sm" />
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-700">
+                        {userDetails.full_name}
+                      </p>
+                      <p className="text-xs font-medium text-gray-500 capitalize">
+                        {userDetails.role}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
 
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-64">
             <div className="flex flex-col h-0 flex-1">
               <nav className="flex-1 px-2 py-4 bg-white space-y-1">
-                <Link
-                  to="/"
-                  className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                >
-                  <PieChart className="mr-3 h-6 w-6" />
-                  Dashboard
-                </Link>
-
-                {isAdmin ? (
-                  <>
-                    <Link
-                      to="/members"
-                      className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    >
-                      <Users className="mr-3 h-6 w-6" />
-                      Members
-                    </Link>
-                    <Link
-                      to="/contributions"
-                      className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    >
-                      <CreditCard className="mr-3 h-6 w-6" />
-                      Contributions
-                    </Link>
-                    <Link
-                      to="/payouts"
-                      className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    >
-                      <DollarSign className="mr-3 h-6 w-6" />
-                      Payouts
-                    </Link>
-                    <Link
-                      to="/reports"
-                      className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    >
-                      <FileText className="mr-3 h-6 w-6" />
-                      Reports
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to={`/members/${userDetails?.id}`}
-                      className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    >
-                      <UserCircle className="mr-3 h-6 w-6" />
-                      My Profile
-                    </Link>
-                    <Link
-                      to="/my-contributions"
-                      className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    >
-                      <CreditCard className="mr-3 h-6 w-6" />
-                      My Contributions
-                    </Link>
-                  </>
-                )}
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  >
+                    <item.icon className="mr-3 h-6 w-6" />
+                    {item.label}
+                  </Link>
+                ))}
               </nav>
             </div>
           </div>

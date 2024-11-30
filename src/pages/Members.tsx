@@ -11,6 +11,7 @@ import ApproveMemberModal from "../components/members/ApproveMemberModal";
 import Avatar from "../components/avatar/Avatar";
 import { useMembers } from "../hooks/useMembers";
 import type { Member } from "../types";
+import { useAnalytics } from "../hooks/useAnalytics";
 
 const Members: React.FC = () => {
   const { members, loading, addMember, deleteMember, updateMember } =
@@ -20,6 +21,7 @@ const Members: React.FC = () => {
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const analytics = useAnalytics();
 
   const filteredMembers = members.filter(
     (member) =>
@@ -31,8 +33,10 @@ const Members: React.FC = () => {
     try {
       await addMember(data);
       setIsAddModalOpen(false);
+      // analytics.trackMemberAdded(data);
     } catch (error) {
       console.error("Error adding member:", error);
+      // analytics.trackError("ADD_MEMBER_ERROR", error.message);
     }
   };
 

@@ -1,5 +1,5 @@
 // src/hooks/useMembers.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   collection,
   query,
@@ -10,17 +10,17 @@ import {
   deleteDoc,
   doc,
   Timestamp,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
-import type { Member } from '../types';
-import { archiveMemberContributions } from '../utils/archivedUtils';
+} from "firebase/firestore";
+import { db } from "../config/firebase";
+import type { Member } from "../types";
+import { archiveMemberContributions } from "../utils/archivedUtils";
 
 interface UseMembersReturn {
   members: Member[];
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  addMember: (member: Omit<Member, 'id' | 'join_date'>) => Promise<Member>;
+  addMember: (member: Omit<Member, "id" | "join_date">) => Promise<Member>;
   updateMember: (id: string, member: Partial<Member>) => Promise<void>;
   deleteMember: (id: string) => Promise<void>;
 }
@@ -33,8 +33,8 @@ export const useMembers = (): UseMembersReturn => {
   const fetchMembers = async (): Promise<void> => {
     try {
       setLoading(true);
-      const membersRef = collection(db, 'members');
-      const q = query(membersRef, orderBy('full_name'));
+      const membersRef = collection(db, "members");
+      const q = query(membersRef, orderBy("full_name"));
       const querySnapshot = await getDocs(q);
 
       const membersData = querySnapshot.docs.map((doc) => ({
@@ -44,17 +44,17 @@ export const useMembers = (): UseMembersReturn => {
 
       setMembers(membersData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   const addMember = async (
-    member: Omit<Member, 'id' | 'join_date'>
+    member: Omit<Member, "id" | "join_date">
   ): Promise<Member> => {
     try {
-      const membersRef = collection(db, 'members');
+      const membersRef = collection(db, "members");
       const docRef = await addDoc(membersRef, {
         ...member,
         join_date: Timestamp.now(),
@@ -69,7 +69,7 @@ export const useMembers = (): UseMembersReturn => {
       setMembers((prev) => [...prev, newMember]);
       return newMember;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
       throw err;
     }
   };
@@ -79,11 +79,11 @@ export const useMembers = (): UseMembersReturn => {
     member: Partial<Member>
   ): Promise<void> => {
     try {
-      const memberRef = doc(db, 'members', id);
+      const memberRef = doc(db, "members", id);
       const updateData = {
         ...member,
         ...(member.join_date && {
-          join_date: Timestamp.fromDate(new Date(member.join_date)),
+          join_date: member.join_date,
         }),
       };
       await updateDoc(memberRef, updateData);
@@ -92,7 +92,7 @@ export const useMembers = (): UseMembersReturn => {
         prev.map((m) => (m.id === id ? { ...m, ...updateData } : m))
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
       throw err;
     }
   };
@@ -103,12 +103,12 @@ export const useMembers = (): UseMembersReturn => {
       await archiveMemberContributions(id);
 
       // Then delete the member
-      const memberRef = doc(db, 'members', id);
+      const memberRef = doc(db, "members", id);
       await deleteDoc(memberRef);
 
       setMembers((prev) => prev.filter((member) => member.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
       throw err;
     }
   };

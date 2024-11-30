@@ -10,15 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@nivo/bar": "^0.88.0",
+    "@nivo/core": "^0.88.0",
+    "@nivo/line": "^0.88.0",
+    "@nivo/pie": "^0.88.0",
+    "date-fns": "^3.3.1",
     "firebase": "^10.8.0",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.22.2",
-    "recharts": "^2.12.2",
-    "date-fns": "^3.3.1",
-    "jspdf": "^2.5.1",
-    "jspdf-autotable": "^3.8.2"
+    "recharts": "^2.12.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.5",

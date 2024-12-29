@@ -5,7 +5,6 @@ import {
   orderBy,
   getDocs,
   doc,
-  deleteDoc,
   updateDoc,
   Timestamp,
 } from "firebase/firestore";
@@ -16,7 +15,6 @@ import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
 import type { Member } from "../types";
 
-
 interface DeletionRequest {
   id: string;
   member_id: string;
@@ -25,6 +23,7 @@ interface DeletionRequest {
   status: "pending" | "completed" | "rejected";
   member?: Member;
   requestedBy?: Member;
+  member_email: string;
 }
 interface ExtendedDeletionRequest extends DeletionRequest {
   member?: Member;
@@ -44,26 +43,26 @@ const DeletionRequests: React.FC = () => {
       const q = query(requestsRef, orderBy("requested_at", "desc"));
       const snapshot = await getDocs(q);
 
-     const requestsData = await Promise.all(
-       snapshot.docs.map(async (doc) => {
-         const data = doc.data();
+      const requestsData = await Promise.all(
+        snapshot.docs.map(async (doc) => {
+          const data = doc.data();
 
-         // Fetch member details
-         const memberDoc = await getDocs(collection(db, "members"));
-         const member = memberDoc.docs.find((m) => m.id === data.member_id);
-         const requestedBy = memberDoc.docs.find(
-           (m) => m.id === data.requested_by
-         );
+          // Fetch member details
+          const memberDoc = await getDocs(collection(db, "members"));
+          const member = memberDoc.docs.find((m) => m.id === data.member_id);
+          const requestedBy = memberDoc.docs.find(
+            (m) => m.id === data.requested_by
+          );
 
-         return {
-           id: doc.id,
-           ...data,
-           requested_at: data.requested_at as Timestamp,
-           member: member?.data() as Member,
-           requestedBy: requestedBy?.data() as Member,
-         } as ExtendedDeletionRequest;
-       })
-     );
+          return {
+            id: doc.id,
+            ...data,
+            requested_at: data.requested_at as Timestamp,
+            member: member?.data() as Member,
+            requestedBy: requestedBy?.data() as Member,
+          } as ExtendedDeletionRequest;
+        })
+      );
 
       setRequests(requestsData);
     } catch (err) {
@@ -174,7 +173,9 @@ const DeletionRequests: React.FC = () => {
                   {formatDate(request.requested_at)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {request.member?.full_name || "Unknown Member"}
+                  {request.member?.full_name ||
+                    request.member_email ||
+                    "Unknown Member"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {request.requestedBy?.full_name || "Unknown Admin"}

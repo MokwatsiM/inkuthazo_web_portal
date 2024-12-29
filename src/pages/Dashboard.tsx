@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import {
-  format,
-  subMonths,
-  startOfMonth,
-  endOfMonth,
-  parseISO,
-} from "date-fns";
-import {
   collection,
   query,
   where,
@@ -18,240 +11,174 @@ import { db } from "../config/firebase";
 import { useAuth } from "../hooks/useAuth";
 import StatCard from "../components/stats/StatCard";
 import Button from "../components/ui/Button";
+import Table from "../components/ui/Table";
+import { formatDate } from "../utils/dateUtils";
+import type { Contribution } from "../types/contribution";
 
 const COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
+interface DashboardStats {
+  totalMembers: number;
+  activeMembers: number;
+  totalContributions: number;
+  approvedContributions: number;
+  pendingContributions: number;
+  rejectedContributions: number;
+  monthlyContributions: number;
+  totalPayouts: number;
+}
+
+interface ContributionsByType {
+  name: string;
+  value: number;
+}
+
 const Dashboard: React.FC = () => {
   const { userDetails, isAdmin } = useAuth();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalMembers: 0,
     activeMembers: 0,
-    monthlyContributions: 0,
-    pendingPayouts: 0,
     totalContributions: 0,
+    approvedContributions: 0,
+    pendingContributions: 0,
+    rejectedContributions: 0,
+    monthlyContributions: 0,
     totalPayouts: 0,
   });
   const [contributionsByType, setContributionsByType] = useState<
-    { name: string; value: number }[]
+    ContributionsByType[]
   >([]);
-  const [payoutsByStatus, setPayoutsByStatus] = useState<
-    { name: string; value: number }[]
+  const [pendingContributions, setPendingContributions] = useState<
+    Contribution[]
   >([]);
-  const [dateRange, setDateRange] = useState({
-    startDate: format(subMonths(new Date(), 5), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
-  });
+  const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     try {
-      if (isAdmin) {
-        // Admin dashboard data
-        const membersRef = collection(db, "members");
-        const membersSnapshot = await getDocs(membersRef);
-        const activeMembers = membersSnapshot.docs.filter(
-          (doc) => doc.data().status === "active"
-        ).length;
+      setLoading(true);
+      const contributionsRef = collection(db, "contributions");
 
-        const contributionsRef = collection(db, "contributions");
-        const payoutsRef = collection(db, "payouts");
+      // Query for contributions based on user role
+      const contributionsQuery = isAdmin
+        ? query(contributionsRef)
+        : query(contributionsRef, where("member_id", "==", userDetails?.id));
 
-        // Get all contributions and payouts
-        const [allContributions, allPayouts] = await Promise.all([
-          getDocs(contributionsRef),
-          getDocs(payoutsRef),
-        ]);
-
-        // Calculate contributions by type
-        const contributionTypes = new Map<string, number>();
-        allContributions.docs.forEach((doc) => {
+      const contributionsSnapshot = await getDocs(contributionsQuery);
+      const contributions = await Promise.all(
+        contributionsSnapshot.docs.map(async (doc) => {
           const data = doc.data();
-          const type = data.type;
-          contributionTypes.set(
-            type,
-            (contributionTypes.get(type) || 0) + data.amount
-          );
-        });
+          const memberDoc = await getDocs(collection(db, "members"));
+          const member = memberDoc.docs.find((m) => m.id === data.member_id);
 
-        setContributionsByType(
-          Array.from(contributionTypes.entries()).map(([name, value]) => ({
-            name: name.charAt(0).toUpperCase() + name.slice(1),
-            value,
-          }))
-        );
+          return {
+            id: doc.id,
+            ...data,
+            members: {
+              full_name: member?.data()?.full_name || "Unknown Member",
+            },
+          } as Contribution;
+        })
+      );
 
-        // Calculate payouts by status
-        const payoutStatuses = new Map<string, number>();
-        allPayouts.docs.forEach((doc) => {
-          const data = doc.data();
-          const status = data.status;
-          payoutStatuses.set(
-            status,
-            (payoutStatuses.get(status) || 0) + data.amount
-          );
-        });
+      // Calculate stats
+      const approved = contributions.filter((c) => c.status === "approved");
+      const pending = contributions.filter((c) => c.status === "pending");
+      const rejected = contributions.filter((c) => c.status === "rejected");
 
-        setPayoutsByStatus(
-          Array.from(payoutStatuses.entries()).map(([name, value]) => ({
-            name: name.charAt(0).toUpperCase() + name.slice(1),
-            value,
-          }))
-        );
+      // Calculate contributions by type (only approved contributions)
+      const typeMap = new Map<string, number>();
+      approved.forEach((contribution) => {
+        const current = typeMap.get(contribution.type) || 0;
+        typeMap.set(contribution.type, current + contribution.amount);
+      });
 
-        // Calculate totals
-        const totalContributions = allContributions.docs.reduce(
-          (sum, doc) => sum + doc.data().amount,
-          0
-        );
-        const totalPayouts = allPayouts.docs.reduce(
-          (sum, doc) => sum + doc.data().amount,
-          0
-        );
-        const pendingPayouts = allPayouts.docs
-          .filter((doc) => doc.data().status === "pending")
-          .reduce((sum, doc) => sum + doc.data().amount, 0);
+      const chartData = Array.from(typeMap.entries()).map(([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        value,
+      }));
 
-        // Current month contributions
-        const currentMonthStart = startOfMonth(new Date());
-        const monthlyContributions = allContributions.docs
-          .filter((doc) => doc.data().date.toDate() >= currentMonthStart)
-          .reduce((sum, doc) => sum + doc.data().amount, 0);
+      setContributionsByType(chartData);
+      setPendingContributions(pending);
 
-        setStats({
-          totalMembers: membersSnapshot.size,
-          activeMembers,
-          monthlyContributions,
-          pendingPayouts,
-          totalContributions,
-          totalPayouts,
-        });
-      } else if (userDetails?.id) {
-        // Member dashboard data
-        const contributionsRef = collection(db, "contributions");
-        const payoutsRef = collection(db, "payouts");
-
-        const memberContributionsQuery = query(
-          contributionsRef,
-          where("member_id", "==", userDetails.id)
-        );
-
-        const memberPayoutsQuery = query(
-          payoutsRef,
-          where("member_id", "==", userDetails.id)
-        );
-
-        const [contributionsSnapshot, payoutsSnapshot] = await Promise.all([
-          getDocs(memberContributionsQuery),
-          getDocs(memberPayoutsQuery),
-        ]);
-
-        // Calculate member's contributions by type
-        const contributionTypes = new Map<string, number>();
-        contributionsSnapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          const type = data.type;
-          contributionTypes.set(
-            type,
-            (contributionTypes.get(type) || 0) + data.amount
-          );
-        });
-
-        setContributionsByType(
-          Array.from(contributionTypes.entries()).map(([name, value]) => ({
-            name: name.charAt(0).toUpperCase() + name.slice(1),
-            value,
-          }))
-        );
-
-        // Calculate member's payouts by status
-        const payoutStatuses = new Map<string, number>();
-        payoutsSnapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          const status = data.status;
-          payoutStatuses.set(
-            status,
-            (payoutStatuses.get(status) || 0) + data.amount
-          );
-        });
-
-        setPayoutsByStatus(
-          Array.from(payoutStatuses.entries()).map(([name, value]) => ({
-            name: name.charAt(0).toUpperCase() + name.slice(1),
-            value,
-          }))
-        );
-
-        // Calculate totals for member
-        const totalContributions = contributionsSnapshot.docs.reduce(
-          (sum, doc) => sum + doc.data().amount,
-          0
-        );
-
-        const totalPayouts = payoutsSnapshot.docs.reduce(
-          (sum, doc) => sum + doc.data().amount,
-          0
-        );
-
-        const pendingPayouts = payoutsSnapshot.docs
-          .filter((doc) => doc.data().status === "pending")
-          .reduce((sum, doc) => sum + doc.data().amount, 0);
-
-        setStats({
-          totalMembers: 0,
-          activeMembers: 0,
-          monthlyContributions: 0,
-          pendingPayouts,
-          totalContributions,
-          totalPayouts,
-        });
-      }
+      // Update stats
+      setStats({
+        totalMembers: isAdmin
+          ? (await getDocs(collection(db, "members"))).size
+          : 0,
+        activeMembers: isAdmin
+          ? (
+              await getDocs(
+                query(
+                  collection(db, "members"),
+                  where("status", "==", "active")
+                )
+              )
+            ).size
+          : 0,
+        totalContributions: approved.reduce((sum, c) => sum + c.amount, 0),
+        approvedContributions: approved.length,
+        pendingContributions: pending.length,
+        rejectedContributions: rejected.length,
+        monthlyContributions: approved
+          .filter((c) => c.type === "monthly")
+          .reduce((sum, c) => sum + c.amount, 0),
+        totalPayouts: 0, // You can add payout calculation here if needed
+      });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [dateRange, userDetails?.id, isAdmin]);
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-4 rounded shadow">
-          <p className="font-semibold">{payload[0].name}</p>
-          <p className="text-gray-600">R {payload[0].value.toFixed(2)}</p>
-        </div>
-      );
+    if (userDetails?.id) {
+      fetchDashboardData();
     }
-    return null;
-  };
+  }, [userDetails?.id, isAdmin]);
 
   const renderAdminDashboard = () => (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatCard title="Total Members" value={stats.totalMembers} />
-        <StatCard title="Active Members" value={stats.activeMembers} />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <StatCard title="Total Members" value={stats.totalMembers.toString()} />
         <StatCard
-          title="Monthly Contributions"
-          value={`R ${stats.monthlyContributions.toFixed(2)}`}
-        />
-        <StatCard
-          title="Pending Payouts"
-          value={`R ${stats.pendingPayouts.toFixed(2)}`}
+          title="Active Members"
+          value={stats.activeMembers.toString()}
         />
         <StatCard
           title="Total Contributions"
           value={`R ${stats.totalContributions.toFixed(2)}`}
         />
         <StatCard
-          title="Total Payouts"
-          value={`R ${stats.totalPayouts.toFixed(2)}`}
+          title="Monthly Contributions"
+          value={`R ${stats.monthlyContributions.toFixed(2)}`}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <StatCard
+          title="Pending Contributions"
+          value={stats.pendingContributions.toString()}
+          className="bg-yellow-50"
+        />
+        <StatCard
+          title="Approved Contributions"
+          value={stats.approvedContributions.toString()}
+          className="bg-green-50"
+        />
+        <StatCard
+          title="Rejected Contributions"
+          value={stats.rejectedContributions.toString()}
+          className="bg-red-50"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Contributions by Type</h3>
-          <div className="flex justify-center">
+          <h3 className="text-lg font-semibold mb-4">
+            Approved Contributions by Type
+          </h3>
+          <div className="h-[300px]">
             <PieChart width={400} height={300}>
               <Pie
                 data={contributionsByType}
@@ -264,45 +191,35 @@ const Dashboard: React.FC = () => {
                 dataKey="value"
                 label={({ name, value }) => `${name}: R ${value.toFixed(2)}`}
               >
-                {contributionsByType.map((entry, index) => (
+                {contributionsByType.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip />
               <Legend />
             </PieChart>
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Payouts by Status</h3>
-          <div className="flex justify-center">
-            <PieChart width={400} height={300}>
-              <Pie
-                data={payoutsByStatus}
-                cx={200}
-                cy={150}
-                innerRadius={60}
-                outerRadius={100}
-                fill="#8884d8"
-                paddingAngle={5}
-                dataKey="value"
-                label={({ name, value }) => `${name}: R ${value.toFixed(2)}`}
-              >
-                {payoutsByStatus.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-            </PieChart>
-          </div>
+          <h3 className="text-lg font-semibold mb-4">
+            Recent Pending Contributions
+          </h3>
+          <Table headers={["Date", "Member", "Type", "Amount"]}>
+            {pendingContributions.slice(0, 5).map((contribution) => (
+              <tr key={contribution.id}>
+                <td className="px-6 py-4">{formatDate(contribution.date)}</td>
+                <td className="px-6 py-4">{contribution.members?.full_name}</td>
+                <td className="px-6 py-4 capitalize">{contribution.type}</td>
+                <td className="px-6 py-4">
+                  R {contribution.amount.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </Table>
         </div>
       </div>
     </>
@@ -310,14 +227,20 @@ const Dashboard: React.FC = () => {
 
   const renderMemberDashboard = () => (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard
-          title="Total Contributions"
+          title="Total Approved Contributions"
           value={`R ${stats.totalContributions.toFixed(2)}`}
         />
         <StatCard
-          title="Total Payouts"
-          value={`R ${stats.totalPayouts.toFixed(2)}`}
+          title="Pending Contributions"
+          value={stats.pendingContributions.toString()}
+          className="bg-yellow-50"
+        />
+        <StatCard
+          title="Rejected Contributions"
+          value={stats.rejectedContributions.toString()}
+          className="bg-red-50"
         />
       </div>
 
@@ -326,7 +249,7 @@ const Dashboard: React.FC = () => {
           <h3 className="text-lg font-semibold mb-4">
             My Contributions by Type
           </h3>
-          <div className="flex justify-center">
+          <div className="h-[300px]">
             <PieChart width={400} height={300}>
               <Pie
                 data={contributionsByType}
@@ -339,92 +262,47 @@ const Dashboard: React.FC = () => {
                 dataKey="value"
                 label={({ name, value }) => `${name}: R ${value.toFixed(2)}`}
               >
-                {contributionsByType.map((entry, index) => (
+                {contributionsByType.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip />
               <Legend />
             </PieChart>
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">My Payouts by Status</h3>
-          <div className="flex justify-center">
-            <PieChart width={400} height={300}>
-              <Pie
-                data={payoutsByStatus}
-                cx={200}
-                cy={150}
-                innerRadius={60}
-                outerRadius={100}
-                fill="#8884d8"
-                paddingAngle={5}
-                dataKey="value"
-                label={({ name, value }) => `${name}: R ${value.toFixed(2)}`}
-              >
-                {payoutsByStatus.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-            </PieChart>
-          </div>
+          <h3 className="text-lg font-semibold mb-4">
+            My Pending Contributions
+          </h3>
+          <Table headers={["Date", "Type", "Amount"]}>
+            {pendingContributions.slice(0, 5).map((contribution) => (
+              <tr key={contribution.id}>
+                <td className="px-6 py-4">{formatDate(contribution.date)}</td>
+                <td className="px-6 py-4 capitalize">{contribution.type}</td>
+                <td className="px-6 py-4">
+                  R {contribution.amount.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </Table>
         </div>
       </div>
     </>
   );
 
+  if (loading) {
+    return <div className="p-8">Loading dashboard...</div>;
+  }
+
   return (
     <div>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Dashboard</h2>
-        {isAdmin && (
-          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-            <div className="w-full md:w-auto">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Start
-              </label>
-              <input
-                type="date"
-                value={dateRange.startDate}
-                onChange={(e) =>
-                  setDateRange((prev) => ({
-                    ...prev,
-                    startDate: e.target.value,
-                  }))
-                }
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div className="w-full md:w-auto">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                End
-              </label>
-              <input
-                type="date"
-                value={dateRange.endDate}
-                onChange={(e) =>
-                  setDateRange((prev) => ({ ...prev, endDate: e.target.value }))
-                }
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div className="self-end w-full md:w-auto">
-              <Button onClick={fetchDashboardData} className="w-full md:w-auto">
-                Update
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
       {isAdmin ? renderAdminDashboard() : renderMemberDashboard()}
     </div>

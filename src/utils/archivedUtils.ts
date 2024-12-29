@@ -1,7 +1,7 @@
-// src/utils/archiveUtils.ts
 import { collection, getDocs, query, where, addDoc, deleteDoc, doc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { Contribution, Member } from '../types';
+import type { Contribution } from '../types/contribution';
+import type {Member} from '../types'
 import type { ArchivedContribution } from '../types/archived';
 
 export const archiveMemberContributions = async (memberId: string): Promise<void> => {

@@ -1,4 +1,3 @@
-// src/hooks/useMembers.tsx
 import { useState, useEffect } from "react";
 import {
   collection,
@@ -7,13 +6,14 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  deleteDoc,
   doc,
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { toFirestoreTimestamp } from "../utils/dateUtils";
+import { deleteMemberWithAuth } from "../services/memberService";
+import { useAuth } from "./useAuth";
 import type { Member } from "../types";
-import { archiveMemberContributions } from "../utils/archivedUtils";
 
 interface UseMembersReturn {
   members: Member[];
@@ -26,6 +26,7 @@ interface UseMembersReturn {
 }
 
 export const useMembers = (): UseMembersReturn => {
+  const { userDetails } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,9 +84,13 @@ export const useMembers = (): UseMembersReturn => {
       const updateData = {
         ...member,
         ...(member.join_date && {
-          join_date: member.join_date,
+          join_date:
+            typeof member.join_date === "string"
+              ? toFirestoreTimestamp(member.join_date)
+              : member.join_date,
         }),
       };
+
       await updateDoc(memberRef, updateData);
 
       setMembers((prev) =>
@@ -98,14 +103,12 @@ export const useMembers = (): UseMembersReturn => {
   };
 
   const deleteMember = async (id: string): Promise<void> => {
+    if (!userDetails?.id) {
+      throw new Error("User not authenticated");
+    }
+
     try {
-      // First archive all contributions
-      await archiveMemberContributions(id);
-
-      // Then delete the member
-      const memberRef = doc(db, "members", id);
-      await deleteDoc(memberRef);
-
+      await deleteMemberWithAuth(id, userDetails.id);
       setMembers((prev) => prev.filter((member) => member.id !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");

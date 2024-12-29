@@ -6,8 +6,9 @@ import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
 import SearchInput from "../components/ui/SearchInput";
 import AddContributionModal from "../components/contributions/AddContributionModal";
-import { formatFirestoreDate } from "../utils/dateUtils";
-import type { Contribution } from "../types";
+import StatCard from "../components/stats/StatCard";
+import { formatDate } from "../utils/dateUtils";
+import type { Contribution } from "../types/contribution";
 
 const MyContributions: React.FC = () => {
   const { contributions, loading, addContribution } = useContributions();
@@ -24,13 +25,24 @@ const MyContributions: React.FC = () => {
         .includes(searchTerm.toLowerCase())
   );
 
+  // Calculate contribution statistics
+  const stats = {
+    approved: myContributions.filter((c) => c.status === "approved"),
+    pending: myContributions.filter((c) => c.status === "pending"),
+    rejected: myContributions.filter((c) => c.status === "rejected"),
+  };
+
+  const totalApprovedAmount = stats.approved.reduce(
+    (sum, c) => sum + c.amount,
+    0
+  );
+
   const handleAddContribution = async (
-    data: Omit<Contribution, "id" | "members">,
+    data: Omit<Contribution, "id" | "members" | "status">,
     file?: File
   ) => {
     try {
       if (userDetails) {
-        // Set the member_id to the current user's ID
         data.member_id = userDetails.id;
       }
       await addContribution(data, file);
@@ -55,6 +67,24 @@ const MyContributions: React.FC = () => {
         )}
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <StatCard
+          title="Total Approved"
+          value={`R ${totalApprovedAmount.toFixed(2)}`}
+          className="bg-green-50"
+        />
+        <StatCard
+          title="Pending Review"
+          value={stats.pending.length.toString()}
+          className="bg-yellow-50"
+        />
+        <StatCard
+          title="Rejected"
+          value={stats.rejected.length.toString()}
+          className="bg-red-50"
+        />
+      </div>
+
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 border-b">
           <SearchInput
@@ -64,10 +94,19 @@ const MyContributions: React.FC = () => {
           />
         </div>
 
-        <Table headers={["Date", "Type", "Amount", "Proof of Payment"]}>
+        <Table
+          headers={[
+            "Date",
+            "Type",
+            "Amount",
+            "Status",
+            "Notes",
+            "Proof of Payment",
+          ]}
+        >
           {loading ? (
             <tr>
-              <td colSpan={4} className="px-6 py-4 text-center">
+              <td colSpan={6} className="px-6 py-4 text-center">
                 Loading...
               </td>
             </tr>
@@ -75,13 +114,29 @@ const MyContributions: React.FC = () => {
             myContributions.map((contribution) => (
               <tr key={contribution.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {formatFirestoreDate(contribution.date)}
+                  {formatDate(contribution.date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap capitalize">
                   {contribution.type}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   R {contribution.amount.toFixed(2)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      contribution.status === "approved"
+                        ? "bg-green-100 text-green-800"
+                        : contribution.status === "rejected"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {contribution.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {contribution.review_notes || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {contribution.proof_of_payment ? (
@@ -91,7 +146,7 @@ const MyContributions: React.FC = () => {
                       rel="noopener noreferrer"
                       className="text-indigo-600 hover:text-indigo-900 flex items-center"
                     >
-                      View <ExternalLink className="ml-1 w-4 w-4" />
+                      View <ExternalLink className="ml-1 w-4 h-4" />
                     </a>
                   ) : (
                     <span className="text-gray-400">No proof attached</span>

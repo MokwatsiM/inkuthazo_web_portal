@@ -1,5 +1,5 @@
-// src/types/archived.ts
 import { Timestamp } from 'firebase/firestore';
+import type { MemberStatus } from './index';
 
 export interface ArchivedContribution {
   id: string;
@@ -9,7 +9,7 @@ export interface ArchivedContribution {
     email: string;
     phone: string;
     join_date: Timestamp;
-    status: 'active' | 'inactive';
+    status: MemberStatus;
   };
   contribution: {
     amount: number;

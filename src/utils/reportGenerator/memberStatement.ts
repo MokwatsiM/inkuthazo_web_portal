@@ -1,8 +1,8 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
-import type { MemberDetail } from '../types';
-import { formatDate } from './dateUtils';
+import type { MemberDetail } from '../../types';
+import { formatDate } from '../dateUtils';
 
 export const generateMemberStatement = (member: MemberDetail): void => {
   const doc = new jsPDF();
@@ -119,5 +119,3 @@ export const generateMemberStatement = (member: MemberDetail): void => {
   // Save the PDF
   doc.save(`${member.full_name.toLowerCase().replace(/\s+/g, '-')}-statement.pdf`);
 };
-
-export { generateReport } from './reportGenerator/index';

@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../config/firebase";
-// import {
-//   addContribution,
-//   updateContribution,
-//   deleteContribution,
-// } from "../services/contributionService";
-// import { fetchMemberDetails } from "../services/memberService";
-import type { Contribution } from "../types";
+import {
+  addContribution as addContributionService,
+  updateContribution as updateContributionService,
+  deleteContribution as deleteContributionService,
+  reviewContribution as reviewContributionService,
+} from "../services/contributionService";
 import { fetchMemberDetails } from "../services/memberService";
-import { addContribution, deleteContribution, updateContribution } from "../services/contributionService";
+import type { Contribution, ContributionStatus } from "../types/contribution";
+import { toFirestoreTimestamp } from "../utils/dateUtils";
 
 interface UseContributionsReturn {
   contributions: Contribution[];
@@ -17,15 +17,21 @@ interface UseContributionsReturn {
   error: string | null;
   refetch: () => Promise<void>;
   addContribution: (
-    contribution: Omit<Contribution, "id" | "members">,
-    file?: File
-  ) => Promise<Contribution>;
+    data: Omit<Contribution, "id" | "members" | "status">,
+    file?: File | null
+  ) => Promise<void>;
   updateContribution: (
     id: string,
-    contribution: Partial<Contribution>,
-    file?: File
+    data: Partial<Contribution>,
+    file?: File | null
   ) => Promise<void>;
   deleteContribution: (id: string, proofOfPaymentUrl?: string) => Promise<void>;
+  reviewContribution: (
+    id: string,
+    status: ContributionStatus,
+    notes: string,
+    reviewerId: string
+  ) => Promise<void>;
 }
 
 export const useContributions = (): UseContributionsReturn => {
@@ -33,7 +39,7 @@ export const useContributions = (): UseContributionsReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchContributions = async (): Promise<void> => {
+  const fetchContributions = async () => {
     try {
       setLoading(true);
       const contributionsRef = collection(db, "contributions");
@@ -64,13 +70,12 @@ export const useContributions = (): UseContributionsReturn => {
   };
 
   const handleAddContribution = async (
-    contribution: Omit<Contribution, "id" | "members">,
-    file?: File
-  ): Promise<Contribution> => {
+    data: Omit<Contribution, "id" | "members" | "status">,
+    file?: File | null
+  ): Promise<void> => {
     try {
-      const newContribution = await addContribution(contribution, file);
+      const newContribution = await addContributionService(data, file);
       setContributions((prev) => [newContribution, ...prev]);
-      return newContribution;
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
       throw err;
@@ -79,17 +84,13 @@ export const useContributions = (): UseContributionsReturn => {
 
   const handleUpdateContribution = async (
     id: string,
-    contribution: Partial<Contribution>,
-    file?: File
+    data: Partial<Contribution>,
+    file?: File | null
   ): Promise<void> => {
     try {
-      const updatedContribution = await updateContribution(
-        id,
-        contribution,
-        file
-      );
+      const updatedData = await updateContributionService(id, data, file);
       setContributions((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, ...updatedContribution } : c))
+        prev.map((c) => (c.id === id ? { ...c, ...updatedData } : c))
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -102,9 +103,34 @@ export const useContributions = (): UseContributionsReturn => {
     proofOfPaymentUrl?: string
   ): Promise<void> => {
     try {
-      await deleteContribution(id, proofOfPaymentUrl);
+      await deleteContributionService(id, proofOfPaymentUrl);
+      setContributions((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+      throw err;
+    }
+  };
+
+  const handleReviewContribution = async (
+    id: string,
+    status: ContributionStatus,
+    notes: string,
+    reviewerId: string
+  ): Promise<void> => {
+    try {
+      await reviewContributionService(id, status, notes, reviewerId);
       setContributions((prev) =>
-        prev.filter((contribution) => contribution.id !== id)
+        prev.map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                status,
+                review_notes: notes,
+                reviewed_by: reviewerId,
+                reviewed_at: toFirestoreTimestamp(new Date()),
+              }
+            : c
+        )
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -124,5 +150,6 @@ export const useContributions = (): UseContributionsReturn => {
     addContribution: handleAddContribution,
     updateContribution: handleUpdateContribution,
     deleteContribution: handleDeleteContribution,
+    reviewContribution: handleReviewContribution,
   };
 };

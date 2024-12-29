@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   BarChart2,
+  UserX,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
@@ -41,6 +42,7 @@ const Layout: React.FC = () => {
     { path: "/payouts", icon: DollarSign, label: "Payouts" },
     { path: "/analytics", icon: BarChart2, label: "Analytics" },
     { path: "/reports", icon: FileText, label: "Reports" },
+    { path: "/deletion-requests", icon: UserX, label: "Deletion Requests" },
   ];
 
   const memberMenuItems = [

@@ -20,6 +20,7 @@ import Reports from "./pages/Reports";
 import Payouts from "./pages/Payouts";
 import Analytics from "./pages/Analytics";
 import RoleBasedRoute from "./components/RoleBasedRoute";
+import DeletionRequests from "./pages/DeletionRequests";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -114,6 +115,15 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleBasedRoute allowedRoles={["admin"]}>
               <Reports />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="deletion-requests"
+          element={
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <DeletionRequests />
             </RoleBasedRoute>
           }
         />

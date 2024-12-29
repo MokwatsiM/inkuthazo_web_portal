@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { UserPlus, Trash2, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import { format } from "date-fns";
 import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
 import SearchInput from "../components/ui/SearchInput";
@@ -10,6 +9,7 @@ import DeleteMemberModal from "../components/members/DeleteMemberModal";
 import ApproveMemberModal from "../components/members/ApproveMemberModal";
 import Avatar from "../components/avatar/Avatar";
 import { useMembers } from "../hooks/useMembers";
+import { formatDate } from "../utils/dateUtils";
 import type { Member } from "../types";
 import { useAnalytics } from "../hooks/useAnalytics";
 
@@ -113,7 +113,7 @@ const Members: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap">{member.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{member.phone}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {format(member.join_date.toDate(), "dd MMM yyyy")}
+                  {formatDate(member.join_date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span

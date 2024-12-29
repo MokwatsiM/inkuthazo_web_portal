@@ -1,7 +1,9 @@
 import { Timestamp } from 'firebase/firestore';
+import type { Contribution } from './contribution';
+import type { Payout } from './payout';
 
 export type UserRole = 'admin' | 'member';
-export type MemberStatus = 'pending' | 'approved' | 'inactive' | 'active';
+export type MemberStatus = 'pending' | 'approved' | 'active' | 'inactive';
 
 export interface Dependant {
   id: string;
@@ -24,55 +26,7 @@ export interface Member {
   dependants?: Dependant[];
 }
 
-// ... rest of the types remain the same
-export interface Contribution {
-  id: string;
-  member_id: string;
-  amount: number;
-  date: Timestamp;
-  type: 'monthly' | 'registration' | 'other';
-  proof_of_payment?: string;
-  members?: {
-    full_name: string;
-  };
-}
-
-export interface Payout {
-  id: string;
-  member_id: string;
-  amount: number;
-  date: Timestamp;
-  reason: string;
-  status: 'pending' | 'approved' | 'paid';
-  members?: {
-    full_name: string;
-  };
-}
-
 export interface MemberDetail extends Member {
-  contributions: Contribution[];
-  payouts: Payout[];
-}
-
-export interface FinancialData {
-  name: string;
-  contributions: number;
-  payouts: number;
-}
-
-export type ReportType = 'contributions' | 'payouts' | 'summary';
-export type ReportPeriod = 'monthly' | 'quarterly' | 'yearly';
-
-export interface ReportData {
-  period: {
-    start: string;
-    end: string;
-  };
-  totalContributions: number;
-  totalPayouts: number;
-  balance: number;
-  contributionsCount: number;
-  payoutsCount: number;
   contributions: Contribution[];
   payouts: Payout[];
 }

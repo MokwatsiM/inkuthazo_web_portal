@@ -1,6 +1,11 @@
 import React, { useState } from "react";
-import { PlusCircle, ExternalLink, Edit2, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import {
+  PlusCircle,
+  ExternalLink,
+  Edit2,
+  Trash2,
+  CheckCircle,
+} from "lucide-react";
 import { useContributions } from "../hooks/useContributions";
 import { useAuth } from "../hooks/useAuth";
 import Button from "../components/ui/Button";
@@ -10,7 +15,9 @@ import MonthFilter from "../components/contributions/MonthFilter";
 import AddContributionModal from "../components/contributions/AddContributionModal";
 import EditContributionModal from "../components/contributions/EditContributionModal";
 import DeleteContributionModal from "../components/contributions/DeleteContributionModal";
-import type { Contribution } from "../types";
+import ReviewContributionModal from "../components/contributions/ReviewContributionModal";
+import { formatDate } from "../utils/dateUtils";
+import type { Contribution, ContributionStatus } from "../types/contribution";
 
 const Contributions: React.FC = () => {
   const {
@@ -19,6 +26,7 @@ const Contributions: React.FC = () => {
     addContribution,
     updateContribution,
     deleteContribution,
+    reviewContribution,
   } = useContributions();
   const { userDetails, isAdmin } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,9 +40,10 @@ const Contributions: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
-  const [contributionToDelete, setContributionToDelete] =
+  const [contributionsToDelete, setContributionToDelete] =
     useState<Contribution | null>(null);
 
   const filteredContributions = contributions.filter((contribution) => {
@@ -46,7 +55,6 @@ const Contributions: React.FC = () => {
         ? contribution.date.toDate() >= dateRange.start &&
           contribution.date.toDate() <= dateRange.end
         : true;
-
     if (isAdmin) {
       return matchesSearch && matchesDate;
     } else {
@@ -59,12 +67,11 @@ const Contributions: React.FC = () => {
   });
 
   const handleAddContribution = async (
-    data: Omit<Contribution, "id" | "members">,
+    data: Omit<Contribution, "id" | "members" | "status">,
     file?: File
   ) => {
     try {
       if (!isAdmin && userDetails) {
-        // For members, automatically set their own member_id
         data.member_id = userDetails.id;
       }
       await addContribution(data, file);
@@ -74,7 +81,7 @@ const Contributions: React.FC = () => {
     }
   };
 
-  const handleEditContribution = async (
+  const handleUpdateContribution = async (
     id: string,
     data: Partial<Contribution>,
     file?: File
@@ -88,43 +95,42 @@ const Contributions: React.FC = () => {
     }
   };
 
-  const openEditModal = (contribution: Contribution) => {
-    setSelectedContribution(contribution);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDeleteClick = (contribution: Contribution) => {
-    setContributionToDelete(contribution);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (contributionToDelete) {
+  const handleDeleteContribution = async () => {
+    if (selectedContribution) {
       try {
         await deleteContribution(
-          contributionToDelete.id,
-          contributionToDelete.proof_of_payment
+          selectedContribution.id,
+          selectedContribution.proof_of_payment
         );
         setIsDeleteModalOpen(false);
-        setContributionToDelete(null);
+        setSelectedContribution(null);
       } catch (error) {
         console.error("Error deleting contribution:", error);
       }
     }
   };
 
-  const handleMonthChange = (startDate: Date | null, endDate: Date | null) => {
-    setDateRange({ start: startDate, end: endDate });
+  const handleReviewContribution = async (
+    id: string,
+    status: ContributionStatus,
+    notes: string
+  ) => {
+    if (!userDetails?.id) return;
+    try {
+      await reviewContribution(id, status, notes, userDetails.id);
+      setIsReviewModalOpen(false);
+      setSelectedContribution(null);
+    } catch (error) {
+      console.error("Error reviewing contribution:", error);
+    }
   };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">
-          {isAdmin ? "Contributions" : "My Contributions"}
-        </h2>
+        <h2 className="text-2xl font-bold">Contributions</h2>
         <Button icon={PlusCircle} onClick={() => setIsAddModalOpen(true)}>
-          {isAdmin ? "Record Contribution" : "Add My Contribution"}
+          Record Contribution
         </Button>
       </div>
 
@@ -136,7 +142,9 @@ const Contributions: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <MonthFilter onChange={handleMonthChange} />
+            <MonthFilter
+              onChange={(start, end) => setDateRange({ start, end })}
+            />
           </div>
         </div>
 
@@ -146,13 +154,15 @@ const Contributions: React.FC = () => {
             "Member",
             "Type",
             "Amount",
+            "Status",
             "Proof of Payment",
             ...(isAdmin ? ["Actions"] : []),
+            "Actions",
           ]}
         >
           {loading ? (
             <tr>
-              <td colSpan={isAdmin ? 6 : 5} className="px-6 py-4 text-center">
+              <td colSpan={isAdmin ? 8 : 7} className="px-6 py-4 text-center">
                 Loading...
               </td>
             </tr>
@@ -160,7 +170,7 @@ const Contributions: React.FC = () => {
             filteredContributions.map((contribution) => (
               <tr key={contribution.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {format(contribution.date.toDate(), "dd MMM yyyy")}
+                  {formatDate(contribution.date.toDate())}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {contribution.members?.full_name}
@@ -170,6 +180,19 @@ const Contributions: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   R {contribution.amount.toFixed(2)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      contribution.status === "approved"
+                        ? "bg-green-100 text-green-800"
+                        : contribution.status === "rejected"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {contribution.status}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {contribution.proof_of_payment ? (
@@ -185,26 +208,42 @@ const Contributions: React.FC = () => {
                     <span className="text-gray-400">No proof attached</span>
                   )}
                 </td>
-                {isAdmin && (
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center space-x-2">
+                    {contribution.status === "pending" && (
                       <button
-                        onClick={() => openEditModal(contribution)}
-                        className="p-1 text-blue-600 hover:text-blue-900 transition-colors"
-                        title="Edit"
+                        onClick={() => {
+                          setSelectedContribution(contribution);
+                          setIsReviewModalOpen(true);
+                        }}
+                        className="p-1 text-green-600 hover:text-green-900 transition-colors"
+                        title="Review"
                       >
-                        <Edit2 className="h-4 w-4" />
+                        <CheckCircle className="h-4 w-4" />
                       </button>
-                      <button
-                        onClick={() => handleDeleteClick(contribution)}
-                        className="p-1 text-red-600 hover:text-red-900 transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                )}
+                    )}
+                    <button
+                      onClick={() => {
+                        setSelectedContribution(contribution);
+                        setIsEditModalOpen(true);
+                      }}
+                      className="p-1 text-blue-600 hover:text-blue-900 transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedContribution(contribution);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      className="p-1 text-red-600 hover:text-red-900 transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))
           )}
@@ -219,27 +258,37 @@ const Contributions: React.FC = () => {
       />
 
       {selectedContribution && (
-        <EditContributionModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setSelectedContribution(null);
-          }}
-          onSubmit={handleEditContribution}
-          contribution={selectedContribution}
-        />
-      )}
+        <>
+          <EditContributionModal
+            isOpen={isEditModalOpen}
+            onClose={() => {
+              setIsEditModalOpen(false);
+              setSelectedContribution(null);
+            }}
+            onSubmit={handleUpdateContribution}
+            contribution={selectedContribution}
+          />
 
-      {contributionToDelete && (
-        <DeleteContributionModal
-          isOpen={isDeleteModalOpen}
-          onClose={() => {
-            setIsDeleteModalOpen(false);
-            setContributionToDelete(null);
-          }}
-          onConfirm={handleDeleteConfirm}
-          contribution={contributionToDelete}
-        />
+          <DeleteContributionModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => {
+              setIsDeleteModalOpen(false);
+              setSelectedContribution(null);
+            }}
+            onConfirm={handleDeleteContribution}
+            contribution={selectedContribution}
+          />
+
+          <ReviewContributionModal
+            isOpen={isReviewModalOpen}
+            onClose={() => {
+              setIsReviewModalOpen(false);
+              setSelectedContribution(null);
+            }}
+            onSubmit={handleReviewContribution}
+            contribution={selectedContribution}
+          />
+        </>
       )}
     </div>
   );

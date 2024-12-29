@@ -149,17 +149,19 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <AnalyticsProvider>
-          <BrowserRouter>
-            <NotificationContainer />
-            <ConnectionStatus />
-            <AppRoutes />
-          </BrowserRouter>
-        </AnalyticsProvider>
-      </NotificationProvider>
-    </AuthProvider>
+    <NotificationProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <AnalyticsProvider>
+            <BrowserRouter>
+              <NotificationContainer />
+              <ConnectionStatus />
+              <AppRoutes />
+            </BrowserRouter>
+          </AnalyticsProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </NotificationProvider>
   );
 };
 

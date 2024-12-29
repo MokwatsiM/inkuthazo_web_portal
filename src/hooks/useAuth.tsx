@@ -11,6 +11,7 @@ import {
 import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
 import type { Member } from "../types";
+import { useNotifications } from "./useNotifications";
 
 interface AuthContextType {
   user: User | null;
@@ -39,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<Member | null>(null);
   const [loading, setLoading] = useState(true);
+  const { showError, showSuccess } = useNotifications();
 
   const fetchUserDetails = async (user: User) => {
     try {
@@ -53,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error) {
       console.error("Error fetching user details:", error);
+      showError("Failed to fetch user details. Please try again later.");
       setUserDetails(null);
     }
   };
@@ -72,8 +75,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const signIn = async (email: string, password: string): Promise<void> => {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    await fetchUserDetails(result.user);
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      await fetchUserDetails(result.user);
+      // trackUserSignIn("email");
+      showSuccess("Successfully signed in");
+    } catch (error) {
+      console.error("Sign in error:", error);
+      showError((error as string) || "Failed to sign in");
+      throw error;
+    }
   };
 
   const signUp = async (
@@ -108,19 +119,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Fetch the newly created user details
       await fetchUserDetails(result.user);
+      showSuccess("Account created successfully. Please verify your email.");
     } catch (error) {
       console.error("Error during signup:", error);
       // If there's an error, attempt to delete the auth user if it was created
       if (auth.currentUser) {
         await auth.currentUser.delete();
       }
+      showError((error as string) || "Failed to create account");
       throw error;
     }
   };
 
   const signOut = async (): Promise<void> => {
-    await firebaseSignOut(auth);
-    setUserDetails(null);
+    try {
+      await firebaseSignOut(auth);
+      setUserDetails(null);
+      showSuccess("Successfully signed out");
+    } catch (error) {
+      console.error("Sign out error:", error);
+      showError((error as string) || "Failed to sign out");
+      throw error;
+    }
   };
 
   const refreshUserDetails = async (): Promise<void> => {
@@ -131,14 +151,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const resendVerificationEmail = async (): Promise<void> => {
     if (user) {
-      await sendEmailVerification(user);
+      try {
+        await sendEmailVerification(user);
+        showSuccess("Verification email sent");
+      } catch (error) {
+        showError((error as string) || "Failed to send verification email");
+        throw error;
+      }
     }
   };
-
   const resetPassword = async (email: string): Promise<void> => {
-    await sendPasswordResetEmail(auth, email);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      showSuccess("Password reset email sent");
+    } catch (error) {
+      showError((error as string) || "Failed to send password reset email");
+      throw error;
+    }
   };
-
   const value = {
     user,
     userDetails,

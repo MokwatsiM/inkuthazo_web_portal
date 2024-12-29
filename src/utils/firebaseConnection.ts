@@ -1,4 +1,4 @@
-import { enableNetwork, disableNetwork, getFirestore } from 'firebase/firestore';
+import { enableNetwork, disableNetwork } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useNotifications } from '../hooks/useNotifications';
 

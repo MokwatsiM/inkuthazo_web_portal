@@ -3,7 +3,7 @@ import { Timestamp } from "firebase/firestore";
 import { useMembers } from "../../hooks/useMembers";
 import Button from "../ui/Button";
 import { Upload } from "lucide-react";
-import type { Contribution } from "../../types";
+import type { Contribution } from "../../types/contribution";
 
 interface EditContributionModalProps {
   isOpen: boolean;

@@ -4,7 +4,7 @@ import React, {
   useReducer,
   useCallback,
 } from "react";
-import type { Notification, NotificationType } from "../types/notification";
+import type { Notification } from "../types/notification";
 
 interface NotificationContextType {
   notifications: Notification[];

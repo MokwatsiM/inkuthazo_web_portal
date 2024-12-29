@@ -19,7 +19,7 @@ interface DeletionRequest {
   id: string;
   member_id: string;
   requested_by: string;
-  requested_at: any;
+  requested_at: Timestamp;
   status: "pending" | "completed" | "rejected";
   member?: Member;
   requestedBy?: Member;

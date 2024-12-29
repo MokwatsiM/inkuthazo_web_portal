@@ -43,8 +43,8 @@ const Contributions: React.FC = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
-  const [contributionsToDelete, setContributionToDelete] =
-    useState<Contribution | null>(null);
+  // const [contributionsToDelete, setContributionToDelete] =
+  //   useState<Contribution | null>(null);
 
   const filteredContributions = contributions.filter((contribution) => {
     const matchesSearch = contribution.members?.full_name

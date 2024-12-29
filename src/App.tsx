@@ -43,7 +43,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
 };
 
 const AppRoutes: React.FC = () => {
-  const { user, userDetails } = useAuth();
+  const { user } = useAuth();
 
   return (
     <Routes>

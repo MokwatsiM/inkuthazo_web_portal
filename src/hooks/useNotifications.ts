@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNotification } from '../context/NotificationContext';
+import { createNotification } from '../utils/notification';
 import type { NotificationType } from '../types/notification';
 
 export const useNotifications = () => {
@@ -11,7 +12,8 @@ export const useNotifications = () => {
     title?: string,
     duration?: number
   ) => {
-    addNotification({ message, type, title, duration });
+    const notification = createNotification(message, type, title, duration);
+    addNotification(notification);
   }, [addNotification]);
 
   const showSuccess = useCallback((message: string, title?: string) => {

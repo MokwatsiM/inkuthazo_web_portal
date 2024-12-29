@@ -4,6 +4,8 @@ import React, {
   useReducer,
   useCallback,
 } from "react";
+import { notificationReducer } from "../reducers/notificationReducers";
+import { generateNotificationId } from "../utils/notification";
 import type { Notification } from "../types/notification";
 
 interface NotificationContextType {
@@ -12,27 +14,9 @@ interface NotificationContextType {
   removeNotification: (id: string) => void;
 }
 
-type NotificationAction =
-  | { type: "ADD_NOTIFICATION"; payload: Notification }
-  | { type: "REMOVE_NOTIFICATION"; payload: string };
-
 const NotificationContext = createContext<NotificationContextType | undefined>(
   undefined
 );
-
-const notificationReducer = (
-  state: Notification[],
-  action: NotificationAction
-): Notification[] => {
-  switch (action.type) {
-    case "ADD_NOTIFICATION":
-      return [...state, action.payload];
-    case "REMOVE_NOTIFICATION":
-      return state.filter((notification) => notification.id !== action.payload);
-    default:
-      return state;
-  }
-};
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -41,19 +25,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const addNotification = useCallback(
     (notification: Omit<Notification, "id">) => {
-      const id = Math.random().toString(36).substring(2, 9);
-      const newNotification = {
-        ...notification,
-        id,
-        duration: notification.duration || 5000, // Default duration of 5 seconds
-      };
+      const id = generateNotificationId();
+      const newNotification = { ...notification, id };
 
       dispatch({ type: "ADD_NOTIFICATION", payload: newNotification });
 
-      // Auto-remove notification after duration
       setTimeout(() => {
         dispatch({ type: "REMOVE_NOTIFICATION", payload: id });
-      }, newNotification.duration);
+      }, notification.duration);
     },
     []
   );

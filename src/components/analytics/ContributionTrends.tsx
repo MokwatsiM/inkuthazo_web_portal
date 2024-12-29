@@ -10,7 +10,7 @@ import {
   Legend,
 } from "recharts";
 import { format } from "date-fns";
-import type { Contribution } from "../../types";
+import type { Contribution } from "../../types/contribution";
 
 interface ContributionTrendsProps {
   contributions: Contribution[];

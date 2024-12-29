@@ -151,7 +151,6 @@ const App: React.FC = () => {
   return (
     <NotificationProvider>
       <AuthProvider>
-        <NotificationProvider>
           <AnalyticsProvider>
             <BrowserRouter>
               <NotificationContainer />
@@ -159,7 +158,6 @@ const App: React.FC = () => {
               <AppRoutes />
             </BrowserRouter>
           </AnalyticsProvider>
-        </NotificationProvider>
       </AuthProvider>
     </NotificationProvider>
   );

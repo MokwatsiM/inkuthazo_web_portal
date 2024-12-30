@@ -66,5 +66,5 @@ export const generateInvoicePDF = (member: Member, invoice: InvoiceDetails): voi
   );
 
   // Save the PDF
-  doc.save(`${member.full_name.toLowerCase().replace(/\s+/g, '-')}-invoice-${format(today, 'yyyy-MM')}.pdf`);
+  doc.save(`${member.full_name.toLowerCase().replace(/\s+/g, '-')}-invoice-${format(today, 'yyyy-MM-dd HH:mm')}.pdf`);
 };

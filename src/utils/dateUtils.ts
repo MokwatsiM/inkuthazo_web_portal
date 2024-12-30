@@ -41,7 +41,7 @@ export const toFirestoreTimestamp = (date: Date | string | Timestamp | undefined
   }
 };
 
-export const isValidDate = (date: any): boolean => {
+export const isValidDate = (date: unknown): boolean => {
   if (!date) return false;
   try {
     if (date instanceof Timestamp) return true;

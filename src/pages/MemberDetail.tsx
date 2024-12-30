@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Download, Edit } from "lucide-react";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useMembers } from "../hooks/useMembers";
@@ -13,8 +20,11 @@ import MemberStats from "../components/members/MemberStats";
 import ContributionsHistory from "../components/members/ContributionsHistoryStory";
 import PayoutsHistory from "../components/members/PayoutsHistoryStory";
 import DependantsSection from "../components/dependants/DependantsSection";
+import InvoiceGenerator from "../components/invoice/InvoiceGenerator";
 import { generateMemberStatement } from "../utils/reportGenerator";
 import type { MemberDetail as MemberDetailType } from "../types";
+import type { Contribution } from "../types/contribution";
+import type { Payout } from "../types/payout";
 
 const MemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,32 +36,46 @@ const MemberDetail: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!id) return;
-
-    if (!isAdmin && userDetails?.id !== id) {
-      navigate("/");
-      return;
-    }
-
-    fetchMemberDetails();
-  }, [id, isAdmin, userDetails]);
-
-  const fetchMemberDetails = async () => {
+  const fetchMemberData = async () => {
     if (!id) return;
 
     try {
       setLoading(true);
       setError(null);
 
+      // Fetch member details
       const memberDoc = await getDoc(doc(db, "members", id));
       if (!memberDoc.exists()) {
         throw new Error("Member not found");
       }
 
+      // Fetch contributions
+      const contributionsRef = collection(db, "contributions");
+      const contributionsQuery = query(
+        contributionsRef,
+        where("member_id", "==", id)
+      );
+      const contributionsSnapshot = await getDocs(contributionsQuery);
+      const contributions = contributionsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Contribution[];
+
+      // Fetch payouts
+      const payoutsRef = collection(db, "payouts");
+      const payoutsQuery = query(payoutsRef, where("member_id", "==", id));
+      const payoutsSnapshot = await getDocs(payoutsQuery);
+      const payouts = payoutsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Payout[];
+
+      // Combine all data
       setMember({
         id: memberDoc.id,
         ...memberDoc.data(),
+        contributions,
+        payouts,
       } as MemberDetailType);
     } catch (error) {
       console.error("Error fetching member details:", error);
@@ -61,12 +85,23 @@ const MemberDetail: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (!id) return;
+
+    if (!isAdmin && userDetails?.id !== id) {
+      navigate("/");
+      return;
+    }
+
+    fetchMemberData();
+  }, [id, isAdmin, userDetails]);
+
   const handleUpdateMember = async (data: Partial<MemberDetailType>) => {
     if (!member) return;
 
     try {
       await updateMember(member.id, data);
-      await fetchMemberDetails();
+      await fetchMemberData();
       setIsEditModalOpen(false);
     } catch (error) {
       console.error("Error updating member:", error);
@@ -110,6 +145,10 @@ const MemberDetail: React.FC = () => {
           >
             Generate Statement
           </Button>
+          <InvoiceGenerator
+            member={member}
+            contributions={member.contributions}
+          />
         </div>
       </div>
 
@@ -124,7 +163,7 @@ const MemberDetail: React.FC = () => {
         </div>
 
         <div className="mt-8">
-          <DependantsSection member={member} onUpdate={fetchMemberDetails} />
+          <DependantsSection member={member} onUpdate={fetchMemberData} />
         </div>
 
         <div className="space-y-6 mt-8">

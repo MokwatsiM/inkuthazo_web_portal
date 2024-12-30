@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Download, Edit } from "lucide-react";
 import {
   doc,
   getDoc,
@@ -13,18 +12,19 @@ import { db } from "../config/firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useMembers } from "../hooks/useMembers";
 import { uploadAvatar } from "../services/avatarService";
-import Button from "../components/ui/Button";
 import EditMemberModal from "../components/members/EditMemberModal";
 import MemberProfile from "../components/members/MemberProfile";
 import MemberStats from "../components/members/MemberStats";
 import ContributionsHistory from "../components/members/ContributionsHistoryStory";
 import PayoutsHistory from "../components/members/PayoutsHistoryStory";
 import DependantsSection from "../components/dependants/DependantsSection";
-import InvoiceGenerator from "../components/invoice/InvoiceGenerator";
 import { generateMemberStatement } from "../utils/reportGenerator";
 import type { MemberDetail as MemberDetailType } from "../types";
 import type { Contribution } from "../types/contribution";
 import type { Payout } from "../types/payout";
+import MemberActions from "../components/members/MemberActions";
+import { generateInvoicePDF } from "../utils/invoice/generator";
+import { generateInvoiceDetails } from "../utils/invoice";
 
 const MemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +35,16 @@ const MemberDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleGenerateInvoice = () => {
+    if (member) {
+      const invoiceDetails = generateInvoiceDetails(
+        member.contributions,
+        member.join_date
+      );
+      generateInvoicePDF(member, invoiceDetails);
+    }
+  };
 
   const fetchMemberData = async () => {
     if (!id) return;
@@ -135,21 +145,12 @@ const MemberDetail: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Member Details</h2>
-        <div className="flex space-x-2">
-          <Button icon={Edit} onClick={() => setIsEditModalOpen(true)}>
-            Edit Member
-          </Button>
-          <Button
-            icon={Download}
-            onClick={() => generateMemberStatement(member)}
-          >
-            Generate Statement
-          </Button>
-          <InvoiceGenerator
-            member={member}
-            contributions={member.contributions}
-          />
-        </div>
+        <MemberActions
+          member={member}
+          onEdit={() => setIsEditModalOpen(true)}
+          onGenerateStatement={() => generateMemberStatement(member)}
+          onGenerateInvoice={handleGenerateInvoice}
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">

@@ -1,27 +1,30 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
+import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getStorage } from 'firebase-admin/storage';
 
-admin.initializeApp();
+initializeApp();
 
 interface FirebaseError extends Error {
   code?: string;
   message: string;
 }
 
+// Handle deletion request updates
 export const onDeletionRequestUpdated = functions.firestore
   .document('deletion_requests/{requestId}')
   .onUpdate(async (change) => {
-    const newData = change.after.data();
-    const previousData = change.before.data();
+    const beforeData = change.before.data();
+    const afterData = change.after.data();
 
     // Only proceed if status changed from 'pending' to 'completed'
-    if (previousData.status === 'pending' && newData.status === 'completed') {
+    if (beforeData.status === 'pending' && afterData.status === 'completed') {
       try {
         // Get the member's auth UID
-        const memberId = newData.member_id;
+        const memberId = afterData.member_id;
 
         // Delete the user's auth account
-        await admin.auth().deleteUser(memberId);
+        await getAuth().deleteUser(memberId);
 
         // Log the successful deletion
         functions.logger.info(`Successfully deleted auth user ${memberId}`);
@@ -29,8 +32,9 @@ export const onDeletionRequestUpdated = functions.firestore
         // Update the deletion request with auth deletion status
         await change.after.ref.update({
           auth_deleted: true,
-          auth_deleted_at: admin.firestore.FieldValue.serverTimestamp()
+          auth_deleted_at: new Date()
         });
+        cleanupDeletedUserData;
       } catch (error) {
         const firebaseError = error as FirebaseError;
         const errorMessage = firebaseError.message || 'Unknown error occurred';
@@ -45,18 +49,21 @@ export const onDeletionRequestUpdated = functions.firestore
     }
   });
 
-// Optional: Add a function to clean up user data after successful deletion
-export const cleanupDeletedUserData = functions.auth
-  .user()
-  .onDelete(async (user) => {
+// Clean up user data after deletion
+export const cleanupDeletedUserData = functions.auth.user()
+  .onDelete(async (user:any) => {
     try {
       // Delete user's storage files
-      const bucket = admin.storage().bucket();
+      const bucket = getStorage().bucket();
       await bucket.deleteFiles({
         prefix: `avatars/${user.uid}/`
       });
       await bucket.deleteFiles({
         prefix: `dependants/${user.uid}/`
+      });
+
+        await bucket.deleteFiles({
+        prefix: `proof_of_payments/${user.uid}/`
       });
 
       functions.logger.info(`Successfully cleaned up data for user ${user.uid}`);

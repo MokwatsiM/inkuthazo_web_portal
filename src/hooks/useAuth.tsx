@@ -12,6 +12,7 @@ import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
 import type { Member } from "../types";
 import { useNotifications } from "./useNotifications";
+import { FirebaseError } from "firebase/app";
 
 interface AuthContextType {
   user: User | null;
@@ -80,9 +81,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await fetchUserDetails(result.user);
       // trackUserSignIn("email");
       showSuccess("Successfully signed in");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Sign in error:", error);
-      showError((error as string) || "Failed to sign in");
+      if (error instanceof FirebaseError) {
+        showError(error.message || "Failed to sign in");
+      }
       throw error;
     }
   };
@@ -120,14 +123,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Fetch the newly created user details
       await fetchUserDetails(result.user);
       showSuccess("Account created successfully. Please verify your email.");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error during signup:", error);
       // If there's an error, attempt to delete the auth user if it was created
       if (auth.currentUser) {
         await auth.currentUser.delete();
       }
-      showError((error as string) || "Failed to create account");
-      throw error;
+      if (error instanceof FirebaseError) {
+        showError(error.message || "Failed to create account");
+        throw error;
+      } else {
+        throw error;
+      }
     }
   };
 
@@ -136,10 +143,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await firebaseSignOut(auth);
       setUserDetails(null);
       showSuccess("Successfully signed out");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Sign out error:", error);
-      showError((error as string) || "Failed to sign out");
-      throw error;
+      if (error instanceof FirebaseError) {
+        showError(error.message || "Failed to sign out");
+        throw error;
+      } else {
+        throw error;
+      }
     }
   };
 
@@ -154,9 +165,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         await sendEmailVerification(user);
         showSuccess("Verification email sent");
-      } catch (error) {
-        showError((error as string) || "Failed to send verification email");
-        throw error;
+      } catch (error: unknown) {
+        if (error instanceof FirebaseError) {
+          showError(error.message || "Failed to send verification email");
+          throw error;
+        } else {
+          throw error;
+        }
       }
     }
   };
@@ -164,9 +179,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await sendPasswordResetEmail(auth, email);
       showSuccess("Password reset email sent");
-    } catch (error) {
-      showError((error as string) || "Failed to send password reset email");
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof FirebaseError) {
+        showError(error.message || "Failed to send password reset email");
+
+        throw error;
+      } else {
+        throw error;
+      }
     }
   };
   const value = {

@@ -14,6 +14,7 @@ import { deleteMember } from "../services/deletionService";
 import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
 import type { Member } from "../types";
+import { useNotifications } from "../hooks/useNotifications";
 
 interface DeletionRequest {
   id: string;
@@ -35,6 +36,7 @@ const DeletionRequests: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
+  const { showError, showSuccess } = useNotifications();
 
   const fetchRequests = async () => {
     try {
@@ -101,7 +103,13 @@ const DeletionRequests: React.FC = () => {
 
       // Refresh the list
       await fetchRequests();
+      showSuccess("Deletion request for member approved!");
     } catch (err) {
+      showError(
+        err instanceof Error
+          ? err.message
+          : "Failed to process deletion request"
+      );
       setError(
         err instanceof Error
           ? err.message
@@ -125,7 +133,13 @@ const DeletionRequests: React.FC = () => {
         rejected_at: new Date(),
       });
       await fetchRequests();
+      showSuccess("Deletion request rejected!");
     } catch (err) {
+      showError(
+        err instanceof Error
+          ? err.message
+          : "Failed to process deletion request"
+      );
       setError(
         err instanceof Error ? err.message : "Failed to reject deletion request"
       );

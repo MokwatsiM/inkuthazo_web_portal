@@ -24,15 +24,16 @@ export const generateInvoicePDF = (member: Member, invoice: InvoiceDetails): voi
   doc.text(member.phone, 20, 90);
   
   // Unpaid Months Table
-  const tableData = invoice.unpaidMonths.map(month => [
+  const tableData = invoice.unpaidMonths.map(({ month, amount, isLate }) => [
     format(month, 'MMMM yyyy'),
     'Monthly Contribution',
-    `R ${invoice.monthlyFee.toFixed(2)}`
+    isLate ? `R ${invoice.monthlyFee.toFixed(2)} + R ${invoice.latePenalty.toFixed(2)} (Late Fee)` : `R ${amount.toFixed(2)}`,
+    `R ${amount.toFixed(2)}`
   ]);
 
   autoTable(doc, {
     startY: 100,
-    head: [['Month', 'Description', 'Amount']],
+    head: [['Month', 'Description', 'Breakdown', 'Total']],
     body: tableData,
     theme: 'striped',
     headStyles: { fillColor: [79, 70, 229] }
@@ -46,12 +47,15 @@ export const generateInvoicePDF = (member: Member, invoice: InvoiceDetails): voi
   doc.text('Payment Instructions:', 20, finalY + 20);
   doc.setFontSize(10);
   doc.text([
-    'Please make sure payment is not later than the 7th of every month',
+    'Please make payment within 7 days',
     'Bank: First National Bank',
+    'Account Name: Inkuthazo Burial Club',
     'Account Type: Cheque',
     'Branch code: 250655',
     'Account: 63050597279',
-    'Reference:'+ member.full_name
+    'Reference:'+ member.full_name,
+    '',
+    'Note: A late payment penalty of R50 is applied for payments after the 7th of each month.'
   ], 20, finalY + 30);
   
   // Footer

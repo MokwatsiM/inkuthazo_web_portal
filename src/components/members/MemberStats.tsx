@@ -18,9 +18,9 @@ const MemberStats: React.FC<MemberStatsProps> = ({
   const pendingContributions = contributions.filter(
     (c) => c.status === "pending"
   );
-  const rejectedContributions = contributions.filter(
-    (c) => c.status === "rejected"
-  );
+  // const rejectedContributions = contributions.filter(
+  //   (c) => c.status === "rejected"
+  // );
 
   const totalApprovedAmount = approvedContributions.reduce(
     (sum, c) => sum + c.amount,

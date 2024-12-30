@@ -1,7 +1,6 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { storage, db } from '../config/firebase';
-import { Timestamp } from 'firebase/firestore';
 import type { Dependant } from '../types';
 
 export const uploadDependantDocument = async (

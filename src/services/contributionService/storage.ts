@@ -1,8 +1,8 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../../config/firebase';
 
-export const uploadProofOfPayment = async (file: File): Promise<string> => {
-  const storageRef = ref(storage, `proof_of_payments/${Date.now()}_${file.name}`);
+export const uploadProofOfPayment = async (file: File,memberId: string): Promise<string> => {
+  const storageRef = ref(storage, `proof_of_payments/${memberId}/${Date.now()}_${file.name}`);
   const snapshot = await uploadBytes(storageRef, file);
   return getDownloadURL(snapshot.ref);
 };

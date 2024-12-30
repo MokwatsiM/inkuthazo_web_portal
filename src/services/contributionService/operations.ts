@@ -47,7 +47,7 @@ export const addContribution = async (
   let proof_of_payment: string | undefined;
 
   if (file) {
-    proof_of_payment = await uploadProofOfPayment(file);
+    proof_of_payment = await uploadProofOfPayment(file,contribution.member_id);
   }
 
   const contributionsRef = collection(db, 'contributions');
@@ -81,7 +81,7 @@ export const updateContribution = async (
   let proof_of_payment = contribution.proof_of_payment;
 
   if (file) {
-    proof_of_payment = await uploadProofOfPayment(file);
+    proof_of_payment = await uploadProofOfPayment(file,contribution.member_id!);
   }
 
   const updateData = {

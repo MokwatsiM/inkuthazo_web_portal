@@ -9,8 +9,10 @@ import AddContributionModal from "../components/contributions/AddContributionMod
 import StatCard from "../components/stats/StatCard";
 import { formatDate } from "../utils/dateUtils";
 import type { Contribution } from "../types/contribution";
+import { useNotifications } from "../hooks/useNotifications";
 
 const MyContributions: React.FC = () => {
+  const { showError } = useNotifications();
   const { contributions, loading, addContribution } = useContributions();
   const { userDetails, isApproved } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,6 +50,9 @@ const MyContributions: React.FC = () => {
       await addContribution(data, file);
       setIsAddModalOpen(false);
     } catch (error) {
+      showError(
+        error instanceof Error ? error.message : "Failed to add contribution"
+      );
       console.error("Error adding contribution:", error);
     }
   };

@@ -1,16 +1,21 @@
 import { 
-  collection, 
+ collection, 
   addDoc, 
   updateDoc,
   deleteDoc,
   doc,
   getDoc,
-  Timestamp
+  query,
+  where,
+  getDocs,
+  Timestamp 
 } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { toFirestoreTimestamp } from '../../utils/dateUtils';
 import { uploadProofOfPayment, deleteProofOfPayment } from './storage';
 import type { Contribution, ContributionStatus } from '../../types/contribution';
+import { hasDuplicateContribution } from '../../utils/contributionValidation';
+
 
 const getMemberName = async (memberId: string): Promise<string> => {
   try {
@@ -44,13 +49,27 @@ export const addContribution = async (
   contribution: Omit<Contribution, 'id' | 'members' | 'status'>,
   file?: File | null
 ): Promise<Contribution> => {
+ const contributionsRef = collection(db, 'contributions');
+  const existingContributions = await getDocs(
+    query(contributionsRef, where('member_id', '==', contribution.member_id))
+  );
+
+  const contributions = existingContributions.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Contribution[];
+
+  if (hasDuplicateContribution(contributions, contribution)) {
+    throw new Error(`A ${contribution.type} contribution has already been recorded for this month`);
+  }
+
   let proof_of_payment: string | undefined;
 
   if (file) {
     proof_of_payment = await uploadProofOfPayment(file,contribution.member_id);
   }
 
-  const contributionsRef = collection(db, 'contributions');
+  // const contributionsRef = collection(db, 'contributions');
   const docRef = await addDoc(contributionsRef, {
     ...contribution,
     date: toFirestoreTimestamp(contribution.date),

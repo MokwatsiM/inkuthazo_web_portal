@@ -3,6 +3,7 @@ import { Upload } from "lucide-react";
 import Button from "../ui/Button";
 import type { Contribution } from "../../types/contribution";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
+import { useNotifications } from "../../hooks/useNotifications";
 
 interface AddContributionModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
   onSubmit,
   isAdmin,
 }) => {
+  const { showError } = useNotifications();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     member_id: "",
@@ -53,7 +55,9 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
       });
       setSelectedFile(undefined);
     } catch (error) {
-      console.error("Error adding contribution:", error);
+      showError(
+        error instanceof Error ? error.message : "Failed to add contribution"
+      );
     }
   };
 

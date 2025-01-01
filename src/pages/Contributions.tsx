@@ -18,6 +18,8 @@ import DeleteContributionModal from "../components/contributions/DeleteContribut
 import ReviewContributionModal from "../components/contributions/ReviewContributionModal";
 import { formatDate } from "../utils/dateUtils";
 import type { Contribution, ContributionStatus } from "../types/contribution";
+import { useMembers } from '../hooks/useMembers'; // Add this import
+
 
 const Contributions: React.FC = () => {
   const {
@@ -43,6 +45,7 @@ const Contributions: React.FC = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
+  const { members } = useMembers();
   // const [contributionsToDelete, setContributionToDelete] =
   //   useState<Contribution | null>(null);
 
@@ -255,6 +258,7 @@ const Contributions: React.FC = () => {
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddContribution}
         isAdmin={isAdmin}
+         members={members} 
       />
 
       {selectedContribution && (

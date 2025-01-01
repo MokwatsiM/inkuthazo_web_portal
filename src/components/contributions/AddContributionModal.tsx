@@ -4,6 +4,7 @@ import Button from "../ui/Button";
 import type { Contribution } from "../../types/contribution";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
 import { useNotifications } from "../../hooks/useNotifications";
+import { Member } from "../../types";
 
 interface AddContributionModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface AddContributionModalProps {
     file?: File
   ) => Promise<void>;
   isAdmin: boolean;
+  members?: Member[];
 }
 
 const AddContributionModal: React.FC<AddContributionModalProps> = ({
@@ -20,6 +22,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
   onClose,
   onSubmit,
   isAdmin,
+  members,
 }) => {
   const { showError } = useNotifications();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,7 +76,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
         <h2 className="text-xl font-bold mb-4">Record New Contribution</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
-            {isAdmin && (
+            {isAdmin && members!.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Member
@@ -90,7 +93,12 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
                   }
                 >
                   <option value="">Select a member</option>
-                  {/* Member options will be populated by parent component */}
+
+                  {members!.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.full_name}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}

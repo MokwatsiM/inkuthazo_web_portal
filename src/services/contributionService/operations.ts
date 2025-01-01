@@ -66,14 +66,14 @@ export const addContribution = async (
   let proof_of_payment: string | undefined;
 
   if (file) {
-    proof_of_payment = await uploadProofOfPayment(file,contribution.member_id);
+    proof_of_payment = file? await uploadProofOfPayment(file,contribution.member_id):undefined;
   }
 
   // const contributionsRef = collection(db, 'contributions');
   const docRef = await addDoc(contributionsRef, {
     ...contribution,
     date: toFirestoreTimestamp(contribution.date),
-    proof_of_payment,
+    ...(proof_of_payment && { proof_of_payment }),
     status: 'pending' as ContributionStatus
   });
 

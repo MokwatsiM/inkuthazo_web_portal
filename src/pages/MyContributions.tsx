@@ -169,6 +169,7 @@ const MyContributions: React.FC = () => {
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddContribution}
           isAdmin={false}
+          
         />
       )}
     </div>

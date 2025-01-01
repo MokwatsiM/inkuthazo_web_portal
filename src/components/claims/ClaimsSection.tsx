@@ -5,7 +5,7 @@ import { useClaims } from "../../hooks/useClaims";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 import Table from "../ui/Table";
-import AddClaimModal from "./addClaimModal";
+import AddClaimModal from "./AddClaimModal";
 import ReviewClaimModal from "./ReviewClaimModal";
 import type { Member } from "../../types";
 import type { Claim } from "../../types/claim";

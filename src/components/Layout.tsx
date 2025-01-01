@@ -12,6 +12,7 @@ import {
   X,
   BarChart2,
   UserX,
+  FileCheck,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
@@ -40,6 +41,7 @@ const Layout: React.FC = () => {
     { path: "/members", icon: Users, label: "Members" },
     { path: "/contributions", icon: CreditCard, label: "Contributions" },
     { path: "/payouts", icon: DollarSign, label: "Payouts" },
+    { path: "/claims", icon: FileCheck, label: "Claims" },
     { path: "/analytics", icon: BarChart2, label: "Analytics" },
     { path: "/reports", icon: FileText, label: "Reports" },
     { path: "/deletion-requests", icon: UserX, label: "Deletion Requests" },

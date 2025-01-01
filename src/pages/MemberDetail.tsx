@@ -25,6 +25,7 @@ import type { Payout } from "../types/payout";
 import MemberActions from "../components/members/MemberActions";
 import { generateInvoicePDF } from "../utils/invoice/generator";
 import { generateInvoiceDetails } from "../utils/invoice";
+import ClaimsSection from "../components/claims/ClaimsSection";
 
 const MemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -165,6 +166,10 @@ const MemberDetail: React.FC = () => {
 
         <div className="mt-8">
           <DependantsSection member={member} onUpdate={fetchMemberData} />
+        </div>
+
+        <div className="mt-8">
+          <ClaimsSection member={member} />
         </div>
 
         <div className="space-y-6 mt-8">

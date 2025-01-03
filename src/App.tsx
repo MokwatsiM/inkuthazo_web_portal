@@ -22,6 +22,7 @@ import Analytics from "./pages/Analytics";
 import RoleBasedRoute from "./components/RoleBasedRoute";
 import DeletionRequests from "./pages/DeletionRequests";
 import Claims from "./pages/Claims";
+import SessionProvider from "./components/session/SessionProvider";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -160,13 +161,15 @@ const App: React.FC = () => {
   return (
     <NotificationProvider>
       <AuthProvider>
-          <AnalyticsProvider>
-            <BrowserRouter>
+        <AnalyticsProvider>
+          <BrowserRouter>
+            <SessionProvider>
               <NotificationContainer />
               <ConnectionStatus />
               <AppRoutes />
-            </BrowserRouter>
-          </AnalyticsProvider>
+            </SessionProvider>
+          </BrowserRouter>
+        </AnalyticsProvider>
       </AuthProvider>
     </NotificationProvider>
   );

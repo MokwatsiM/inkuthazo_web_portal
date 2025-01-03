@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { collection, query, orderBy, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  getDocs,
+  limit,
+  startAfter,
+  DocumentData,
+  QueryDocumentSnapshot,
+} from "firebase/firestore";
 import { db } from "../config/firebase";
 import {
   addContribution as addContributionService,
@@ -11,10 +20,16 @@ import { fetchMemberDetails } from "../services/memberService";
 import type { Contribution, ContributionStatus } from "../types/contribution";
 import { toFirestoreTimestamp } from "../utils/dateUtils";
 
+const ITEMS_PER_PAGE = 10;
+
 interface UseContributionsReturn {
   contributions: Contribution[];
   loading: boolean;
   error: string | null;
+  currentPage: number;
+  totalPages: number;
+  hasMore: boolean;
+  fetchPage: (page: number) => Promise<void>;
   refetch: () => Promise<void>;
   addContribution: (
     data: Omit<Contribution, "id" | "members" | "status">,
@@ -38,13 +53,39 @@ export const useContributions = (): UseContributionsReturn => {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastDoc, setLastDoc] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchContributions = async () => {
+  const fetchContributions = async (page: number = 1) => {
     try {
       setLoading(true);
       const contributionsRef = collection(db, "contributions");
-      const q = query(contributionsRef, orderBy("date", "desc"));
+      const totalSnapshot = await getDocs(query(contributionsRef));
+      const total = totalSnapshot.size;
+      setTotalPages(Math.ceil(total / ITEMS_PER_PAGE));
+
+      let q = query(
+        contributionsRef,
+        orderBy("date", "desc"),
+        limit(ITEMS_PER_PAGE)
+      );
+
+      // If not first page, start after last doc
+      if (page > 1 && lastDoc) {
+        q = query(
+          contributionsRef,
+          orderBy("date", "desc"),
+          startAfter(lastDoc),
+          limit(ITEMS_PER_PAGE)
+        );
+      }
       const querySnapshot = await getDocs(q);
+
+      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
+      setHasMore(querySnapshot.docs.length === ITEMS_PER_PAGE);
 
       const contributionsData = await Promise.all(
         querySnapshot.docs.map(async (doc) => {
@@ -62,6 +103,7 @@ export const useContributions = (): UseContributionsReturn => {
       );
 
       setContributions(contributionsData);
+      setCurrentPage(page);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -146,6 +188,10 @@ export const useContributions = (): UseContributionsReturn => {
     contributions,
     loading,
     error,
+    currentPage,
+    totalPages,
+    hasMore,
+    fetchPage: fetchContributions,
     refetch: fetchContributions,
     addContribution: handleAddContribution,
     updateContribution: handleUpdateContribution,

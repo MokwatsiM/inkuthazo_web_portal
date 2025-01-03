@@ -18,13 +18,16 @@ import DeleteContributionModal from "../components/contributions/DeleteContribut
 import ReviewContributionModal from "../components/contributions/ReviewContributionModal";
 import { formatDate } from "../utils/dateUtils";
 import type { Contribution, ContributionStatus } from "../types/contribution";
-import { useMembers } from '../hooks/useMembers'; // Add this import
-
+import { useMembers } from "../hooks/useMembers"; // Add this import
+import Pagination from "../components/ui/Pagination";
 
 const Contributions: React.FC = () => {
   const {
     contributions,
     loading,
+    currentPage,
+    totalPages,
+    fetchPage,
     addContribution,
     updateContribution,
     deleteContribution,
@@ -251,6 +254,13 @@ const Contributions: React.FC = () => {
             ))
           )}
         </Table>
+        {!loading && contributions.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => fetchPage(page)}
+          />
+        )}
       </div>
 
       <AddContributionModal
@@ -258,7 +268,7 @@ const Contributions: React.FC = () => {
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddContribution}
         isAdmin={isAdmin}
-         members={members} 
+        members={members}
       />
 
       {selectedContribution && (

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PlusCircle, ExternalLink } from "lucide-react";
-import { useContributions } from "../hooks/useContributions";
+import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
+import { db } from "../config/firebase";
 import { useAuth } from "../hooks/useAuth";
 import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
@@ -9,29 +10,54 @@ import AddContributionModal from "../components/contributions/AddContributionMod
 import StatCard from "../components/stats/StatCard";
 import { formatDate } from "../utils/dateUtils";
 import type { Contribution } from "../types/contribution";
-import { useNotifications } from "../hooks/useNotifications";
 
 const MyContributions: React.FC = () => {
-  const { showError } = useNotifications();
-  const { contributions, loading, addContribution } = useContributions();
   const { userDetails, isApproved } = useAuth();
+  const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Filter contributions to show only the member's own contributions
-  const myContributions = contributions.filter(
-    (contribution) =>
-      contribution.member_id === userDetails?.id &&
-      contribution.members?.full_name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    const fetchMyContributions = async () => {
+      if (!userDetails?.id) return;
+
+      try {
+        setLoading(true);
+        const contributionsRef = collection(db, "contributions");
+        const q = query(
+          contributionsRef,
+          where("member_id", "==", userDetails.id),
+          orderBy("date", "desc")
+        );
+
+        const snapshot = await getDocs(q);
+        const contributionsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          members: { full_name: userDetails.full_name },
+        })) as Contribution[];
+
+        setContributions(contributionsData);
+      } catch (error) {
+        console.error("Error fetching contributions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyContributions();
+  }, [userDetails?.id, userDetails?.full_name]);
+
+  const filteredContributions = contributions.filter((contribution) =>
+    contribution.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Calculate contribution statistics
+  // Calculate stats
   const stats = {
-    approved: myContributions.filter((c) => c.status === "approved"),
-    pending: myContributions.filter((c) => c.status === "pending"),
-    rejected: myContributions.filter((c) => c.status === "rejected"),
+    approved: filteredContributions.filter((c) => c.status === "approved"),
+    pending: filteredContributions.filter((c) => c.status === "pending"),
+    rejected: filteredContributions.filter((c) => c.status === "rejected"),
   };
 
   const totalApprovedAmount = stats.approved.reduce(
@@ -41,18 +67,15 @@ const MyContributions: React.FC = () => {
 
   const handleAddContribution = async (
     data: Omit<Contribution, "id" | "members" | "status">,
-    file?: File
+    // file?: File
   ) => {
     try {
       if (userDetails) {
         data.member_id = userDetails.id;
       }
-      await addContribution(data, file);
+      // Add contribution logic here
       setIsAddModalOpen(false);
     } catch (error) {
-      showError(
-        error instanceof Error ? error.message : "Failed to add contribution"
-      );
       console.error("Error adding contribution:", error);
     }
   };
@@ -93,7 +116,7 @@ const MyContributions: React.FC = () => {
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 border-b">
           <SearchInput
-            placeholder="Search contributions..."
+            placeholder="Search by contribution type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -115,8 +138,14 @@ const MyContributions: React.FC = () => {
                 Loading...
               </td>
             </tr>
+          ) : filteredContributions.length === 0 ? (
+            <tr>
+              <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                No contributions found
+              </td>
+            </tr>
           ) : (
-            myContributions.map((contribution) => (
+            filteredContributions.map((contribution) => (
               <tr key={contribution.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {formatDate(contribution.date)}
@@ -151,7 +180,7 @@ const MyContributions: React.FC = () => {
                       rel="noopener noreferrer"
                       className="text-indigo-600 hover:text-indigo-900 flex items-center"
                     >
-                      View <ExternalLink className="ml-1 w-4 h-4" />
+                      View <ExternalLink className="ml-1 w-4 w-4" />
                     </a>
                   ) : (
                     <span className="text-gray-400">No proof attached</span>
@@ -169,7 +198,6 @@ const MyContributions: React.FC = () => {
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddContribution}
           isAdmin={false}
-          
         />
       )}
     </div>

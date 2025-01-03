@@ -9,7 +9,7 @@ export interface Dependant {
   id: string;
   full_name: string;
   date_of_birth: Timestamp;
-  relationship: 'spouse' | 'child' | 'parent';
+  relationship: 'spouse' | 'child' | 'parent' | 'sibling' | 'other';
   id_number: string;
   id_document_url?: string;
 }

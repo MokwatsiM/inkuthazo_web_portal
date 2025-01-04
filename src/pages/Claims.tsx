@@ -8,6 +8,7 @@ import SearchInput from "../components/ui/SearchInput";
 import ReviewClaimModal from "../components/claims/ReviewClaimModal";
 import { formatDate } from "../utils/dateUtils";
 import type { Claim } from "../types/claim";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const Claims: React.FC = () => {
   const { claims, loading, reviewClaim } = useClaims();
@@ -87,11 +88,7 @@ const Claims: React.FC = () => {
           ]}
         >
           {loading ? (
-            <tr>
-              <td colSpan={8} className="px-6 py-4 text-center">
-                Loading...
-              </td>
-            </tr>
+            <LoadingSpinner />
           ) : filteredClaims.length === 0 ? (
             <tr>
               <td colSpan={8} className="px-6 py-4 text-center text-gray-500">

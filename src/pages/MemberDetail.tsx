@@ -26,6 +26,10 @@ import MemberActions from "../components/members/MemberActions";
 import { generateInvoicePDF } from "../utils/invoice/generator";
 import { generateInvoiceDetails } from "../utils/invoice";
 import ClaimsSection from "../components/claims/ClaimsSection";
+import Card, { CardBody } from "../components/ui/Card";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
+import EmptyState from "../components/ui/EmptyState";
+import {  Ghost } from "lucide-react";
 
 const MemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -131,7 +135,7 @@ const MemberDetail: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="p-8">Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -139,7 +143,8 @@ const MemberDetail: React.FC = () => {
   }
 
   if (!member) {
-    return <div className="p-8">Member not found</div>;
+    return <EmptyState icon={Ghost} title="Member not found" description="" />;
+    // <div className="p-8">Member not found</div>;
   }
 
   return (
@@ -153,31 +158,36 @@ const MemberDetail: React.FC = () => {
           onGenerateInvoice={handleGenerateInvoice}
         />
       </div>
+      <Card>
+        <CardBody>
+          <div className="bg-white rounded-lg shadow p-6">
+            <MemberProfile
+              member={member}
+              onAvatarUpload={handleAvatarUpload}
+            />
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <MemberProfile member={member} onAvatarUpload={handleAvatarUpload} />
+            <div className="mt-8">
+              <MemberStats
+                contributions={member.contributions}
+                payouts={member.payouts}
+              />
+            </div>
 
-        <div className="mt-8">
-          <MemberStats
-            contributions={member.contributions}
-            payouts={member.payouts}
-          />
-        </div>
+            <div className="mt-8">
+              <DependantsSection member={member} onUpdate={fetchMemberData} />
+            </div>
 
-        <div className="mt-8">
-          <DependantsSection member={member} onUpdate={fetchMemberData} />
-        </div>
+            <div className="mt-8">
+              <ClaimsSection member={member} />
+            </div>
 
-        <div className="mt-8">
-          <ClaimsSection member={member} />
-        </div>
-
-        <div className="space-y-6 mt-8">
-          <ContributionsHistory contributions={member.contributions} />
-          <PayoutsHistory payouts={member.payouts} />
-        </div>
-      </div>
-
+            <div className="space-y-6 mt-8">
+              <ContributionsHistory contributions={member.contributions} />
+              <PayoutsHistory payouts={member.payouts} />
+            </div>
+          </div>
+        </CardBody>
+      </Card>
       <EditMemberModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}

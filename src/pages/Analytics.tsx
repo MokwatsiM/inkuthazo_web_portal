@@ -14,6 +14,7 @@ import type {
   MemberAnalytics,
   FinancialMetrics,
 } from "../types/analytics";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const Analytics: React.FC = () => {
   const [period, setPeriod] = useState<"3m" | "6m" | "12m">("3m");
@@ -53,7 +54,7 @@ const Analytics: React.FC = () => {
   }, [period]);
 
   if (loading) {
-    return <div className="p-8">Loading analytics...</div>;
+    return <LoadingSpinner />;
   }
 
   return (

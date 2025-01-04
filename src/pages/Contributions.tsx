@@ -20,6 +20,7 @@ import { formatDate } from "../utils/dateUtils";
 import type { Contribution, ContributionStatus } from "../types/contribution";
 import { useMembers } from "../hooks/useMembers"; // Add this import
 import Pagination from "../components/ui/Pagination";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const Contributions: React.FC = () => {
   const {
@@ -167,11 +168,7 @@ const Contributions: React.FC = () => {
           ]}
         >
           {loading ? (
-            <tr>
-              <td colSpan={isAdmin ? 8 : 7} className="px-6 py-4 text-center">
-                Loading...
-              </td>
-            </tr>
+            <LoadingSpinner />
           ) : (
             filteredContributions.map((contribution) => (
               <tr key={contribution.id}>

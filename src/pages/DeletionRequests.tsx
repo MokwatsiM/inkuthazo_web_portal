@@ -15,6 +15,7 @@ import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
 import type { Member } from "../types";
 import { useNotifications } from "../hooks/useNotifications";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 interface DeletionRequest {
   id: string;
@@ -149,7 +150,7 @@ const DeletionRequests: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="p-8">Loading deletion requests...</div>;
+    return <LoadingSpinner />;
   }
 
   return (

@@ -9,6 +9,7 @@ import AddClaimModal from "./AddClaimModal";
 import ReviewClaimModal from "./ReviewClaimModal";
 import type { Member } from "../../types";
 import type { Claim } from "../../types/claim";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 interface ClaimsSectionProps {
   member: Member;
@@ -69,11 +70,7 @@ const ClaimsSection: React.FC<ClaimsSectionProps> = ({ member }) => {
         ]}
       >
         {loading ? (
-          <tr>
-            <td colSpan={7} className="px-6 py-4 text-center">
-              Loading...
-            </td>
-          </tr>
+          <LoadingSpinner />
         ) : claims.length === 0 ? (
           <tr>
             <td colSpan={7} className="px-6 py-4 text-center text-gray-500">

@@ -14,6 +14,7 @@ import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
 import { formatDate } from "../utils/dateUtils";
 import type { Contribution } from "../types/contribution";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
@@ -296,7 +297,7 @@ const Dashboard: React.FC = () => {
   );
 
   if (loading) {
-    return <div className="p-8">Loading dashboard...</div>;
+    return <LoadingSpinner />;
   }
 
   return (

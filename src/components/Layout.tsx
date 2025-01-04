@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
 import Avatar from "./avatar/Avatar";
+import Card, { CardBody } from "./ui/Card";
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
@@ -162,24 +163,28 @@ const Layout: React.FC = () => {
         )}
 
         {/* Desktop Sidebar */}
-        <aside className="hidden md:flex md:flex-shrink-0">
-          <div className="flex flex-col w-64">
-            <div className="flex flex-col h-0 flex-1">
-              <nav className="flex-1 px-2 py-4 bg-white space-y-1">
-                {menuItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  >
-                    <item.icon className="mr-3 h-6 w-6" />
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
+        <Card>
+          <aside className="hidden md:flex md:flex-shrink-0">
+            <div className="flex flex-col w-64">
+              <CardBody>
+                <div className="flex flex-col h-0 flex-1">
+                  <nav className="flex-1 px-2 py-4 bg-white space-y-1">
+                    {menuItems.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      >
+                        <item.icon className="mr-3 h-6 w-6" />
+                        {item.label}
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+              </CardBody>
             </div>
-          </div>
-        </aside>
+          </aside>
+        </Card>
 
         {/* Main Content */}
         <main className="flex-1 relative overflow-y-auto focus:outline-none">

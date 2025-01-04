@@ -12,6 +12,7 @@ import { useMembers } from "../hooks/useMembers";
 import { formatDate } from "../utils/dateUtils";
 import type { Member } from "../types";
 import { useAnalytics } from "../hooks/useAnalytics";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const Members: React.FC = () => {
   const { members, loading, addMember, deleteMember, updateMember } =
@@ -96,11 +97,7 @@ const Members: React.FC = () => {
           ]}
         >
           {loading ? (
-            <tr>
-              <td colSpan={7} className="px-6 py-4 text-center">
-                Loading...
-              </td>
-            </tr>
+            <LoadingSpinner />
           ) : (
             filteredMembers.map((member) => (
               <tr key={member.id}>

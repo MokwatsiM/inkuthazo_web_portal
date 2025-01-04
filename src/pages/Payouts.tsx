@@ -8,7 +8,7 @@ import SearchInput from '../components/ui/SearchInput';
 import AddPayoutModal from '../components/payouts/AddPayoutModal';
 import DeletePayoutModal from '../components/payouts/DeletePayoutModal';
 import UpdatePayoutStatusModal from '../components/payouts/UpdatePayoutStatusModal';
-import type { Payout } from '../types';
+import type { Payout } from '../types/payout';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const Payouts: React.FC = () => {

@@ -69,7 +69,7 @@ export const useContributions = (): UseContributionsReturn => {
 
       let q = query(
         contributionsRef,
-        orderBy("date", "desc"),
+        orderBy("date", "asc"),
         limit(ITEMS_PER_PAGE)
       );
 
@@ -77,7 +77,7 @@ export const useContributions = (): UseContributionsReturn => {
       if (page > 1 && lastDoc) {
         q = query(
           contributionsRef,
-          orderBy("date", "desc"),
+          orderBy("date", "asc"),
           startAfter(lastDoc),
           limit(ITEMS_PER_PAGE)
         );

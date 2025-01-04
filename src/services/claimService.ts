@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
+import { createPayoutFromClaim } from './payoutService';
 import type { Claim, ClaimStatus } from '../types/claim';
 
 export const uploadClaimDocument = async (file: File): Promise<string> => {
@@ -55,11 +56,27 @@ export const reviewClaim = async (
   notes: string,
   reviewerId: string
 ): Promise<void> => {
-  const claimRef = doc(db, 'claims', id);
-  await updateDoc(claimRef, {
-    status,
-    review_notes: notes,
-    reviewed_by: reviewerId,
-    reviewed_at: Timestamp.now()
-  });
+  try {
+    const claimRef = doc(db, 'claims', id);
+    
+    await updateDoc(claimRef, {
+      status,
+      review_notes: notes,
+      reviewed_by: reviewerId,
+      reviewed_at: Timestamp.now()
+    });
+
+    // If claim is approved, create a pending payout
+    if (status === 'approved') {
+      const claimDoc = await getDoc(claimRef);
+      if (claimDoc.exists()) {
+        const claimData = { id: claimDoc.id, ...claimDoc.data() } as Claim;
+        await createPayoutFromClaim(claimData);
+      }
+    }
+  } catch (error) {
+    console.error('Error reviewing claim:', error);
+    throw error;
+  }
 };
+

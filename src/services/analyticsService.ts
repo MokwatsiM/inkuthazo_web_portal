@@ -2,7 +2,10 @@ import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore
 import { db } from '../config/firebase';
 import { format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
 import type { ContributionAnalytics, PayoutAnalytics, MemberAnalytics, FinancialMetrics } from '../types/analytics';
-import type { Member, Contribution, Payout } from '../types';
+import type { Member, } from '../types';
+import type { Contribution, } from '../types/contribution'
+import type { Payout} from '../types/payout'
+
 
 export const getContributionAnalytics = async (startDate: Date, endDate: Date): Promise<ContributionAnalytics> => {
   const contributionsRef = collection(db, 'contributions');
@@ -62,7 +65,8 @@ export const getPayoutAnalytics = async (startDate: Date, endDate: Date): Promis
   const q = query(
     payoutsRef,
     where('date', '>=', Timestamp.fromDate(startDate)),
-    where('date', '<=', Timestamp.fromDate(endDate))
+    where('date', '<=', Timestamp.fromDate(endDate)),
+    where('status','==','paid')
   );
 
   const snapshot = await getDocs(q);
@@ -161,30 +165,75 @@ export const getMemberAnalytics = async (): Promise<MemberAnalytics> => {
   };
 };
 
-export const getFinancialMetrics = async (startDate: Date, endDate: Date): Promise<FinancialMetrics> => {
-  const [contributionAnalytics, payoutAnalytics] = await Promise.all([
-    getContributionAnalytics(startDate, endDate),
-    getPayoutAnalytics(startDate, endDate)
-  ]);
+export const getFinancialMetrics = async (startDate: Date, endDate: Date):Promise<FinancialMetrics> => {
+  try {
+  const contributionsRef = collection(db, 'contributions');
+    const contributionsQuery = query(
+      contributionsRef,
+      where('status', '==', 'approved'),
+      where('date', '>=', Timestamp.fromDate(startDate)),
+      where('date', '<=', Timestamp.fromDate(endDate))
+    );
+  
+   const contributionsSnapshot = await getDocs(contributionsQuery);
+    const contributions = contributionsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Contribution[];
+
+    // Get paid payouts
+    const payoutsRef = collection(db, 'payouts');
+    const payoutsQuery = query(
+      payoutsRef,
+      where('status', '==', 'paid'),
+      where('date', '>=', Timestamp.fromDate(startDate)),
+      where('date', '<=', Timestamp.fromDate(endDate))
+    );
+    const payoutsSnapshot = await getDocs(payoutsQuery);
+    const payouts = payoutsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Payout[];
+
+    const totalContributions = contributions.reduce((sum, c) => sum + c.amount, 0);
+    const totalPayouts = payouts.reduce((sum, p) => sum + p.amount, 0);
+    const balance = totalContributions - totalPayouts;
+
 
   const months = eachMonthOfInterval({ start: startDate, end: endDate });
-  const monthlyMetrics = months.map(month => {
-    const monthStr = format(month, 'MMM yyyy');
-    const contributions = contributionAnalytics.monthlyTrends.find(t => t.month === monthStr)?.amount || 0;
-    const payouts = payoutAnalytics.monthlyTrends.find(t => t.month === monthStr)?.amount || 0;
+   const monthlyMetrics = months.map(month => {
+      const monthStart = startOfMonth(month);
+      const monthEnd = endOfMonth(month);
+
+      const monthContributions = contributions
+        .filter(c => {
+          const date = c.date.toDate();
+          return date >= monthStart && date <= monthEnd;
+        })
+        .reduce((sum, c) => sum + c.amount, 0);
+
+      const monthPayouts = payouts
+        .filter(p => {
+          const date = p.date.toDate();
+          return date >= monthStart && date <= monthEnd;
+        })
+        .reduce((sum, p) => sum + p.amount, 0);
+     return {
+        month: format(month, 'MMM yyyy'),
+        contributions: monthContributions,
+        payouts: monthPayouts,
+        balance: monthContributions - monthPayouts
+      };
+    });
 
     return {
-      month: monthStr,
-      contributions,
-      payouts,
-      balance: contributions - payouts
+      totalContributions,
+      totalPayouts,
+      balance,
+      monthlyMetrics
     };
-  });
-
-  return {
-    totalContributions: contributionAnalytics.totalAmount,
-    totalPayouts: payoutAnalytics.totalAmount,
-    balance: contributionAnalytics.totalAmount - payoutAnalytics.totalAmount,
-    monthlyMetrics
-  };
+  } catch (error) {
+    console.error('Error getting financial metrics:', error);
+    throw error;
+  }
 };

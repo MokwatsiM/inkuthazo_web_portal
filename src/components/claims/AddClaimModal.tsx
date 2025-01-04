@@ -79,18 +79,19 @@ const AddClaimModal: React.FC<AddClaimModalProps> = ({
         throw new Error("Invalid claimant selected");
       }
 
+       const claimantData = {
+         id: selectedClaimant.id,
+         type: selectedClaimant.type,
+         full_name: selectedClaimant.full_name,
+         ...(selectedClaimant.type === "dependant" && {
+           relationship: (selectedClaimant as DependantClaimant).relationship,
+         }),
+       };
+
       await onSubmit(
         {
           member_id: member.id,
-          claimant: {
-            id: selectedClaimant.id,
-            type: selectedClaimant.type,
-            full_name: selectedClaimant.full_name,
-            relationship:
-              selectedClaimant.type === "dependant"
-                ? selectedClaimant.relationship
-                : undefined,
-          },
+          claimant: claimantData,
           type: formData.type,
           amount: parseFloat(formData.amount),
           date: toFirestoreTimestamp(new Date()),

@@ -1,35 +1,41 @@
-import React, { useState } from 'react';
-import { PlusCircle, Trash2, Edit2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { usePayouts } from '../hooks/usePayouts';
-import Button from '../components/ui/Button';
-import Table from '../components/ui/Table';
-import SearchInput from '../components/ui/SearchInput';
-import AddPayoutModal from '../components/payouts/AddPayoutModal';
-import DeletePayoutModal from '../components/payouts/DeletePayoutModal';
-import UpdatePayoutStatusModal from '../components/payouts/UpdatePayoutStatusModal';
-import type { Payout } from '../types/payout';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
+import React, { useState } from "react";
+import { PlusCircle, Trash2, Edit2 } from "lucide-react";
+import { format } from "date-fns";
+import { usePayouts } from "../hooks/usePayouts";
+import Button from "../components/ui/Button";
+import Table from "../components/ui/Table";
+import SearchInput from "../components/ui/SearchInput";
+import AddPayoutModal from "../components/payouts/AddPayoutModal";
+import DeletePayoutModal from "../components/payouts/DeletePayoutModal";
+import UpdatePayoutStatusModal from "../components/payouts/UpdatePayoutStatusModal";
+import type { Payout } from "../types/payout";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const Payouts: React.FC = () => {
-  const { payouts, loading, addPayout, deletePayout, updatePayoutStatus } = usePayouts();
+  const { payouts, loading, addPayout, deletePayout, updatePayoutStatus } =
+    usePayouts();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isUpdateStatusModalOpen, setIsUpdateStatusModalOpen] = useState(false);
   const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredPayouts = payouts.filter(payout =>
-    payout.members?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    payout.reason.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPayouts = payouts.filter(
+    (payout) =>
+      payout.members?.full_name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      payout.reason.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddPayout = async (data: Omit<Payout, 'id' | 'date' | 'members'>) => {
+  const handleAddPayout = async (
+    data: Omit<Payout, "id" | "date" | "members">
+  ) => {
     try {
       await addPayout(data);
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error('Error adding payout:', error);
+      console.error("Error adding payout:", error);
     }
   };
 
@@ -51,7 +57,7 @@ const Payouts: React.FC = () => {
     }
   };
 
-  const handleUpdateStatusConfirm = async (status: Payout['status']) => {
+  const handleUpdateStatusConfirm = async (status: Payout["status"]) => {
     if (selectedPayout) {
       await updatePayoutStatus(selectedPayout.id, status);
       setIsUpdateStatusModalOpen(false);
@@ -76,14 +82,20 @@ const Payouts: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
-        <Table
-          headers={["Date", "Member", "Reason", "Status", "Amount", "Actions"]}
-        >
-          {loading ? (
-            <LoadingSpinner />
-          ) : (
-            filteredPayouts.map((payout) => (
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <Table
+            headers={[
+              "Date",
+              "Member",
+              "Reason",
+              "Status",
+              "Amount",
+              "Actions",
+            ]}
+          >
+            {filteredPayouts.map((payout) => (
               <tr key={payout.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {format(payout.date.toDate(), "dd MMM yyyy")}
@@ -127,9 +139,9 @@ const Payouts: React.FC = () => {
                   </div>
                 </td>
               </tr>
-            ))
-          )}
-        </Table>
+            ))}
+          </Table>
+        )}
       </div>
 
       <AddPayoutModal

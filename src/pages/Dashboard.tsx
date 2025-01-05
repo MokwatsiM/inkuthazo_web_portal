@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  Timestamp,
-} from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../hooks/useAuth";
 import StatCard from "../components/stats/StatCard";
-import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
 import { formatDate } from "../utils/dateUtils";
 import type { Contribution } from "../types/contribution";

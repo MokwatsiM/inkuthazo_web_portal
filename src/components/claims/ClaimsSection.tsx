@@ -70,7 +70,11 @@ const ClaimsSection: React.FC<ClaimsSectionProps> = ({ member }) => {
         ]}
       >
         {loading ? (
-          <LoadingSpinner />
+          <tr>
+            <td colSpan={7} className="px-6 py-4 text-center">
+              <LoadingSpinner />
+            </td>
+          </tr>
         ) : claims.length === 0 ? (
           <tr>
             <td colSpan={7} className="px-6 py-4 text-center text-gray-500">

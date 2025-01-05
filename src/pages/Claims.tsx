@@ -75,96 +75,98 @@ const Claims: React.FC = () => {
           </div>
         </div>
 
-        <Table
-          headers={[
-            "Date",
-            "Member",
-            "Claimant",
-            "Type",
-            "Amount",
-            "Status",
-            "Documents",
-            "Actions",
-          ]}
-        >
-          {loading ? (
-            <LoadingSpinner />
-          ) : filteredClaims.length === 0 ? (
-            <tr>
-              <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                No claims found
-              </td>
-            </tr>
-          ) : (
-            filteredClaims.map((claim) => (
-              <tr key={claim.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {formatDate(claim.date)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {claim.members?.full_name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {claim.claimant.full_name}
-                  {claim.claimant.relationship && (
-                    <span className="text-gray-500 text-sm">
-                      {" "}
-                      ({claim.claimant.relationship})
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap capitalize">
-                  {claim.type}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  R {claim.amount.toFixed(2)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      claim.status === "approved"
-                        ? "bg-green-100 text-green-800"
-                        : claim.status === "rejected"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {claim.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {claim.documents_url?.map((url, index) => (
-                    <a
-                      key={index}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 hover:text-indigo-900 flex items-center mb-1"
-                    >
-                      Document {index + 1}{" "}
-                      <ExternalLink className="ml-1 w-4 h-4" />
-                    </a>
-                  ))}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {claim.status === "pending" && (
-                    <Button
-                      variant="secondary"
-                      icon={CheckCircle}
-                      onClick={() => {
-                        setSelectedClaim(claim);
-                        setIsReviewModalOpen(true);
-                      }}
-                      className="!p-2"
-                    >
-                      <span className="sr-only">Review</span>
-                    </Button>
-                  )}
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <Table
+            headers={[
+              "Date",
+              "Member",
+              "Claimant",
+              "Type",
+              "Amount",
+              "Status",
+              "Documents",
+              "Actions",
+            ]}
+          >
+            {filteredClaims.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                  No claims found
                 </td>
               </tr>
-            ))
-          )}
-        </Table>
+            ) : (
+              filteredClaims.map((claim) => (
+                <tr key={claim.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {formatDate(claim.date)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {claim.members?.full_name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {claim.claimant.full_name}
+                    {claim.claimant.relationship && (
+                      <span className="text-gray-500 text-sm">
+                        {" "}
+                        ({claim.claimant.relationship})
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap capitalize">
+                    {claim.type}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    R {claim.amount.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        claim.status === "approved"
+                          ? "bg-green-100 text-green-800"
+                          : claim.status === "rejected"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {claim.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {claim.documents_url?.map((url, index) => (
+                      <a
+                        key={index}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 hover:text-indigo-900 flex items-center mb-1"
+                      >
+                        Document {index + 1}{" "}
+                        <ExternalLink className="ml-1 w-4 h-4" />
+                      </a>
+                    ))}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {claim.status === "pending" && (
+                      <Button
+                        variant="secondary"
+                        icon={CheckCircle}
+                        onClick={() => {
+                          setSelectedClaim(claim);
+                          setIsReviewModalOpen(true);
+                        }}
+                        className="!p-2"
+                      >
+                        <span className="sr-only">Review</span>
+                      </Button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </Table>
+        )}
       </div>
 
       {selectedClaim && (

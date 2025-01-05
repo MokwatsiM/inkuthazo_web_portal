@@ -103,7 +103,6 @@ const Layout: React.FC = () => {
                 className="flex items-center"
               >
                 <span className="hidden md:inline">Sign Out</span>
-                <LogOut className="md:hidden h-5 w-5" />
               </Button>
             </div>
           </div>

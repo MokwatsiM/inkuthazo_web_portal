@@ -11,8 +11,8 @@ import Avatar from "../components/avatar/Avatar";
 import { useMembers } from "../hooks/useMembers";
 import { formatDate } from "../utils/dateUtils";
 import type { Member } from "../types";
-import { useAnalytics } from "../hooks/useAnalytics";
-import LoadingSpinner from "../components/ui/LoadingSpinner";
+// import { useAnalytics } from "../hooks/useAnalytics";
+// import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const Members: React.FC = () => {
   const { members, loading, addMember, deleteMember, updateMember } =
@@ -22,7 +22,7 @@ const Members: React.FC = () => {
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const analytics = useAnalytics();
+  // const analytics = useAnalytics();
 
   const filteredMembers = members.filter(
     (member) =>
@@ -97,7 +97,11 @@ const Members: React.FC = () => {
           ]}
         >
           {loading ? (
-            <LoadingSpinner />
+            <tr>
+              <td colSpan={7} className="px-6 py-4 text-center">
+                Loading...
+              </td>
+            </tr>
           ) : (
             filteredMembers.map((member) => (
               <tr key={member.id}>

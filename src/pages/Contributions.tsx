@@ -154,23 +154,22 @@ const Contributions: React.FC = () => {
             />
           </div>
         </div>
-
-        <Table
-          headers={[
-            "Date",
-            "Member",
-            "Type",
-            "Amount",
-            "Status",
-            "Proof of Payment",
-            ...(isAdmin ? ["Actions"] : []),
-            "Actions",
-          ]}
-        >
-          {loading ? (
-            <LoadingSpinner />
-          ) : (
-            filteredContributions.map((contribution) => (
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <Table
+            headers={[
+              "Date",
+              "Member",
+              "Type",
+              "Amount",
+              "Status",
+              "Proof of Payment",
+              ...(isAdmin ? ["Actions"] : []),
+              "Actions",
+            ]}
+          >
+            {filteredContributions.map((contribution) => (
               <tr key={contribution.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {formatDate(contribution.date.toDate())}
@@ -248,9 +247,9 @@ const Contributions: React.FC = () => {
                   </div>
                 </td>
               </tr>
-            ))
-          )}
-        </Table>
+            ))}
+          </Table>
+        )}
         {!loading && contributions.length > 0 && (
           <Pagination
             currentPage={currentPage}

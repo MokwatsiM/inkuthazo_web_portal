@@ -10,6 +10,8 @@ import DeletePayoutModal from "../components/payouts/DeletePayoutModal";
 import UpdatePayoutStatusModal from "../components/payouts/UpdatePayoutStatusModal";
 import type { Payout } from "../types/payout";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
+import Badge from "../components/ui/Badge";
+import PageHeader from "../components/ui/PageHeader";
 
 const Payouts: React.FC = () => {
   const { payouts, loading, addPayout, deletePayout, updatePayoutStatus } =
@@ -67,12 +69,15 @@ const Payouts: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Payouts</h2>
-        <Button icon={PlusCircle} onClick={() => setIsAddModalOpen(true)}>
-          Record Payout
-        </Button>
-      </div>
+      <PageHeader
+        title="Payouts"
+        description="View and manage all members payouts"
+        actions={
+          <Button icon={PlusCircle} onClick={() => setIsAddModalOpen(true)}>
+            Record Payout
+          </Button>
+        }
+      />
 
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 border-b">
@@ -105,17 +110,17 @@ const Payouts: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{payout.reason}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  <Badge
+                    variant={
                       payout.status === "paid"
-                        ? "bg-green-100 text-green-800"
+                        ? "success"
                         : payout.status === "approved"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
+                        ? "success"
+                        : "warning"
+                    }
                   >
                     {payout.status}
-                  </span>
+                  </Badge>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   R {payout.amount.toFixed(2)}

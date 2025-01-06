@@ -9,6 +9,7 @@ import ReviewClaimModal from "../components/claims/ReviewClaimModal";
 import { formatDate } from "../utils/dateUtils";
 import type { Claim } from "../types/claim";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
+import Badge from "../components/ui/Badge";
 
 const Claims: React.FC = () => {
   const { claims, loading, reviewClaim } = useClaims();
@@ -121,17 +122,17 @@ const Claims: React.FC = () => {
                     R {claim.amount.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    <Badge
+                      variant={
                         claim.status === "approved"
-                          ? "bg-green-100 text-green-800"
+                          ? "success"
                           : claim.status === "rejected"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
+                          ? "error"
+                          : "warning"
+                      }
                     >
                       {claim.status}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {claim.documents_url?.map((url, index) => (

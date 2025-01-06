@@ -5,6 +5,7 @@ import {
   Edit2,
   Trash2,
   CheckCircle,
+  FileX,
 } from "lucide-react";
 import { useContributions } from "../hooks/useContributions";
 import { useAuth } from "../hooks/useAuth";
@@ -21,6 +22,10 @@ import type { Contribution, ContributionStatus } from "../types/contribution";
 import { useMembers } from "../hooks/useMembers"; // Add this import
 import Pagination from "../components/ui/Pagination";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
+import Card, { CardBody, CardHeader } from "../components/ui/Card";
+import EmptyState from "../components/ui/EmptyState";
+import PageHeader from "../components/ui/PageHeader";
+import Badge from "../components/ui/Badge";
 
 const Contributions: React.FC = () => {
   const {
@@ -134,129 +139,149 @@ const Contributions: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Contributions</h2>
-        <Button icon={PlusCircle} onClick={() => setIsAddModalOpen(true)}>
-          Record Contribution
-        </Button>
-      </div>
+      {/* <div className="flex justify-between items-center mb-6"> */}
+      <PageHeader
+        title="Contributions"
+        description="View and manage all members contributions"
+        actions={
+          <Button icon={PlusCircle} onClick={() => setIsAddModalOpen(true)}>
+            Record Contribution
+          </Button>
+        }
+      />
 
       <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b">
-          <div className="flex flex-col md:flex-row gap-4">
-            <SearchInput
-              placeholder="Search by member name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <MonthFilter
-              onChange={(start, end) => setDateRange({ start, end })}
-            />
+        <Card>
+          <div className="p-4 border-b">
+            <CardHeader>
+              <SearchInput
+                placeholder="Search by member name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <MonthFilter
+                onChange={(start, end) => setDateRange({ start, end })}
+              />
+            </CardHeader>
           </div>
-        </div>
-        {loading ? (
-          <LoadingSpinner />
-        ) : (
-          <Table
-            headers={[
-              "Date",
-              "Member",
-              "Type",
-              "Amount",
-              "Status",
-              "Proof of Payment",
-              ...(isAdmin ? ["Actions"] : []),
-              "Actions",
-            ]}
-          >
-            {filteredContributions.map((contribution) => (
-              <tr key={contribution.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {formatDate(contribution.date.toDate())}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {contribution.members?.full_name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap capitalize">
-                  {contribution.type}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  R {contribution.amount.toFixed(2)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      contribution.status === "approved"
-                        ? "bg-green-100 text-green-800"
-                        : contribution.status === "rejected"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {contribution.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {contribution.proof_of_payment ? (
-                    <a
-                      href={contribution.proof_of_payment}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 hover:text-indigo-900 flex items-center"
-                    >
-                      View <ExternalLink className="ml-1 w-4 h-4" />
-                    </a>
-                  ) : (
-                    <span className="text-gray-400">No proof attached</span>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center space-x-2">
-                    {contribution.status === "pending" && (
-                      <button
-                        onClick={() => {
-                          setSelectedContribution(contribution);
-                          setIsReviewModalOpen(true);
-                        }}
-                        className="p-1 text-green-600 hover:text-green-900 transition-colors"
-                        title="Review"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        setSelectedContribution(contribution);
-                        setIsEditModalOpen(true);
-                      }}
-                      className="p-1 text-blue-600 hover:text-blue-900 transition-colors"
-                      title="Edit"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedContribution(contribution);
-                        setIsDeleteModalOpen(true);
-                      }}
-                      className="p-1 text-red-600 hover:text-red-900 transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+          <CardBody>
+            {loading ? (
+              <LoadingSpinner />
+            ) : (
+              <Table
+                headers={[
+                  "Date",
+                  "Member",
+                  "Type",
+                  "Amount",
+                  "Status",
+                  "Proof of Payment",
+                  ...(isAdmin ? ["Actions"] : []),
+                  "Actions",
+                ]}
+              >
+                {filteredContributions.length === 0 ? (
+                  <div className="text-center">
+                    <EmptyState
+                      icon={FileX}
+                      title="No contributions found"
+                      description="Start by adding your first contribution"
+                    />
                   </div>
-                </td>
-              </tr>
-            ))}
-          </Table>
-        )}
-        {!loading && contributions.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => fetchPage(page)}
-          />
-        )}
+                ) : (
+                  filteredContributions.map((contribution) => (
+                    <tr key={contribution.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {formatDate(contribution.date.toDate())}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {contribution.members?.full_name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap capitalize">
+                        {contribution.type}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        R {contribution.amount.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge
+                          variant={
+                            contribution.status === "approved"
+                              ? "success"
+                              : contribution.status === "rejected"
+                              ? "error"
+                              : "warning"
+                          }
+                        >
+                          {contribution.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {contribution.proof_of_payment ? (
+                          <a
+                            href={contribution.proof_of_payment}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 hover:text-indigo-900 flex items-center"
+                          >
+                            View <ExternalLink className="ml-1 w-4 h-4" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">
+                            No proof attached
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          {contribution.status === "pending" && (
+                            <button
+                              onClick={() => {
+                                setSelectedContribution(contribution);
+                                setIsReviewModalOpen(true);
+                              }}
+                              className="p-1 text-green-600 hover:text-green-900 transition-colors"
+                              title="Review"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setSelectedContribution(contribution);
+                              setIsEditModalOpen(true);
+                            }}
+                            className="p-1 text-blue-600 hover:text-blue-900 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedContribution(contribution);
+                              setIsDeleteModalOpen(true);
+                            }}
+                            className="p-1 text-red-600 hover:text-red-900 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </Table>
+            )}
+            {!loading && contributions.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => fetchPage(page)}
+              />
+            )}
+          </CardBody>
+        </Card>
       </div>
 
       <AddContributionModal

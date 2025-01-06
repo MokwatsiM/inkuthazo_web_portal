@@ -2,6 +2,7 @@ import React from "react";
 import Table from "../ui/Table";
 import { formatDate } from "../../utils/dateUtils";
 import type { Contribution } from "../../types/contribution";
+import Badge from "../ui/Badge";
 
 interface ContributionsHistoryProps {
   contributions?: Contribution[];
@@ -26,17 +27,17 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
               R {contribution.amount.toFixed(2)}
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
-              <span
-                className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+              <Badge
+                variant={
                   contribution.status === "approved"
-                    ? "bg-green-100 text-green-800"
+                    ? "success"
                     : contribution.status === "rejected"
-                    ? "bg-red-100 text-red-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
+                    ? "error"
+                    : "warning"
+                }
               >
                 {contribution.status}
-              </span>
+              </Badge>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
               {contribution.review_notes || "-"}

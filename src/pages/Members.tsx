@@ -11,6 +11,8 @@ import Avatar from "../components/avatar/Avatar";
 import { useMembers } from "../hooks/useMembers";
 import { formatDate } from "../utils/dateUtils";
 import type { Member } from "../types";
+import Badge from "../components/ui/Badge";
+import PageHeader from "../components/ui/PageHeader";
 // import { useAnalytics } from "../hooks/useAnalytics";
 // import LoadingSpinner from "../components/ui/LoadingSpinner";
 
@@ -69,12 +71,15 @@ const Members: React.FC = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Members</h2>
-        <Button icon={UserPlus} onClick={() => setIsAddModalOpen(true)}>
-          Add Member
-        </Button>
-      </div>
+      <PageHeader
+        title="Members"
+        description="View and manage all members details"
+        actions={
+          <Button icon={UserPlus} onClick={() => setIsAddModalOpen(true)}>
+            Add Member
+          </Button>
+        }
+      />
 
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 border-b">
@@ -117,17 +122,17 @@ const Members: React.FC = () => {
                   {formatDate(member.join_date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  <Badge
+                    variant={
                       member.status === "approved" || member.status === "active"
-                        ? "bg-green-100 text-green-800"
+                        ? "success"
                         : member.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
+                        ? "error"
+                        : "warning"
+                    }
                   >
                     {member.status}
-                  </span>
+                  </Badge>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap space-x-2">
                   <div className="flex items-center space-x-2">

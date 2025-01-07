@@ -177,7 +177,6 @@ const Contributions: React.FC = () => {
                   "Status",
                   "Proof of Payment",
                   ...(isAdmin ? ["Actions"] : []),
-                  "Actions",
                 ]}
               >
                 {filteredContributions.length === 0 ? (

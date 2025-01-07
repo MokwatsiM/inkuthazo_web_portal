@@ -15,13 +15,18 @@ import LoadingSpinner from "../components/ui/LoadingSpinner";
 import EmptyState from "../components/ui/EmptyState";
 import Card, { CardBody, CardHeader } from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
+import { useContributions } from "../hooks/useContributions";
+import { useNotifications } from "../hooks/useNotifications";
+import { FirebaseError } from "firebase/app";
 
 const MyContributions: React.FC = () => {
   const { userDetails, isApproved } = useAuth();
+  const { addContribution } = useContributions();
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { showError, showSuccess } = useNotifications();
 
   useEffect(() => {
     const fetchMyContributions = async () => {
@@ -46,6 +51,10 @@ const MyContributions: React.FC = () => {
         setContributions(contributionsData);
       } catch (error) {
         console.error("Error fetching contributions:", error);
+        if (error instanceof FirebaseError) {
+          showError(error.message || "Failed to fetch contributions");
+        }
+        showError("An error occured while fetching your contributions");
       } finally {
         setLoading(false);
       }
@@ -71,17 +80,24 @@ const MyContributions: React.FC = () => {
   );
 
   const handleAddContribution = async (
-    data: Omit<Contribution, "id" | "members" | "status">
-    // file?: File
+    data: Omit<Contribution, "id" | "members" | "status">,
+    file?: File
   ) => {
     try {
       if (userDetails) {
         data.member_id = userDetails.id;
       }
+      await addContribution(data, file);
+
       // Add contribution logic here
       setIsAddModalOpen(false);
+      showSuccess("Successfully recorded your: " + data.type + " contribution");
     } catch (error) {
       console.error("Error adding contribution:", error);
+      if (error instanceof FirebaseError) {
+        showError(error.message || "Error adding contributions");
+      }
+      showError("An error occured while adding contribution");
     }
   };
 
@@ -133,51 +149,52 @@ const MyContributions: React.FC = () => {
             </CardHeader>
           </div>
           <CardBody>
-            <Table
-              headers={[
-                "Date",
-                "Type",
-                "Amount",
-                "Status",
-                "Notes",
-                "Proof of Payment",
-              ]}
-            >
-              {loading ? (
-                <LoadingSpinner />
-              ) : filteredContributions.length === 0 ? (
-                <div className="text-center">
-                  <EmptyState
-                    icon={FileX}
-                    title="No contributions found"
-                    description="Start by adding your first contribution"
-                  />
-                </div>
-              ) : (
-                filteredContributions.map((contribution) => (
-                  <tr key={contribution.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {formatDate(contribution.date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap capitalize">
-                      {contribution.type}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      R {contribution.amount.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge
-                        variant={
-                          contribution.status === "approved"
-                            ? "success"
-                            : contribution.status === "rejected"
-                            ? "error"
-                            : "warning"
-                        }
-                      >
-                        {contribution.status}
-                      </Badge>
-                      {/* <span
+            {loading ? (
+              <LoadingSpinner />
+            ) : (
+              <Table
+                headers={[
+                  "Date",
+                  "Type",
+                  "Amount",
+                  "Status",
+                  "Notes",
+                  "Proof of Payment",
+                ]}
+              >
+                {filteredContributions.length === 0 ? (
+                  <div className="text-center">
+                    <EmptyState
+                      icon={FileX}
+                      title="No contributions found"
+                      description="Start by adding your first contribution"
+                    />
+                  </div>
+                ) : (
+                  filteredContributions.map((contribution) => (
+                    <tr key={contribution.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {formatDate(contribution.date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap capitalize">
+                        {contribution.type}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        R {contribution.amount.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge
+                          variant={
+                            contribution.status === "approved"
+                              ? "success"
+                              : contribution.status === "rejected"
+                              ? "error"
+                              : "warning"
+                          }
+                        >
+                          {contribution.status}
+                        </Badge>
+                        {/* <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                            contribution.status === "approved"
                             ? "bg-green-100 text-green-800"
@@ -188,28 +205,31 @@ const MyContributions: React.FC = () => {
                       >
                         {contribution.status}
                       </span> */}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {contribution.review_notes || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {contribution.proof_of_payment ? (
-                        <a
-                          href={contribution.proof_of_payment}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-900 flex items-center"
-                        >
-                          View <ExternalLink className="ml-1 w-4 w-4" />
-                        </a>
-                      ) : (
-                        <span className="text-gray-400">No proof attached</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </Table>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {contribution.review_notes || "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {contribution.proof_of_payment ? (
+                          <a
+                            href={contribution.proof_of_payment}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 hover:text-indigo-900 flex items-center"
+                          >
+                            View <ExternalLink className="ml-1 w-4 w-4" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">
+                            No proof attached
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </Table>
+            )}
           </CardBody>
         </Card>
       </div>

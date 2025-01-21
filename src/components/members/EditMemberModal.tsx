@@ -84,26 +84,30 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
               </label>
               <input
                 type="email"
+                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 value={formData.email}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, email: e.target.value }))
                 }
+                disabled={isAdmin === false}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Phone
+                Phone Number
               </label>
               <input
                 type="tel"
+                pattern="[0-9]{10}$"
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 value={formData.phone}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, phone: e.target.value }))
                 }
+                maxLength={10}
               />
             </div>
             {isAdmin && (
@@ -125,25 +129,7 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
                 />
               </div>
             )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Status
-              </label>
-              <select
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    status: e.target.value as Member["status"],
-                  }))
-                }
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
+
             {isAdmin && (
               <div>
                 <label className="block text-sm font-medium text-gray-700">

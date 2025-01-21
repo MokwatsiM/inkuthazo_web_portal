@@ -55,7 +55,7 @@ const Register: React.FC = () => {
           htmlFor="fullName"
           className="block text-sm font-medium text-gray-700"
         >
-          Full Name
+          Full Name (Name & Surname)
         </label>
         <div className="mt-1">
           <input
@@ -84,6 +84,7 @@ const Register: React.FC = () => {
             id="phone"
             name="phone"
             type="tel"
+            pattern="[0-9]{10}$"
             required
             value={formData.phone}
             onChange={(e) =>
@@ -91,6 +92,7 @@ const Register: React.FC = () => {
             }
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
+          maxLength={10}
         </div>
       </div>
 
@@ -107,6 +109,7 @@ const Register: React.FC = () => {
             name="email"
             type="email"
             autoComplete="email"
+            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
             required
             value={formData.email}
             onChange={(e) =>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Download } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { generateReport } from '../utils/reportGenerator';
-import type { ReportType, ReportPeriod } from '../types';
+import type { ReportType, ReportPeriod } from '../types/report';
 
 const Reports: React.FC = () => {
   const [reportType, setReportType] = useState<ReportType>('contributions');
@@ -40,6 +40,7 @@ const Reports: React.FC = () => {
               <option value="contributions">Contributions Report</option>
               <option value="payouts">Payouts Report</option>
               <option value="summary">Financial Summary</option>
+              <option value="dependants">Dependants Report</option>
             </select>
           </div>
           <div>
@@ -50,10 +51,12 @@ const Reports: React.FC = () => {
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
               value={period}
               onChange={(e) => setPeriod(e.target.value as ReportPeriod)}
+              disabled={reportType === "dependants"} // Disable period selection for dependants report
             >
               <option value="monthly">Monthly</option>
               <option value="quarterly">Quarterly</option>
               <option value="yearly">Yearly</option>
+              <option value="all-time">All Time</option>
             </select>
           </div>
         </div>
@@ -62,7 +65,7 @@ const Reports: React.FC = () => {
           onClick={handleGenerateReport}
           disabled={loading}
         >
-          {loading ? 'Generating...' : 'Generate Report'}
+          {loading ? "Generating..." : "Generate Report"}
         </Button>
       </div>
     </div>

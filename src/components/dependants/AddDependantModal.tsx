@@ -22,6 +22,7 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
     full_name: "",
     date_of_birth: "",
     relationship: "spouse" as Dependant["relationship"],
+    relationship_description: "",
     id_number: "",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -145,6 +146,11 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
                 setFormData((prev) => ({
                   ...prev,
                   relationship: e.target.value as Dependant["relationship"],
+                  // Clear relationship description if not 'other'
+                  relationship_description:
+                    e.target.value === "other"
+                      ? prev.relationship_description
+                      : "",
                 }))
               }
             >
@@ -155,7 +161,26 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
               <option value="other">Other</option>
             </select>
           </div>
-
+          {formData.relationship === "other" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Relationship Description
+              </label>
+              <input
+                type="text"
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                value={formData.relationship_description}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    relationship_description: e.target.value,
+                  }))
+                }
+                placeholder="Please describe the relationship"
+              />
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               ID Number

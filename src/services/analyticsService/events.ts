@@ -1,6 +1,11 @@
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../config/firebase';
-import type { Member, Contribution, Payout } from '../../types';
+import type {  Contribution } from '../../types/contribution';
+import type {  Payout } from '../../types/payout';
+import type { Member } from '../../types/';
+
+
+
 
 // User Events
 export const trackUserSignIn = (method: string) => {

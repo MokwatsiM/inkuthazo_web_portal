@@ -151,6 +151,8 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
               <option value="spouse">Spouse</option>
               <option value="child">Child</option>
               <option value="parent">Parent</option>
+              <option value="sibling">Sibling</option>
+              <option value="other">Other</option>
             </select>
           </div>
 

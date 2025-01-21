@@ -106,23 +106,25 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
                 }
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Join Date
-              </label>
-              <input
-                type="date"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                value={formData.join_date}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    join_date: e.target.value,
-                  }))
-                }
-              />
-            </div>
+            {isAdmin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Join Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  value={formData.join_date}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      join_date: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Status

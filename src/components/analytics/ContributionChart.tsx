@@ -7,13 +7,24 @@ interface ContributionChartProps {
 }
 
 const ContributionChart: React.FC<ContributionChartProps> = ({ data }) => {
+  const formattedData = data.map((d, index, arr) => {
+    const currentMonth = d.month.substring(0, 3);
+    const isDuplicate = arr.some(
+      (item, i) => i !== index && item.month.substring(0, 3) === currentMonth
+    );
+
+    return {
+      x: isDuplicate
+        ? `${d.month} ${new Date().getMonth()}`
+        : d.month.substring(0, 3),
+      y: d.amount,
+    };
+  });
+
   const chartData = [
     {
       id: "Contributions",
-      data: data.map((d) => ({
-        x: d.month.substring(0, 3),
-        y: d.amount,
-      })),
+      data: formattedData,
     },
   ];
 

@@ -9,7 +9,7 @@ const addLogo = async (doc: jsPDF): Promise<void> => {
   try {
     // Load logo image
     const img = new Image();
-    img.src = "/src/assets/logo.png";
+   img.src = "/logo.png"; 
 
     await new Promise((resolve, reject) => {
       img.onload = resolve;

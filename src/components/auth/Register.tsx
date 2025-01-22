@@ -1,11 +1,15 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { validateInvitation } from "../../services/invitationService";
 import Button from "../ui/Button";
 
 const Register: React.FC = () => {
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const invitationToken = searchParams.get("token");
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -15,6 +19,34 @@ const Register: React.FC = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [validatingInvitation, setValidatingInvitation] = useState(false);
+
+  useEffect(() => {
+    const validateToken = async () => {
+      if (invitationToken) {
+        setValidatingInvitation(true);
+        try {
+          const invitation = await validateInvitation(invitationToken);
+          if (invitation) {
+            setFormData((prev) => ({
+              ...prev,
+              email: invitation.email,
+              fullName: invitation.full_name,
+              phone: invitation.phone,
+            }));
+          } else {
+            setError("Invalid or expired invitation token");
+          }
+        } catch (error) {
+          setError("Error validating invitation");
+        } finally {
+          setValidatingInvitation(false);
+        }
+      }
+    };
+
+    validateToken();
+  }, [invitationToken]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +74,14 @@ const Register: React.FC = () => {
     }
   };
 
+  if (validatingInvitation) {
+    return (
+      <div className="text-center">
+        <p>Validating invitation...</p>
+      </div>
+    );
+  }
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       {error && (
@@ -68,6 +108,7 @@ const Register: React.FC = () => {
               setFormData((prev) => ({ ...prev, fullName: e.target.value }))
             }
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            disabled={!!invitationToken}
           />
         </div>
       </div>
@@ -92,6 +133,7 @@ const Register: React.FC = () => {
             }
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             maxLength={10}
+            disabled={!!invitationToken}
           />
         </div>
       </div>
@@ -116,6 +158,7 @@ const Register: React.FC = () => {
               setFormData((prev) => ({ ...prev, email: e.target.value }))
             }
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            disabled={!!invitationToken}
           />
         </div>
       </div>

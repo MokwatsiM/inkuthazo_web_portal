@@ -3,11 +3,75 @@ import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getStorage } from 'firebase-admin/storage';
 
+import * as mailgun from "mailgun-js";
+
+
 initializeApp();
 
 interface FirebaseError extends Error {
   code?: string;
   message: string;
+}
+// Initialize Mailgun
+
+const mg = mailgun({
+  apiKey: functions.config().mailgun.api_key,
+  domain: functions.config().mailgun.domain,
+});
+
+// Update the sendEmail helper function
+async function sendEmail(options: { 
+  to: string; 
+  template: { 
+    name: string; 
+    data: Record<string, string>; 
+  }; 
+}) {
+  const { to, template } = options;
+
+  // Define email templates
+  const templates: Record<
+    string,
+    {
+      subject: string;
+      html: (data: Record<string, string>) => string;
+    }
+  > = {
+    "member-invitation": {
+      subject: "Invitation to Join Inkuthazo Burial & Social Club Portal",
+      html: (data) => `
+        <h1>Welcome to the Inkuthazo Burial & Social Club Portal</h1>
+        <p>Hello ${data.fullName},</p>
+        <p>You have been invited to join our Inkuthazo Burial & Social Club Portal.</p>
+        <p>Click the link below to complete your registration:</p>
+        <p><a href="${data.registrationUrl}">Complete Registration</a></p>
+        <p>This invitation link will expire in 7 days.</p>
+        <p>If you did not request this invitation, please ignore this email.</p>
+      `,
+    },
+  };
+
+  const emailTemplate = templates[template.name];
+  if (!emailTemplate) {
+    throw new Error(`Email template '${template.name}' not found`);
+  }
+
+  const emailData = {
+    from: `Burial Society Portal <noreply@${functions.config().mailgun.domain}>`,
+    to,
+    subject: emailTemplate.subject,
+    html: emailTemplate.html(template.data)
+  };
+
+  try {
+    await mg.messages().send(emailData);
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw new functions.https.HttpsError(
+      'internal',
+      'Failed to send email'
+    );
+  }
 }
 
 // Handle deletion request updates
@@ -73,3 +137,56 @@ export const cleanupDeletedUserData = functions.auth.user()
       functions.logger.error(`Error cleaning up user data: ${errorMessage}`);
     }
   });
+
+  // Send member invitation email
+export const sendMemberInvitation = functions.https.onCall(async (data, context) => {
+  // Verify the caller is authenticated and authorized
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'Must be authenticated to send invitations'
+    );
+  }
+
+  try {
+    const { email, fullName, invitationToken } = data;
+    
+    // Get the deployment URL from environment variable
+    const deploymentUrl = functions.config().app.url;
+    const registrationUrl = `${deploymentUrl}/auth/register?token=${invitationToken}`;
+
+    // Send the invitation email
+    await sendEmail({
+      to: email,
+      template: {
+        name: 'member-invitation',
+        data: {
+          fullName,
+          registrationUrl
+        }
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending invitation email:', error);
+    throw new functions.https.HttpsError(
+      'internal',
+      'Failed to send invitation email'
+    );
+  }
+});
+
+// // Helper function to send emails (implementation depends on your email service)
+// async function sendEmail(options: { 
+//   to: string; 
+//   template: { 
+//     name: string; 
+//     data: Record<string, string>; 
+//   }; 
+// }) {
+//   // Implement email sending using your preferred service
+//   // (e.g., SendGrid, Mailgun, etc.)
+//   // This is just a placeholder
+//   console.log('Sending email:', options);
+// }

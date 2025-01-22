@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { UserPlus, Trash2, CheckCircle } from "lucide-react";
+import { Trash2, CheckCircle, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import Button from "../components/ui/Button";
 import Table from "../components/ui/Table";
@@ -13,13 +13,18 @@ import { formatDate } from "../utils/dateUtils";
 import type { Member } from "../types";
 import Badge from "../components/ui/Badge";
 import PageHeader from "../components/ui/PageHeader";
+import InviteMemberModal from "../components/members/InviteMemberModal";
+import { useAuth } from "../hooks/useAuth";
+import { inviteMember } from "../services/invitationService";
 // import { useAnalytics } from "../hooks/useAnalytics";
 // import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const Members: React.FC = () => {
   const { members, loading, addMember, deleteMember, updateMember } =
     useMembers();
+  const { userDetails } = useAuth();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -31,6 +36,17 @@ const Members: React.FC = () => {
       member.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const handleInviteMember = async (
+    data: Pick<Member, "full_name" | "email" | "phone">
+  ) => {
+    if (!userDetails?.id) return;
+    try {
+      await inviteMember(data, userDetails.id);
+    } catch (error) {
+      console.error("Error inviting member:", error);
+      throw error;
+    }
+  };
 
   const handleAddMember = async (data: Omit<Member, "id" | "join_date">) => {
     try {
@@ -75,9 +91,12 @@ const Members: React.FC = () => {
         title="Members"
         description="View and manage all members details"
         actions={
-          <Button icon={UserPlus} onClick={() => setIsAddModalOpen(true)}>
-            Add Member
+          <Button icon={Mail} onClick={() => setIsInviteModalOpen(true)}>
+            Invite Member
           </Button>
+          // <Button icon={UserPlus} onClick={() => setIsAddModalOpen(true)}>
+          //   Add Member
+          // </Button>
         }
       />
 
@@ -170,6 +189,12 @@ const Members: React.FC = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddMember}
+      />
+
+      <InviteMemberModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onSubmit={handleInviteMember}
       />
 
       {selectedMember && (

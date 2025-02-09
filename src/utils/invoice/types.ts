@@ -2,6 +2,8 @@ export interface MonthlyFee {
   month: Date;
   amount: number;
   isLate: boolean;
+  isPaid: boolean;
+  latePenaltyPaid: boolean;
 }
 
 export interface InvoiceDetails {

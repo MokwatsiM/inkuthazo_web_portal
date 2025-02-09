@@ -19,30 +19,34 @@ import type { Contribution } from "../../types/contribution";
 import type { Payout } from "../../types/payout";
 import { Dependant, Member } from "../../types";
 import type { Claim } from "../../types/claim";
+import { calculateUnpaidMonths } from "../invoice/calculator";
 
 const addLogo = async (doc: jsPDF): Promise<void> => {
   try {
     // Load logo image
     const img = new Image();
-    img.src = "/logo.png";
+    img.src = "/logo.png"; // Updated path to use public directory
 
     await new Promise((resolve, reject) => {
       img.onload = resolve;
-      img.onerror = reject;
+      img.onerror = (e) => {
+        console.error("Error loading logo:", e);
+        reject(e);
+      };
     });
 
     // Get page dimensions
     const pageWidth = doc.internal.pageSize.width;
 
     // Calculate logo dimensions (max width 40mm, maintain aspect ratio)
-    const maxWidth = 32;
+    const maxWidth = 40;
     const aspectRatio = img.width / img.height;
     const width = maxWidth;
     const height = width / aspectRatio;
 
     // Position logo in top right corner with 20mm margin
-    const x = pageWidth - width - 10;
-    const y = 7;
+    const x = pageWidth - width - 20;
+    const y = 15;
 
     // Add logo to document
     doc.addImage(img, "PNG", x, y, width, height);
@@ -95,25 +99,33 @@ const addHeader = async (
   startDate?: Date,
   endDate?: Date
 ) => {
+  // Add logo first
   await addLogo(doc);
+
+  // Add report title
   doc.setFontSize(20);
   doc.text(`${type.charAt(0).toUpperCase() + type.slice(1)} Report`, 20, 20);
-  doc.setFontSize(12);
-  doc.text(`Period: ${formatDate(startDate)} - ${formatDate(endDate)}`, 20, 30);
+
+  if (startDate && endDate) {
+    doc.setFontSize(12);
+    doc.text(
+      `Period: ${formatDate(startDate)} - ${formatDate(endDate)}`,
+      20,
+      30
+    );
+  }
 };
 
 const addFooter = (doc: jsPDF, pageNumber: number) => {
+  const pageHeight = doc.internal.pageSize.height;
   doc.setFontSize(10);
   doc.text(
-    `Page ${pageNumber}`,
-    doc.internal.pageSize.width / 2,
-    doc.internal.pageSize.height - 10,
-    { align: "center" }
-  );
-  doc.text(
-    `Generated on ${format(new Date(), "dd MMM yyyy HH:mm")}`,
+    `Generated on ${format(
+      new Date(),
+      "dd MMM yyyy HH:mm"
+    )} - Page ${pageNumber}`,
     20,
-    doc.internal.pageSize.height - 10
+    pageHeight - 10
   );
 };
 
@@ -223,6 +235,130 @@ const generateDependantsReport = async (doc: jsPDF): Promise<void> => {
   }
 };
 
+const generateArrearsReport = async (doc: jsPDF): Promise<void> => {
+  let pageNumber = 1;
+ 
+
+  try {
+    // Fetch all active members
+    const membersRef = collection(db, "members");
+    const membersQuery = query(membersRef, where("status", "==", "active"));
+    const membersSnapshot = await getDocs(membersQuery);
+    const members = membersSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Member[];
+
+    // Fetch all contributions
+    const contributionsRef = collection(db, "contributions");
+    const contributionsSnapshot = await getDocs(contributionsRef);
+    const allContributions = contributionsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Contribution[];
+
+    // Calculate arrears for each member
+    const membersInArrears = await Promise.all(
+      members.map(async (member) => {
+        const memberContributions = allContributions.filter(
+          (c) => c.member_id === member.id && c.status === "approved"
+        );
+
+        const unpaidMonths = calculateUnpaidMonths(
+          memberContributions,
+          member.join_date.toDate()
+        );
+
+        const totalDue = unpaidMonths.reduce(
+          (sum, month) => sum + month.amount,
+          0
+        );
+
+        return {
+          member,
+          unpaidMonths,
+          totalDue,
+        };
+      })
+    );
+
+    // Filter out members who are not in arrears
+    const actualArrearsMembers = membersInArrears.filter(
+      ({ unpaidMonths }) => unpaidMonths.length > 0
+    );
+
+    // Summary section
+    const totalMembers = actualArrearsMembers.length;
+    const totalAmount = actualArrearsMembers.reduce(
+      (sum, { totalDue }) => sum + totalDue,
+      0
+    );
+    const averageAmount = totalAmount / totalMembers || 0;
+
+    const summaryOptions: UserOptions = {
+      startY: 40,
+      head: [["Description", "Value"]],
+      body: [
+        ["Total Members in Arrears", totalMembers.toString()],
+        ["Total Amount Due", `R ${totalAmount.toFixed(2)}`],
+        ["Average Amount Due", `R ${averageAmount.toFixed(2)}`],
+      ],
+      theme: "striped",
+      headStyles: { fillColor: [79, 70, 229] },
+    };
+    autoTable(doc, summaryOptions);
+
+    // Detailed arrears table
+    const lastY = (doc as any).lastAutoTable.finalY;
+    doc.text("Members in Arrears", 20, lastY + 15);
+
+    const detailsData = actualArrearsMembers.map(
+      ({ member, unpaidMonths, totalDue }) => [
+        member.full_name,
+        member.email,
+        member.phone,
+        unpaidMonths.length.toString(),
+        unpaidMonths.map((month) => format(month.month, "MMM yyyy")).join(", "),
+        `R ${totalDue.toFixed(2)}`,
+      ]
+    );
+
+    const detailsOptions: UserOptions = {
+      startY: lastY + 20,
+      head: [
+        [
+          "Member Name",
+          "Email",
+          "Phone",
+          "Months Overdue",
+          "Unpaid Months",
+          "Total Amount Due",
+        ],
+      ],
+      body: detailsData,
+      theme: "striped",
+      headStyles: { fillColor: [79, 70, 229] },
+      didDrawPage: () => {
+        addFooter(doc, pageNumber++);
+      },
+      styles: {
+        overflow: "linebreak",
+        cellWidth: "wrap",
+      },
+      columnStyles: {
+        4: { cellWidth: "auto" }, // Unpaid Months column
+      },
+    };
+    autoTable(doc, detailsOptions);
+
+    // Add final footer
+    addFooter(doc, pageNumber);
+  } catch (error) {
+    console.error("Error generating arrears report:", error);
+    throw new Error("Failed to generate arrears report");
+  }
+};
+
 export const generateReport = async (
   type: ReportType,
   period: ReportPeriod
@@ -230,18 +366,23 @@ export const generateReport = async (
   const doc = new jsPDF();
   let pageNumber = 1;
 
-  // addHeader(doc, type, startDate, endDate);
-
   try {
     if (type === "dependants") {
-      // addHeader(doc, type);
+      await addHeader(doc, type);
       await generateDependantsReport(doc);
       doc.save(`dependants-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
       return;
     }
 
+    if (type === "arrears") {
+      await addHeader(doc, type);
+      await generateArrearsReport(doc);
+      doc.save(`arrears-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      return;
+    }
+
     const { startDate, endDate } = await getPeriodDates(period);
-    addHeader(doc, type, startDate, endDate);
+    await addHeader(doc, type, startDate, endDate);
 
     // Get data based on report type
     const contributionsRef = collection(db, "contributions");
@@ -274,6 +415,7 @@ export const generateReport = async (
       .filter((c) => c.status === "approved")
       .reduce((sum, c) => sum + c.amount, 0);
 
+    // Generate report based on type
     switch (type) {
       case "contributions": {
         // Summary section

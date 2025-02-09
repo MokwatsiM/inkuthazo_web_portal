@@ -1,8 +1,13 @@
-import type { Contribution } from './contribution';
-import type { Payout } from './payout';
+import type { Contribution } from "./contribution";
+import type { Payout } from "./payout";
 
-export type ReportType = 'contributions' | 'payouts' | 'summary' | 'dependants';
-export type ReportPeriod = 'monthly' | 'quarterly' | 'yearly' | 'all-time';
+export type ReportType =
+  | "contributions"
+  | "payouts"
+  | "summary"
+  | "dependants"
+  | "arrears";
+export type ReportPeriod = "monthly" | "quarterly" | "yearly" | "all-time";
 
 export interface ReportData {
   period: {

@@ -41,6 +41,7 @@ const Reports: React.FC = () => {
               <option value="payouts">Payouts Report</option>
               <option value="summary">Financial Summary</option>
               <option value="dependants">Dependants Report</option>
+              <option value="arrears">Members in Arrears Report</option>
             </select>
           </div>
           <div>

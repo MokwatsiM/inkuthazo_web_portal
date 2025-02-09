@@ -1,4 +1,3 @@
-// src/utils/invoice/generator.ts
 import { jsPDF } from "jspdf";
 import autoTable, { UserOptions } from "jspdf-autotable";
 import { format } from "date-fns";
@@ -9,11 +8,14 @@ const addLogo = async (doc: jsPDF): Promise<void> => {
   try {
     // Load logo image
     const img = new Image();
-   img.src = "/logo.png"; 
+    img.src = "/logo.png"; // Updated path to use public directory
 
     await new Promise((resolve, reject) => {
       img.onload = resolve;
-      img.onerror = reject;
+      img.onerror = (e) => {
+        console.error("Error loading logo:", e);
+        reject(e);
+      };
     });
 
     // Get page dimensions
@@ -43,7 +45,9 @@ export const generateInvoicePDF = async (
   const doc = new jsPDF();
   const pageHeight = doc.internal.pageSize.height;
   let currentY = 10;
+  const today = new Date();
   let pageNumber = 1;
+
   // Add logo
   await addLogo(doc);
 
@@ -54,22 +58,14 @@ export const generateInvoicePDF = async (
 
     // Invoice Details
     doc.setFontSize(12);
-    doc.text(
-      `Invoice Date: ${format(new Date(), "dd MMM yyyy")}`,
-      20,
-      currentY
-    );
+    doc.text(`Invoice Date: ${format(today, "dd MMM yyyy")}`, 20, currentY);
     currentY += 10;
     doc.text(
-      `Invoice #: INV-${format(new Date(), "yyyyMMdd")}-${member.id.slice(
-        0,
-        6
-      )}`,
+      `Invoice #: INV-${format(today, "yyyyMMdd")}-${member.id.slice(0, 6)}`,
       20,
       currentY
     );
     currentY += 15;
-
     // Member Details
     doc.text("Bill To:", 20, currentY);
     currentY += 10;
@@ -80,7 +76,6 @@ export const generateInvoicePDF = async (
     doc.text(member.phone, 20, currentY);
     currentY += 15;
   };
-
   const addFooter = () => {
     doc.setFontSize(10);
     doc.text(
@@ -96,28 +91,42 @@ export const generateInvoicePDF = async (
     );
   };
 
+  // Header
+
   const addNewPage = () => {
-    addFooter();
+    // addFooter();
     doc.addPage();
     pageNumber++;
     currentY = 20;
-    // addHeader();
   };
 
-  // Initial header
   addHeader();
 
   // Unpaid Months Table
-  const tableData = invoice.unpaidMonths.map(({ month, amount, isLate }) => [
-    format(month, "MMMM yyyy"),
-    "Monthly Contribution",
-    isLate
-      ? `R ${invoice.monthlyFee.toFixed(2)} + R ${invoice.latePenalty.toFixed(
-          2
-        )} (Late Fee)`
-      : `R ${amount.toFixed(2)}`,
-    `R ${amount.toFixed(2)}`,
-  ]);
+  const tableData = invoice.unpaidMonths.map(
+    ({ month, amount, isLate, isPaid }) => {
+      const description = isLate
+        ? isPaid
+          ? "Late Payment Penalty (Payment after 7th)"
+          : `Monthly Contribution + Late Payment Penalty`
+        : "Monthly Contribution";
+
+      const breakdown = isLate
+        ? isPaid
+          ? `R ${invoice.latePenalty.toFixed(2)} (Late Fee)`
+          : `R ${invoice.monthlyFee.toFixed(
+              2
+            )} + R ${invoice.latePenalty.toFixed(2)} (Late Fee)`
+        : `R ${amount.toFixed(2)}`;
+
+      return [
+        format(month, "MMMM yyyy"),
+        description,
+        breakdown,
+        `R ${amount.toFixed(2)}`,
+      ];
+    }
+  );
 
   const tableOptions: UserOptions = {
     startY: 100,
@@ -136,8 +145,6 @@ export const generateInvoicePDF = async (
   };
 
   autoTable(doc, tableOptions);
-
-  // Get the final Y position after the table
   currentY = (doc as any).lastAutoTable.finalY + 10;
 
   // Check if we need a new page for the summary
@@ -152,7 +159,6 @@ export const generateInvoicePDF = async (
     currentY
   );
   currentY += 20;
-
   // Check if we need a new page for payment instructions
   if (currentY > pageHeight - 80) {
     addNewPage();
@@ -162,18 +168,19 @@ export const generateInvoicePDF = async (
   doc.text("Payment Instructions:", 20, currentY);
   currentY += 10;
   doc.setFontSize(10);
-
   const instructions = [
     "Please make payment within 7 days",
     "Bank: First National Bank",
     "Account Name: Inkuthazo Burial Club",
     "Account Type: Cheque",
-    "Branch code: 250655",
-    "Account: 63050597279",
-    "Reference:" + member.full_name,
-    "Note: A late payment penalty of R50 is applied for payments after the 7th of each month.",
+    "Branch Code: 250655",
+    "Account#: 63050597279",
+    "Reference: " + member.full_name,
+    "",
+    "Note: Monthly contributions must be paid by the 7th of each month.",
+    "A late payment penalty of R50 applies to payments made after the 7th.",
+    "Payments made between the 1st and 7th of the month will not incur late fees.",
   ];
-
   instructions.forEach((line) => {
     if (currentY > pageHeight - 30) {
       addNewPage();
@@ -181,14 +188,36 @@ export const generateInvoicePDF = async (
     doc.text(line, 20, currentY);
     currentY += 10;
   });
-
-  // Add final footer
   addFooter();
+  // doc.text(
+  //   [
+  //     "Please make payment within 7 days",
+  //     "Bank: First National Bank",
+  //     "Account Name: Inkuthazo Burial Club",
+  //     "Account Type: Cheque",
+  //     "Branch Code: 250655",
+  //     "Account Number: 63050597279",
+  //     "Reference: "+ member.full_name,
+  //     "",
+  //     "Note: Monthly contributions must be paid by the 7th of each month.",
+  //     "A late payment penalty of R50 applies to payments made after the 7th.",
+  //     "Payments made between the 1st and 7th of the month will not incur late fees.",
+  //   ],
+  //   20,
+  //   finalY + 30
+  // );
+
+  // // Footer
+  // doc.text(
+  //   `Generated on ${format(today, "dd MMM yyyy HH:mm")}`,
+  //   20,
+  //   doc.internal.pageSize.height - 10
+  // );
 
   // Save the PDF
   doc.save(
     `${member.full_name.toLowerCase().replace(/\s+/g, "-")}-invoice-${format(
-      new Date(),
+      today,
       "yyyy-MM"
     )}.pdf`
   );

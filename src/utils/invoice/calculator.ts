@@ -43,7 +43,7 @@ const calculateMonthlyAmount = (
       month: date,
       amount: wasPaymentLate ? LATE_PAYMENT_PENALTY : 0, // Only charge late fee if paid after due date
       isLate: wasPaymentLate,
-      isPaid: true,
+      isPaid: contribution.amount > 0,
       latePenaltyPaid: contribution.amount > MONTHLY_FEE,
     };
   }
@@ -103,7 +103,6 @@ export const calculateUnpaidMonths = (
         return {
           ...monthlyFee,
           amount: LATE_PAYMENT_PENALTY, // Only charge the late fee
-          isPaid: false, // Mark as unpaid since the late fee wasn't paid
         };
       }
 

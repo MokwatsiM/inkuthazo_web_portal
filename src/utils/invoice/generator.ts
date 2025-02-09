@@ -87,7 +87,7 @@ export const generateInvoicePDF = async (
     doc.text(
       `Generated on ${format(new Date(), "dd MMM yyyy HH:mm")}`,
       20,
-      doc.internal.pageSize.height - 10
+      doc.internal.pageSize.height - 5
     );
   };
 
@@ -104,20 +104,26 @@ export const generateInvoicePDF = async (
 
   // Unpaid Months Table
   const tableData = invoice.unpaidMonths.map(
-    ({ month, amount, isLate, isPaid }) => {
-      const description = isLate
-        ? isPaid
-          ? "Late Payment Penalty (Payment after 7th)"
-          : `Monthly Contribution + Late Payment Penalty`
-        : "Monthly Contribution";
+    ({ month, amount, isLate, isPaid, latePenaltyPaid }) => {
+      let description, breakdown;
 
-      const breakdown = isLate
-        ? isPaid
-          ? `R ${invoice.latePenalty.toFixed(2)} (Late Fee)`
-          : `R ${invoice.monthlyFee.toFixed(
-              2
-            )} + R ${invoice.latePenalty.toFixed(2)} (Late Fee)`
-        : `R ${amount.toFixed(2)}`;
+      if (isLate) {
+        if (isPaid && !latePenaltyPaid) {
+          // Only late fee is due
+          description = "Late Payment Penalty";
+          breakdown = `R ${invoice.latePenalty.toFixed(2)} (Late Fee)`;
+        } else if (!isPaid ) {
+          // Both monthly fee and late fee are due
+          description = "Monthly Contribution + Late Payment Penalty";
+          breakdown = `R ${invoice.monthlyFee.toFixed(
+            2
+          )} + R ${invoice.latePenalty.toFixed(2)} (Late Fee)`;
+        }
+      } else {
+        // Regular monthly contribution
+        description = "Monthly Contribution";
+        breakdown = `R ${invoice.monthlyFee.toFixed(2)}`;
+      }
 
       return [
         format(month, "MMMM yyyy"),
@@ -130,8 +136,8 @@ export const generateInvoicePDF = async (
 
   const tableOptions: UserOptions = {
     startY: 100,
-    head: [["Month", "Description", "Breakdown", "Total"]],
-    body: tableData,
+    head: [["Month", "Description", "Breakdown", "Total"]] as string[][],
+    body: tableData as string[][],
     theme: "striped",
     headStyles: { fillColor: [79, 70, 229] },
     didDrawPage: () => {
@@ -158,7 +164,7 @@ export const generateInvoicePDF = async (
     20,
     currentY
   );
-  currentY += 20;
+  currentY += 10;
   // Check if we need a new page for payment instructions
   if (currentY > pageHeight - 80) {
     addNewPage();
@@ -166,7 +172,7 @@ export const generateInvoicePDF = async (
 
   // Payment Instructions
   doc.text("Payment Instructions:", 20, currentY);
-  currentY += 10;
+  currentY += 5;
   doc.setFontSize(10);
   const instructions = [
     "Please make payment within 7 days",
@@ -186,7 +192,7 @@ export const generateInvoicePDF = async (
       addNewPage();
     }
     doc.text(line, 20, currentY);
-    currentY += 10;
+    currentY += 5;
   });
   addFooter();
   // doc.text(

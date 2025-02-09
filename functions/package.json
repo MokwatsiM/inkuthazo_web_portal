@@ -14,10 +14,9 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@types/mailgun-js": "^0.22.18",
     "firebase-admin": "^13.0.2",
     "firebase-functions": "^4.9.0",
-    "mailgun-js": "^0.22.0"
+    "node-mailjet": "^6.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

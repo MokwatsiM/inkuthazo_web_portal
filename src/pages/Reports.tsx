@@ -1,20 +1,27 @@
-import React, { useState } from 'react';
-import { Download } from 'lucide-react';
-import Button from '../components/ui/Button';
-import { generateReport } from '../utils/reportGenerator';
-import type { ReportType, ReportPeriod } from '../types/report';
+import React, { useState } from "react";
+import { Download } from "lucide-react";
+import Button from "../components/ui/Button";
+import { generateReport } from "../utils/reportGenerator";
+import type { ReportType, ReportPeriod } from "../types/report";
+import { useAuth } from "../hooks/useAuth";
 
 const Reports: React.FC = () => {
-  const [reportType, setReportType] = useState<ReportType>('contributions');
-  const [period, setPeriod] = useState<ReportPeriod>('monthly');
+  const [reportType, setReportType] = useState<ReportType>("contributions");
+  const [period, setPeriod] = useState<ReportPeriod>("monthly");
   const [loading, setLoading] = useState(false);
+  const { userDetails } = useAuth();
 
   const handleGenerateReport = async () => {
+    if (!userDetails?.id) {
+      console.error("User not authenticated");
+      return;
+    }
+
     setLoading(true);
     try {
-      await generateReport(reportType, period);
+      await generateReport(reportType, period, userDetails.id);
     } catch (error) {
-      console.error('Error generating report:', error);
+      console.error("Error generating report:", error);
     } finally {
       setLoading(false);
     }
@@ -41,7 +48,8 @@ const Reports: React.FC = () => {
               <option value="payouts">Payouts Report</option>
               <option value="summary">Financial Summary</option>
               <option value="dependants">Dependants Report</option>
-              <option value="arrears">Members in Arrears Report</option>
+              {/* comment out members in arrears for now */}
+              {/* <option value="arrears">Members in Arrears Report</option> */}
             </select>
           </div>
           <div>

@@ -1,7 +1,13 @@
-// src/utils/reportGenerator/reports.ts
 import { jsPDF } from "jspdf";
 import autoTable, { RowInput, UserOptions } from "jspdf-autotable";
-import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  subMonths,
+  // isSameMonth,
+  // isAfter,
+} from "date-fns";
 import {
   collection,
   query,
@@ -14,12 +20,13 @@ import {
 import { db } from "../../config/firebase";
 import { formatDate } from "../dateUtils";
 import { fetchMemberDetails } from "../../services/memberService";
+import { calculateUnpaidMonths } from "../invoice/calculator";
 import type { ReportType, ReportPeriod } from "../../types/report";
 import type { Contribution } from "../../types/contribution";
-import type { Payout } from "../../types/payout";
-import { Dependant, Member } from "../../types";
+import type { Member, Dependant } from "../../types";
 import type { Claim } from "../../types/claim";
-import { calculateUnpaidMonths } from "../invoice/calculator";
+import { Payout } from "../../types/payout";
+// import type { MonthlyFee } from "../../utils/invoice/types";
 
 const addLogo = async (doc: jsPDF): Promise<void> => {
   try {
@@ -235,19 +242,29 @@ const generateDependantsReport = async (doc: jsPDF): Promise<void> => {
   }
 };
 
-const generateArrearsReport = async (doc: jsPDF): Promise<void> => {
+const generateArrearsReport = async (
+  doc: jsPDF,
+  currentUserId: string
+): Promise<void> => {
   let pageNumber = 1;
- 
+  const MONTHLY_FEE = 150;
+  const LATE_PAYMENT_PENALTY = 50;
 
   try {
-    // Fetch all active members
+    // Fetch all active members except the current user
     const membersRef = collection(db, "members");
-    const membersQuery = query(membersRef, where("status", "==", "active"));
+    const membersQuery = query(
+      membersRef,
+      where("status", "==", "active"),
+      where("role", "==", "member") // Only include regular members
+    );
     const membersSnapshot = await getDocs(membersQuery);
-    const members = membersSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Member[];
+    const members = membersSnapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .filter((member) => member.id !== currentUserId) as Member[]; // Exclude current user
 
     // Fetch all contributions
     const contributionsRef = collection(db, "contributions");
@@ -278,14 +295,15 @@ const generateArrearsReport = async (doc: jsPDF): Promise<void> => {
           member,
           unpaidMonths,
           totalDue,
+          monthsOverdue: unpaidMonths.length,
         };
       })
     );
 
-    // Filter out members who are not in arrears
-    const actualArrearsMembers = membersInArrears.filter(
-      ({ unpaidMonths }) => unpaidMonths.length > 0
-    );
+    // Filter out members who are not in arrears and sort by total amount due
+    const actualArrearsMembers = membersInArrears
+      .filter(({ totalDue }) => totalDue > 0)
+      .sort((a, b) => b.totalDue - a.totalDue);
 
     // Summary section
     const totalMembers = actualArrearsMembers.length;
@@ -294,14 +312,20 @@ const generateArrearsReport = async (doc: jsPDF): Promise<void> => {
       0
     );
     const averageAmount = totalAmount / totalMembers || 0;
+    const maxAmount = Math.max(...actualArrearsMembers.map((m) => m.totalDue));
+    const maxMonthsOverdue = Math.max(
+      ...actualArrearsMembers.map((m) => m.monthsOverdue)
+    );
 
     const summaryOptions: UserOptions = {
       startY: 40,
       head: [["Description", "Value"]],
       body: [
         ["Total Members in Arrears", totalMembers.toString()],
-        ["Total Amount Due", `R ${totalAmount.toFixed(2)}`],
+        ["Total Amount Outstanding", `R ${totalAmount.toFixed(2)}`],
         ["Average Amount Due", `R ${averageAmount.toFixed(2)}`],
+        ["Highest Amount Due", `R ${maxAmount.toFixed(2)}`],
+        ["Maximum Months Overdue", maxMonthsOverdue.toString()],
       ],
       theme: "striped",
       headStyles: { fillColor: [79, 70, 229] },
@@ -310,17 +334,36 @@ const generateArrearsReport = async (doc: jsPDF): Promise<void> => {
 
     // Detailed arrears table
     const lastY = (doc as any).lastAutoTable.finalY;
-    doc.text("Members in Arrears", 20, lastY + 15);
+    doc.text("Members in Arrears (Sorted by Amount Due)", 20, lastY + 15);
 
     const detailsData = actualArrearsMembers.map(
-      ({ member, unpaidMonths, totalDue }) => [
-        member.full_name,
-        member.email,
-        member.phone,
-        unpaidMonths.length.toString(),
-        unpaidMonths.map((month) => format(month.month, "MMM yyyy")).join(", "),
-        `R ${totalDue.toFixed(2)}`,
-      ]
+      ({ member, unpaidMonths, totalDue, monthsOverdue }) => {
+        const monthsList = unpaidMonths
+          .sort((a, b) => a.month.getTime() - b.month.getTime())
+          .map((month) => ({
+            month: format(month.month, "MMM yyyy"),
+            amount: month.amount,
+            isLate: month.isLate,
+          }));
+
+        const monthsDetail = monthsList
+          .map(
+            (m) =>
+              `${m.month} (R${m.amount.toFixed(2)}${
+                m.isLate ? " incl. late fee" : ""
+              })`
+          )
+          .join("\n");
+
+        return [
+          member.full_name,
+          member.email,
+          member.phone,
+          monthsOverdue.toString(),
+          monthsDetail,
+          `R ${totalDue.toFixed(2)}`,
+        ];
+      }
     );
 
     const detailsOptions: UserOptions = {
@@ -331,8 +374,8 @@ const generateArrearsReport = async (doc: jsPDF): Promise<void> => {
           "Email",
           "Phone",
           "Months Overdue",
-          "Unpaid Months",
-          "Total Amount Due",
+          "Outstanding Months (Amount)",
+          "Total Due",
         ],
       ],
       body: detailsData,
@@ -344,12 +387,34 @@ const generateArrearsReport = async (doc: jsPDF): Promise<void> => {
       styles: {
         overflow: "linebreak",
         cellWidth: "wrap",
+        cellPadding: 4,
+        fontSize: 10,
       },
       columnStyles: {
-        4: { cellWidth: "auto" }, // Unpaid Months column
+        0: { cellWidth: "auto" },
+        1: { cellWidth: "auto" },
+        2: { cellWidth: "auto" },
+        3: { cellWidth: 30 },
+        4: { cellWidth: "auto" },
+        5: { cellWidth: 50 },
       },
     };
     autoTable(doc, detailsOptions);
+
+    // Add notes section
+    const notesY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(10);
+    doc.text("Notes:", 20, notesY);
+    doc.text(
+      [
+        "1. Monthly contribution amount: R" + MONTHLY_FEE,
+        "2. Late payment penalty: R" + LATE_PAYMENT_PENALTY,
+        "3. Late fees apply to payments made after the 7th of each month",
+        "4. Current month is included if payment is overdue",
+      ],
+      20,
+      notesY + 10
+    );
 
     // Add final footer
     addFooter(doc, pageNumber);
@@ -359,9 +424,11 @@ const generateArrearsReport = async (doc: jsPDF): Promise<void> => {
   }
 };
 
+// Update the generateReport function to pass the current user ID
 export const generateReport = async (
   type: ReportType,
-  period: ReportPeriod
+  period: ReportPeriod,
+  currentUserId: string
 ): Promise<void> => {
   const doc = new jsPDF();
   let pageNumber = 1;
@@ -376,7 +443,7 @@ export const generateReport = async (
 
     if (type === "arrears") {
       await addHeader(doc, type);
-      await generateArrearsReport(doc);
+      await generateArrearsReport(doc, currentUserId);
       doc.save(`arrears-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
       return;
     }
@@ -455,7 +522,6 @@ export const generateReport = async (
         autoTable(doc, detailsOptions);
         break;
       }
-
       case "payouts": {
         const payoutsRef = collection(db, "payouts");
         const payoutsQuery = query(
@@ -636,6 +702,6 @@ export const generateReport = async (
     doc.save(`${type}-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
   } catch (error) {
     console.error("Error generating report:", error);
-    throw new Error("Failed to generate report");
+    throw error;
   }
 };

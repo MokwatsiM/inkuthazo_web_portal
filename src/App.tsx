@@ -25,6 +25,7 @@ import Claims from "./pages/Claims";
 import SessionProvider from "./components/session/SessionProvider";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import Calendar from "./pages/Calendar";
+import Expenses from "./pages/Expenses";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -106,6 +107,15 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleBasedRoute allowedRoles={["admin"]}>
               <Claims />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="expenses"
+          element={
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <Expenses />
             </RoleBasedRoute>
           }
         />

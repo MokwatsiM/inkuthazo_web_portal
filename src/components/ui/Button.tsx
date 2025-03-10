@@ -1,5 +1,5 @@
-import React from "react";
 import { LucideIcon } from "lucide-react";
+import React from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary";
@@ -17,12 +17,12 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    "px-4 py-2 rounded-md flex items-center justify-center text-sm font-medium transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2";
+    "px-4 py-2 rounded-md flex items-center justify-center text-sm font-medium transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 dark:ring-offset-gray-900";
   const variantStyles = {
     primary:
-      "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
+      "bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-500 dark:bg-brand-500 dark:hover:bg-brand-600",
     secondary:
-      "bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500",
+      "bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600",
   };
   const widthStyles = fullWidth ? "w-full" : "";
 

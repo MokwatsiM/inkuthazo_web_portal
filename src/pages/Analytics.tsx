@@ -19,6 +19,7 @@ import type { Member } from "../types";
 import type { Contribution } from "../types/contribution";
 import type { Claim } from "../types/claim";
 import type { Payout } from "../types/payout";
+import { Expense } from "../types/expense";
 
 const Analytics: React.FC = () => {
   const [period, setPeriod] = useState<"3m" | "6m" | "12m" | "all">("3m");
@@ -28,11 +29,13 @@ const Analytics: React.FC = () => {
     contributions: Contribution[];
     claims: Claim[];
     payouts: Payout[];
+    expenses: Expense[];
   }>({
     members: [],
     contributions: [],
     claims: [],
     payouts: [],
+    expenses: [],
   });
 
   useEffect(() => {
@@ -43,8 +46,7 @@ const Analytics: React.FC = () => {
         const endDate = endOfMonth(new Date());
 
         if (period === "all") {
-          // Set start date to June 1, 2023
-          startDate = new Date(2023, 5, 1); // Month is 0-based, so 5 is June
+          startDate = new Date(2023, 5, 1); // June 1, 2023
         } else {
           const months = period === "3m" ? 3 : period === "6m" ? 6 : 12;
           startDate = startOfMonth(subMonths(new Date(), months));
@@ -58,7 +60,7 @@ const Analytics: React.FC = () => {
           ...doc.data(),
         })) as Member[];
 
-        // Fetch contributions with explicit date range
+        // Fetch contributions
         const contributionsRef = collection(db, "contributions");
         const contributionsQuery = query(
           contributionsRef,
@@ -72,7 +74,7 @@ const Analytics: React.FC = () => {
           ...doc.data(),
         })) as Contribution[];
 
-        // Fetch claims with explicit date range
+        // Fetch claims
         const claimsRef = collection(db, "claims");
         const claimsQuery = query(
           claimsRef,
@@ -86,7 +88,7 @@ const Analytics: React.FC = () => {
           ...doc.data(),
         })) as Claim[];
 
-        // Fetch payouts with explicit date range
+        // Fetch payouts
         const payoutsRef = collection(db, "payouts");
         const payoutsQuery = query(
           payoutsRef,
@@ -100,7 +102,21 @@ const Analytics: React.FC = () => {
           ...doc.data(),
         })) as Payout[];
 
-        setData({ members, contributions, claims, payouts });
+        // Fetch expenses
+        const expensesRef = collection(db, "expenses");
+        const expensesQuery = query(
+          expensesRef,
+          where("date", ">=", Timestamp.fromDate(startDate)),
+          where("date", "<=", Timestamp.fromDate(endDate)),
+          orderBy("date", "asc")
+        );
+        const expensesSnapshot = await getDocs(expensesQuery);
+        const expenses = expensesSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Expense[];
+
+        setData({ members, contributions, claims, payouts, expenses });
       } catch (error) {
         console.error("Error fetching analytics data:", error);
       } finally {
@@ -111,7 +127,7 @@ const Analytics: React.FC = () => {
     fetchData();
   }, [period]);
 
-  // Calculate key metrics
+  // Calculate key metrics including expenses
   const metrics = {
     totalMembers: data.members.length,
     activeMembers: data.members.filter((m) => m.status === "active").length,
@@ -121,13 +137,19 @@ const Analytics: React.FC = () => {
     ),
     totalClaims: data.claims.reduce((sum, c) => sum + c.amount, 0),
     totalPayouts: data.payouts.reduce((sum, p) => sum + p.amount, 0),
+    totalExpenses: data.expenses.reduce((sum, e) => sum + e.amount, 0),
     pendingClaims: data.claims.filter((c) => c.status === "pending").length,
+    pendingExpenses: data.expenses.filter((e) => e.status === "pending").length,
     avgContribution:
       data.contributions.length > 0
         ? data.contributions.reduce((sum, c) => sum + c.amount, 0) /
           data.contributions.length
         : 0,
   };
+
+  // Calculate actual fund balance including expenses
+  const fundBalance =
+    metrics.totalContributions - metrics.totalPayouts - metrics.totalExpenses;
 
   // Prepare contribution trends data
   const contributionTrends = Array.from({
@@ -150,7 +172,7 @@ const Analytics: React.FC = () => {
     .reverse();
 
   // Calculate minimum width based on number of data points
-  const minChartWidth = Math.max(contributionTrends.length * 80, 800); // Minimum width of 800px
+  const minChartWidth = Math.max(contributionTrends.length * 80, 800);
 
   // Prepare contribution types data
   const contributionTypes = data.contributions.reduce((acc, curr) => {
@@ -184,7 +206,7 @@ const Analytics: React.FC = () => {
     .map((_, i) => {
       const date =
         period === "all"
-          ? subMonths(new Date(), 24 - i) // Show last 24 months for all time view
+          ? subMonths(new Date(), 24 - i)
           : subMonths(new Date(), i);
       const monthStart = startOfMonth(date);
       const monthEnd = endOfMonth(date);
@@ -287,9 +309,9 @@ const Analytics: React.FC = () => {
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Total Contributions
+            Total Income
           </h3>
-          <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
+          <p className="mt-2 text-3xl font-semibold text-green-600 dark:text-green-400">
             R {metrics.totalContributions.toFixed(2)}
           </p>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -298,25 +320,33 @@ const Analytics: React.FC = () => {
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Total Claims
+            Total Outflows
           </h3>
-          <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
-            R {metrics.totalClaims.toFixed(2)}
+          <p className="mt-2 text-3xl font-semibold text-red-600 dark:text-red-400">
+            R {(metrics.totalPayouts + metrics.totalExpenses).toFixed(2)}
           </p>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {metrics.pendingClaims} pending
+            Claims: R {metrics.totalClaims.toFixed(2)}
+          </p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Other expense: R {metrics.totalExpenses.toFixed(2)}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
             Fund Balance
           </h3>
-          <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
-            R {(metrics.totalContributions - metrics.totalPayouts).toFixed(2)}
+          <p
+            className={`mt-2 text-3xl font-semibold ${
+              fundBalance >= 0
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            R {fundBalance.toFixed(2)}
           </p>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {data.payouts.filter((p) => p.status === "pending").length} pending
-            payouts
+            {metrics.pendingExpenses} pending expenses
           </p>
         </div>
       </div>
@@ -406,7 +436,7 @@ const Analytics: React.FC = () => {
                   tickSize: 5,
                   tickPadding: 5,
                   tickRotation: -45,
-                  tickValues: memberGrowth.map((d) => d.month), // Show all month labels
+                  tickValues: memberGrowth.map((d) => d.month),
                 }}
                 axisLeft={{
                   tickSize: 5,

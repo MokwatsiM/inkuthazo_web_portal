@@ -1,5 +1,6 @@
 import React from "react";
-import Calendar from "../components/calendar/calendar";
+import Calendar from "../components/calendar/Calendar";
+
 
 const CalendarPage: React.FC = () => {
   return (

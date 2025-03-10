@@ -4,6 +4,7 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 import { format, getWeekOfMonth } from "date-fns";
+import { Calendar, Clock, MapPin } from "lucide-react";
 import type { Event, RecurrenceType } from "../../types/event";
 
 interface EditEventModalProps {
@@ -77,17 +78,13 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       const updateData: Partial<Event> = {
         title: formData.title,
         description: formData.description,
-
+        venue: formData.venue || undefined,
         start: Timestamp.fromDate(startDate),
         end: Timestamp.fromDate(endDate),
         allDay: formData.allDay,
         type: formData.type,
         updated_at: Timestamp.now(),
       };
-      // Only add venue if it's not empty
-      if (formData.venue.trim()) {
-        updateData.venue = formData.venue.trim();
-      }
 
       // Add recurrence data if selected
       if (formData.recurrenceType !== "none") {
@@ -100,7 +97,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
           }),
         };
       } else {
-        // Remove recurrence by setting it to undefined instead of null
         updateData.recurrence = undefined;
       }
 
@@ -124,6 +120,96 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     }
   };
 
+  // Member view
+  if (!isAdmin) {
+    return (
+      <div
+        className="fixed inset-0 z-50 overflow-y-auto"
+        aria-labelledby="modal-title"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="flex items-center justify-center min-h-screen">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            aria-hidden="true"
+            onClick={onClose}
+          ></div>
+
+          {/* Modal */}
+          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 z-50">
+            <div className="p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {event.title}
+                </h2>
+                <div
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    event.type === "meeting"
+                      ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-200 dark:text-indigo-900"
+                      : event.type === "event"
+                      ? "bg-green-100 text-green-800 dark:bg-green-200 dark:text-green-900"
+                      : "bg-yellow-100 text-yellow-800 dark:bg-yellow-200 dark:text-yellow-900"
+                  }`}
+                >
+                  {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {event.description && (
+                  <div className="text-gray-600 dark:text-gray-300">
+                    {event.description}
+                  </div>
+                )}
+
+                <div className="flex items-center text-gray-600 dark:text-gray-300">
+                  <Calendar className="h-5 w-5 mr-2" />
+                  <span>
+                    {format(event.start.toDate(), "EEEE, MMMM d, yyyy")}
+                  </span>
+                </div>
+
+                {!event.allDay && (
+                  <div className="flex items-center text-gray-600 dark:text-gray-300">
+                    <Clock className="h-5 w-5 mr-2" />
+                    <span>
+                      {format(event.start.toDate(), "h:mm a")} -{" "}
+                      {format(event.end.toDate(), "h:mm a")}
+                    </span>
+                  </div>
+                )}
+
+                {event.venue && (
+                  <div className="flex items-center text-gray-600 dark:text-gray-300">
+                    <MapPin className="h-5 w-5 mr-2" />
+                    <span>{event.venue}</span>
+                  </div>
+                )}
+
+                {event.recurrence && (
+                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {getRecurrenceDescription()}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <Button variant="secondary" onClick={onClose}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin view - existing form
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto"
@@ -142,9 +228,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
         {/* Modal */}
         <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 z-50">
           <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">
-              {isAdmin ? "Edit Event" : "Event Details"}
-            </h2>
+            <h2 className="text-xl font-bold mb-4">Edit Event</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -159,7 +243,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, title: e.target.value }))
                   }
-                  readOnly={!isAdmin}
                 />
               </div>
 
@@ -177,7 +260,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                       description: e.target.value,
                     }))
                   }
-                  readOnly={!isAdmin}
                 />
               </div>
 
@@ -193,7 +275,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                     setFormData((prev) => ({ ...prev, venue: e.target.value }))
                   }
                   placeholder="Enter event venue or location"
-                  readOnly={!isAdmin}
                 />
               </div>
 
@@ -211,7 +292,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                       type: e.target.value as Event["type"],
                     }))
                   }
-                  disabled={!isAdmin}
                 >
                   <option value="event">Event</option>
                   <option value="meeting">Meeting</option>
@@ -232,7 +312,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                       recurrenceType: e.target.value as RecurrenceType,
                     }))
                   }
-                  disabled={!isAdmin}
                 >
                   <option value="none">No Recurrence</option>
                   <option value="monthly-date">Same Date Monthly</option>
@@ -257,7 +336,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                       allDay: e.target.checked,
                     }))
                   }
-                  disabled={!isAdmin}
                 />
                 <label
                   htmlFor="allDay"
@@ -287,7 +365,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                         start: e.target.value,
                       }));
                     }}
-                    readOnly={!isAdmin}
                   />
                 </div>
                 {!formData.allDay && (
@@ -306,7 +383,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                           startTime: e.target.value,
                         }))
                       }
-                      readOnly={!isAdmin}
                     />
                   </div>
                 )}
@@ -325,7 +401,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, end: e.target.value }))
                     }
-                    readOnly={!isAdmin}
                   />
                 </div>
                 {!formData.allDay && (
@@ -344,7 +419,6 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                           endTime: e.target.value,
                         }))
                       }
-                      readOnly={!isAdmin}
                     />
                   </div>
                 )}
@@ -352,20 +426,16 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
               <div className="flex justify-end space-x-3">
                 <Button variant="secondary" onClick={onClose}>
-                  {isAdmin ? "Cancel" : "Close"}
+                  Cancel
                 </Button>
-                {isAdmin && (
-                  <>
-                    <Button
-                      variant="secondary"
-                      onClick={handleDelete}
-                      className="!bg-red-100 !text-red-700 hover:!bg-red-200"
-                    >
-                      Delete
-                    </Button>
-                    <Button type="submit">Update Event</Button>
-                  </>
-                )}
+                <Button
+                  variant="secondary"
+                  onClick={handleDelete}
+                  className="!bg-red-100 !text-red-700 hover:!bg-red-200"
+                >
+                  Delete
+                </Button>
+                <Button type="submit">Update Event</Button>
               </div>
             </form>
           </div>

@@ -13,6 +13,7 @@ import {
   BarChart2,
   UserX,
   FileCheck,
+  Calendar,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
@@ -42,6 +43,7 @@ const Layout: React.FC = () => {
     { path: "/contributions", icon: CreditCard, label: "Contributions" },
     { path: "/payouts", icon: DollarSign, label: "Payouts" },
     { path: "/claims", icon: FileCheck, label: "Claims" },
+    { path: "/calendar", icon: Calendar, label: "Calendar" },
     { path: "/analytics", icon: BarChart2, label: "Analytics" },
     { path: "/reports", icon: FileText, label: "Reports" },
     { path: "/deletion-requests", icon: UserX, label: "Deletion Requests" },
@@ -55,20 +57,21 @@ const Layout: React.FC = () => {
       label: "My Profile",
     },
     { path: "/my-contributions", icon: CreditCard, label: "My Contributions" },
+    { path: "/calendar", icon: Calendar, label: "Calendar" },
   ];
 
   const menuItems = isAdmin ? adminMenuItems : memberMenuItems;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Top Navigation Bar */}
-      <nav className="bg-white border-b">
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <button
                 onClick={toggleMobileMenu}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 md:hidden"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500 md:hidden"
               >
                 {isMobileMenuOpen ? (
                   <X className="block h-6 w-6" />
@@ -76,9 +79,16 @@ const Layout: React.FC = () => {
                   <Menu className="block h-6 w-6" />
                 )}
               </button>
-              <h1 className="text-xl font-bold text-gray-900 ml-2 md:ml-0">
-                Inkuthazo Social Club Portal
-              </h1>
+              <div className="flex items-center space-x-2">
+                <img
+                  src="/logo.png"
+                  alt="Logo"
+                  className="h-8 w-8 text-brand-600 dark:text-brand-400"
+                />
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2 md:ml-0">
+                  Inkuthazo Burial & Social Club Web Portal
+                </h1>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               {userDetails && (
@@ -87,10 +97,10 @@ const Layout: React.FC = () => {
                     <Avatar member={userDetails} size="sm" />
                   </Link>
                   <div className="text-sm">
-                    <p className="font-medium text-gray-700">
+                    <p className="font-medium text-gray-700 dark:text-gray-200">
                       {userDetails.full_name}
                     </p>
-                    <p className="text-gray-500 text-xs capitalize">
+                    <p className="text-gray-500 dark:text-gray-400 text-xs capitalize">
                       {userDetails.role}
                     </p>
                   </div>
@@ -117,7 +127,7 @@ const Layout: React.FC = () => {
               className="fixed inset-0 bg-gray-600 bg-opacity-75"
               onClick={toggleMobileMenu}
             ></div>
-            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-gray-800">
               <div className="absolute top-0 right-0 -mr-12 pt-2">
                 <button
                   onClick={toggleMobileMenu}
@@ -132,7 +142,7 @@ const Layout: React.FC = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
                       onClick={toggleMobileMenu}
                     >
                       <item.icon className="mr-4 h-6 w-6" />
@@ -142,14 +152,14 @@ const Layout: React.FC = () => {
                 </nav>
               </div>
               {userDetails && (
-                <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+                <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
                   <div className="flex items-center">
                     <Avatar member={userDetails} size="sm" />
                     <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-700">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
                         {userDetails.full_name}
                       </p>
-                      <p className="text-xs font-medium text-gray-500 capitalize">
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 capitalize">
                         {userDetails.role}
                       </p>
                     </div>
@@ -164,12 +174,12 @@ const Layout: React.FC = () => {
         <aside className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-64">
             <div className="flex flex-col h-0 flex-1">
-              <nav className="flex-1 px-2 py-4 bg-white space-y-1">
+              <nav className="flex-1 px-2 py-4 bg-white dark:bg-gray-800 space-y-1">
                 {menuItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
                   >
                     <item.icon className="mr-3 h-6 w-6" />
                     {item.label}

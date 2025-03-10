@@ -10,11 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.10",
+    "@fullcalendar/daygrid": "^6.1.10",
+    "@fullcalendar/interaction": "^6.1.10",
+    "@fullcalendar/react": "^6.1.10",
+    "@fullcalendar/timegrid": "^6.1.10",
     "@headlessui/react": "^1.7.18",
     "@nivo/bar": "^0.88.0",
+    "@nivo/calendar": "^0.84.0",
     "@nivo/core": "^0.88.0",
     "@nivo/line": "^0.88.0",
     "@nivo/pie": "^0.88.0",
+    "@nivo/radar": "^0.84.0",
     "date-fns": "^3.3.1",
     "firebase": "^10.8.0",
     "jspdf": "^2.5.1",

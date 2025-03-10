@@ -1,26 +1,23 @@
 /** @type {import('tailwindcss').Config} */
-import formsPlugin from '@tailwindcss/forms';
-import typoGraphy from '@tailwindcss/typography';
-
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+        brand: {
+          50: '#f5f3ff',
+          100: '#ede9fe',
+          200: '#ddd6fe',
+          300: '#c4b5fd',
+          400: '#a78bfa',
+          500: '#8b5cf6',
+          600: '#7c3aed',
+          700: '#6d28d9',
+          800: '#5b21b6',
+          900: '#4c1d95',
+          950: '#2e1065'
         },
-        
         gray: {
           50: '#F9FAFB',
           100: '#F3F4F6',
@@ -32,19 +29,8 @@ export default {
           700: '#374151',
           800: '#1F2937',
           900: '#111827',
-        },
-      },
-      textColor: {
-        50: '#F9FAFB',
-          100: '#F3F4F6',
-          200: '#E5E7EB',
-          300: '#D1D5DB',
-          400: '#9CA3AF',
-          500: '#6B7280',
-          600: '#4B5563',
-          700: '#374151',
-          800: '#1F2937',
-          900: '#111827',
+          950: '#030712'
+        }
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
@@ -63,7 +49,7 @@ export default {
     },
   },
   plugins: [
-   formsPlugin,
-    typoGraphy,
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
   ],
 };

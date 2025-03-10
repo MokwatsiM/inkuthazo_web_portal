@@ -6,7 +6,7 @@ export type ReportType =
   | "payouts"
   | "summary"
   | "dependants"
-  | "arrears";
+  | "expenses";
 export type ReportPeriod = "monthly" | "quarterly" | "yearly" | "all-time";
 
 export interface ReportData {

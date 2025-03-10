@@ -3,13 +3,14 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { collection, query, getDocs } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 import AddEventModal from "./AddEventModal";
 import EditEventModal from "./EditEventModal";
+import { downloadICSFile } from "../../utils/calendar/export";
 import type { Event } from "../../types/event";
 
 const Calendar: React.FC = () => {
@@ -222,6 +223,14 @@ const Calendar: React.FC = () => {
     generateRecurringEvents(event)
   );
 
+  const handleExportCalendar = () => {
+    try {
+      downloadICSFile(events);
+    } catch (error) {
+      console.error("Error exporting calendar:", error);
+    }
+  };
+
   if (loading) {
     return <div>Loading calendar...</div>;
   }
@@ -230,11 +239,21 @@ const Calendar: React.FC = () => {
     <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl sm:text-2xl font-bold">Calendar</h2>
-        {isAdmin && (
-          <Button icon={Plus} onClick={() => setIsAddModalOpen(true)}>
-            Add Event
+        <div className="flex space-x-2">
+          <Button
+            variant="secondary"
+            icon={Download}
+            onClick={handleExportCalendar}
+            title="Export Calendar"
+          >
+            <span className="hidden sm:inline">Export Calendar</span>
           </Button>
-        )}
+          {isAdmin && (
+            <Button icon={Plus} onClick={() => setIsAddModalOpen(true)}>
+              Add Event
+            </Button>
+          )}
+        </div>
       </div>
 
       <style>

@@ -4,7 +4,8 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 import { format, getWeekOfMonth } from "date-fns";
-import { Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, Clock, MapPin, Download } from "lucide-react";
+import { downloadICSFile } from "../../utils/calendar/export";
 import type { Event, RecurrenceType } from "../../types/event";
 
 interface EditEventModalProps {
@@ -120,6 +121,14 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     }
   };
 
+  const handleExportEvent = () => {
+    try {
+      downloadICSFile([event]);
+    } catch (error) {
+      console.error("Error exporting event:", error);
+    }
+  };
+
   // Member view
   if (!isAdmin) {
     return (
@@ -197,7 +206,14 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                 )}
               </div>
 
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex justify-end space-x-3">
+                <Button
+                  variant="secondary"
+                  icon={Download}
+                  onClick={handleExportEvent}
+                >
+                  Add to Calendar
+                </Button>
                 <Button variant="secondary" onClick={onClose}>
                   Close
                 </Button>

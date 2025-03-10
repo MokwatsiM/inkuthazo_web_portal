@@ -24,6 +24,7 @@ import DeletionRequests from "./pages/DeletionRequests";
 import Claims from "./pages/Claims";
 import SessionProvider from "./components/session/SessionProvider";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
+import Calendar from "./pages/Calendar";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -99,6 +100,7 @@ const AppRoutes: React.FC = () => {
             </RoleBasedRoute>
           }
         />
+
         <Route
           path="claims"
           element={
@@ -116,6 +118,8 @@ const AppRoutes: React.FC = () => {
             </RoleBasedRoute>
           }
         />
+
+        <Route path="calendar" element={<Calendar />} />
 
         <Route
           path="reports"

@@ -21,6 +21,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
   const [formData, setFormData] = useState<{
     title: string;
     description: string;
+    venue: string;
     start: string;
     startTime: string;
     end: string;
@@ -31,6 +32,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
   }>({
     title: "",
     description: "",
+    venue: "",
     start: "",
     startTime: "09:00",
     end: "",
@@ -65,7 +67,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
       const startDate = new Date(`${formData.start}T${formData.startTime}`);
       const endDate = new Date(`${formData.end}T${formData.endTime}`);
 
-      const eventData: EventInput = {
+      const eventData: Partial<EventInput> = {
         title: formData.title,
         description: formData.description,
         start: Timestamp.fromDate(startDate),
@@ -74,6 +76,11 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
         type: formData.type,
         created_by: userDetails.id,
       };
+
+      // Only add venue if it's not empty
+      if (formData.venue.trim()) {
+        eventData.venue = formData.venue.trim();
+      }
 
       // Add recurrence data if selected
       if (formData.recurrenceType !== "none") {
@@ -100,6 +107,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
       setFormData({
         title: "",
         description: "",
+        venue: "",
         start: "",
         startTime: "09:00",
         end: "",
@@ -150,13 +158,13 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
         ></div>
 
         {/* Modal */}
-        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 z-50">
+        <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 z-50">
           <div className="p-6">
             <h2 className="text-xl font-bold mb-4">Add New Event</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Title
                 </label>
                 <input
@@ -171,7 +179,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Description
                 </label>
                 <textarea
@@ -188,7 +196,22 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Venue (Optional)
+                </label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                  value={formData.venue}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, venue: e.target.value }))
+                  }
+                  placeholder="Enter event venue or location"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Type
                 </label>
                 <select
@@ -209,7 +232,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Recurrence
                 </label>
                 <select
@@ -227,7 +250,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   <option value="monthly-day">Same Day Monthly</option>
                 </select>
                 {formData.recurrenceType !== "none" && formData.start && (
-                  <p className="mt-2 text-sm text-gray-600">
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     {getRecurrenceDescription()}
                   </p>
                 )}
@@ -248,7 +271,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                 />
                 <label
                   htmlFor="allDay"
-                  className="ml-2 block text-sm text-gray-900"
+                  className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
                 >
                   All Day Event
                 </label>
@@ -256,7 +279,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Start Date
                   </label>
                   <input
@@ -274,7 +297,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                 </div>
                 {!formData.allDay && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Start Time
                     </label>
                     <input
@@ -295,7 +318,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     End Date
                   </label>
                   <input
@@ -310,7 +333,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                 </div>
                 {!formData.allDay && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       End Time
                     </label>
                     <input

@@ -23,6 +23,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   const [formData, setFormData] = useState({
     title: event.title,
     description: event.description,
+    venue: event.venue || "",
     start: format(event.start.toDate(), "yyyy-MM-dd"),
     startTime: format(event.start.toDate(), "HH:mm"),
     end: format(event.end.toDate(), "yyyy-MM-dd"),
@@ -76,12 +77,17 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       const updateData: Partial<Event> = {
         title: formData.title,
         description: formData.description,
+
         start: Timestamp.fromDate(startDate),
         end: Timestamp.fromDate(endDate),
         allDay: formData.allDay,
         type: formData.type,
         updated_at: Timestamp.now(),
       };
+      // Only add venue if it's not empty
+      if (formData.venue.trim()) {
+        updateData.venue = formData.venue.trim();
+      }
 
       // Add recurrence data if selected
       if (formData.recurrenceType !== "none") {
@@ -134,7 +140,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
         ></div>
 
         {/* Modal */}
-        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 z-50">
+        <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 z-50">
           <div className="p-6">
             <h2 className="text-xl font-bold mb-4">
               {isAdmin ? "Edit Event" : "Event Details"}
@@ -142,7 +148,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Title
                 </label>
                 <input
@@ -158,7 +164,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Description
                 </label>
                 <textarea
@@ -176,7 +182,23 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Venue (Optional)
+                </label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                  value={formData.venue}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, venue: e.target.value }))
+                  }
+                  placeholder="Enter event venue or location"
+                  readOnly={!isAdmin}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Type
                 </label>
                 <select
@@ -198,7 +220,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Recurrence
                 </label>
                 <select
@@ -217,7 +239,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                   <option value="monthly-day">Same Day Monthly</option>
                 </select>
                 {formData.recurrenceType !== "none" && formData.start && (
-                  <p className="mt-2 text-sm text-gray-600">
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     {getRecurrenceDescription()}
                   </p>
                 )}
@@ -239,7 +261,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                 />
                 <label
                   htmlFor="allDay"
-                  className="ml-2 block text-sm text-gray-900"
+                  className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
                 >
                   All Day Event
                 </label>
@@ -247,7 +269,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Start Date
                   </label>
                   <input
@@ -270,7 +292,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                 </div>
                 {!formData.allDay && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Start Time
                     </label>
                     <input
@@ -292,7 +314,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     End Date
                   </label>
                   <input
@@ -308,7 +330,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
                 </div>
                 {!formData.allDay && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       End Time
                     </label>
                     <input

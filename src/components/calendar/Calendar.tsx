@@ -10,7 +10,6 @@ import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 import AddEventModal from "./AddEventModal";
 import EditEventModal from "./EditEventModal";
-import { getWeekOfMonth } from "date-fns";
 import type { Event } from "../../types/event";
 
 const Calendar: React.FC = () => {
@@ -53,7 +52,6 @@ const Calendar: React.FC = () => {
   };
 
   const handleEventClick = (info: any) => {
-    // Extract the base event ID by removing any recurring instance suffix
     const baseEventId = info.event.id.split("-")[0];
     const event = events.find((e) => e.id === baseEventId);
     if (event) {
@@ -71,17 +69,72 @@ const Calendar: React.FC = () => {
   const getEventColor = (type: Event["type"]) => {
     switch (type) {
       case "meeting":
-        return "#4F46E5"; // Indigo
+        return {
+          backgroundColor: "#4F46E5", // Indigo
+          borderColor: "#4338CA",
+          textColor: "#ffffff",
+          display: "block", // Force block display
+        };
       case "event":
-        return "#10B981"; // Green
+        return {
+          backgroundColor: "#10B981", // Green
+          borderColor: "#059669",
+          textColor: "#ffffff",
+          display: "block",
+        };
       case "reminder":
-        return "#F59E0B"; // Yellow
+        return {
+          backgroundColor: "#F59E0B", // Yellow
+          borderColor: "#D97706",
+          textColor: "#ffffff",
+          display: "block",
+        };
       default:
-        return "#6B7280"; // Gray
+        return {
+          backgroundColor: "#6B7280", // Gray
+          borderColor: "#4B5563",
+          textColor: "#ffffff",
+          display: "block",
+        };
     }
   };
 
+  const findNthDayInMonth = (
+    year: number,
+    month: number,
+    dayOfWeek: number,
+    n: number
+  ): Date | null => {
+    const date = new Date(year, month, 1);
+
+    // Find the first occurrence of the day
+    while (date.getDay() !== dayOfWeek) {
+      date.setDate(date.getDate() + 1);
+    }
+
+    // Move to the nth occurrence
+    date.setDate(date.getDate() + (n - 1) * 7);
+
+    // If we've moved to the next month, return null
+    if (date.getMonth() !== month) {
+      return null;
+    }
+
+    return date;
+  };
+
+  const copyTimeToDate = (source: Date, target: Date): Date => {
+    const result = new Date(target);
+    result.setHours(source.getHours());
+    result.setMinutes(source.getMinutes());
+    result.setSeconds(source.getSeconds());
+    result.setMilliseconds(source.getMilliseconds());
+    return result;
+  };
+
   const generateRecurringEvents = (event: Event): any[] => {
+    const eventColors = getEventColor(event.type);
+
     if (!event.recurrence) {
       return [
         {
@@ -90,55 +143,60 @@ const Calendar: React.FC = () => {
           start: event.start.toDate(),
           end: event.end.toDate(),
           allDay: event.allDay,
-          backgroundColor: getEventColor(event.type),
-          borderColor: getEventColor(event.type),
+          ...eventColors,
           classNames: ["event-item"],
+          extendedProps: {
+            description: event.description,
+            venue: event.venue,
+          },
         },
       ];
     }
 
     const recurringEvents = [];
-    const startDate = event.start.toDate();
-    const endDate = event.end.toDate();
-    const duration = endDate.getTime() - startDate.getTime();
+    const originalStart = event.start.toDate();
+    const originalEnd = event.end.toDate();
+    const duration = originalEnd.getTime() - originalStart.getTime();
 
     // Generate events for the next 12 months
     for (let i = 0; i < 12; i++) {
-      let recurringDate: Date;
+      let recurringDate: Date | null = null;
+
+      const targetMonth = originalStart.getMonth() + i;
+      const targetYear =
+        originalStart.getFullYear() + Math.floor(targetMonth / 12);
+      const normalizedMonth = targetMonth % 12;
 
       if (event.recurrence.type === "monthly-date") {
         // Same date every month
-        recurringDate = new Date(startDate);
-        recurringDate.setMonth(startDate.getMonth() + i);
-        recurringDate.setDate(event.recurrence.dayOfMonth!);
+        const targetDate = new Date(
+          targetYear,
+          normalizedMonth,
+          event.recurrence.dayOfMonth!
+        );
+
+        // Check if the date is valid
+        if (targetDate.getMonth() === normalizedMonth) {
+          // Copy the original time to the new date
+          recurringDate = copyTimeToDate(originalStart, targetDate);
+        }
       } else if (event.recurrence.type === "monthly-day") {
         // Same week and day every month (e.g., 2nd Sunday)
-        recurringDate = new Date(startDate);
-        recurringDate.setMonth(startDate.getMonth() + i);
-
-        // Find the correct day in the month
-        let currentDate = new Date(
-          recurringDate.getFullYear(),
-          recurringDate.getMonth(),
-          1
+        const baseDate = findNthDayInMonth(
+          targetYear,
+          normalizedMonth,
+          event.recurrence.dayOfWeek!,
+          event.recurrence.weekNumber!
         );
-        while (
-          getWeekOfMonth(currentDate) !== event.recurrence.weekNumber! ||
-          currentDate.getDay() !== event.recurrence.dayOfWeek!
-        ) {
-          currentDate.setDate(currentDate.getDate() + 1);
-          if (currentDate.getMonth() !== recurringDate.getMonth()) {
-            // Skip if we can't find the day in this month
-            continue;
-          }
+
+        if (baseDate) {
+          // Copy the original time to the new date
+          recurringDate = copyTimeToDate(originalStart, baseDate);
         }
-        recurringDate = currentDate;
-      } else {
-        continue;
       }
 
-      // Only add if the date is valid
-      if (recurringDate.toString() !== "Invalid Date") {
+      // Only add if we found a valid date
+      if (recurringDate) {
         const recurringEndDate = new Date(recurringDate.getTime() + duration);
 
         recurringEvents.push({
@@ -147,9 +205,12 @@ const Calendar: React.FC = () => {
           start: recurringDate,
           end: recurringEndDate,
           allDay: event.allDay,
-          backgroundColor: getEventColor(event.type),
-          borderColor: getEventColor(event.type),
+          ...eventColors,
           classNames: ["event-item"],
+          extendedProps: {
+            description: event.description,
+            venue: event.venue,
+          },
         });
       }
     }
@@ -192,6 +253,31 @@ const Calendar: React.FC = () => {
             font-size: 1.25rem;
           }
 
+          .fc-event {
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 0.875rem;
+            margin: 1px 0;
+          }
+
+          .fc-timegrid-event {
+            min-height: 2em;
+          }
+
+          .fc-timegrid-event .fc-event-main {
+            padding: 2px 4px;
+          }
+
+          .fc-v-event {
+            border: none;
+            background-color: var(--fc-event-bg-color);
+          }
+
+          .fc-h-event {
+            border: none;
+            background-color: var(--fc-event-bg-color);
+          }
+
           @media (max-width: 640px) {
             .fc .fc-toolbar {
               display: flex;
@@ -212,15 +298,7 @@ const Calendar: React.FC = () => {
             .fc .fc-view-harness {
               min-height: 400px;
             }
-          }
 
-          .fc-event {
-            cursor: pointer;
-            padding: 2px 4px;
-            font-size: 0.875rem;
-          }
-
-          @media (max-width: 640px) {
             .fc-event {
               font-size: 0.75rem;
             }
@@ -310,6 +388,25 @@ const Calendar: React.FC = () => {
               titleFormat: { year: "numeric", month: "short", day: "numeric" },
               dayHeaderFormat: { weekday: "long", day: "numeric" },
             },
+          }}
+          eventContent={(arg) => {
+            return (
+              <>
+                <div className="fc-event-main-frame">
+                  <div className="fc-event-title-container">
+                    <div className="fc-event-title">{arg.event.title}</div>
+                  </div>
+                  {!arg.event.allDay && (
+                    <div className="fc-event-time">{arg.timeText}</div>
+                  )}
+                  {arg.event.extendedProps.venue && (
+                    <div className="text-xs opacity-75">
+                      @ {arg.event.extendedProps.venue}
+                    </div>
+                  )}
+                </div>
+              </>
+            );
           }}
         />
       </div>

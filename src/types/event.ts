@@ -7,6 +7,7 @@ export interface Event {
   id: string;
   title: string;
   description: string;
+  venue?: string;
   start: Timestamp;
   end: Timestamp;
   allDay: boolean;

@@ -118,6 +118,10 @@ const Layout: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const handleMenuItemClick = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   const MenuItem = ({
     item,
     mobile = false,
@@ -139,7 +143,7 @@ const Layout: React.FC = () => {
           }
           ${mobile ? "flex-col justify-center items-center space-y-1" : ""}
         `}
-        onClick={mobile ? () => setIsMobileMenuOpen(false) : undefined}
+        onClick={handleMenuItemClick}
       >
         <div
           className={`
@@ -254,6 +258,21 @@ const Layout: React.FC = () => {
                   ))}
                 </nav>
               </div>
+              {userDetails && (
+                <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
+                  <div className="flex items-center">
+                    <Avatar member={userDetails} size="sm" />
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        {userDetails.full_name}
+                      </p>
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 capitalize">
+                        {userDetails.role}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </aside>
         )}

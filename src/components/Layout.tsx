@@ -196,7 +196,7 @@ const Layout: React.FC = () => {
               )}
               <div className="flex items-center space-x-2">
                 <img
-                  src="/logo.svg"
+                  src="/logo.png"
                   alt="Logo"
                   className="h-8 w-8 text-brand-600 dark:text-brand-400"
                 />

@@ -135,20 +135,20 @@ const Layout: React.FC = () => {
     return (
       <Link
         to={item.path}
-        className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out
+        className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out
           ${
             active
               ? "bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300"
               : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           }
-          ${mobile ? "flex-col justify-center items-center space-y-1" : ""}
+          ${mobile ? "flex-col justify-center items-center space-y-0.5" : ""}
         `}
         onClick={handleMenuItemClick}
       >
         <div
           className={`
           flex items-center justify-center ${
-            mobile ? "w-6 h-6" : "w-8 h-8"
+            mobile ? "w-5 h-5" : "w-8 h-8"
           } rounded-md transition-all duration-200
           ${
             active
@@ -159,7 +159,7 @@ const Layout: React.FC = () => {
         >
           <Icon
             className={`${
-              mobile ? "w-5 h-5" : "w-5 h-5"
+              mobile ? "w-4 h-4" : "w-5 h-5"
             } transition-transform duration-200 ${
               active ? "scale-110" : "group-hover:scale-110"
             }`}
@@ -167,7 +167,7 @@ const Layout: React.FC = () => {
         </div>
         <span
           className={`${
-            mobile ? "text-xs" : "ml-3"
+            mobile ? "text-[10px]" : "ml-3"
           } transition-colors duration-200 ${active ? "font-semibold" : ""}`}
         >
           {mobile ? item.label.split(" ")[0] : item.label}
@@ -293,7 +293,7 @@ const Layout: React.FC = () => {
         {/* Main Content */}
         <main
           className={`flex-1 relative overflow-y-auto focus:outline-none ${
-            !isAdmin ? "pb-20" : "pb-6"
+            !isAdmin ? "pb-16" : "pb-6"
           }`}
         >
           <div className="py-6 px-4 sm:px-6 lg:px-8">
@@ -305,7 +305,7 @@ const Layout: React.FC = () => {
       {/* Mobile Bottom Navigation for Members Only */}
       {!isAdmin && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50">
-          <div className="grid grid-cols-4 gap-1 px-2 py-2">
+          <div className="grid grid-cols-4 gap-1 px-2 py-1">
             {menuItems.map((item) => (
               <MenuItem key={item.path} item={item} mobile />
             ))}

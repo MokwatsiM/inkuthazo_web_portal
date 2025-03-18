@@ -94,12 +94,7 @@ const Layout: React.FC = () => {
 
   const memberMenuItems = [
     { path: "/", icon: Home, label: "Home", color: "text-emerald-500" },
-    {
-      path: `/members/${userDetails?.id}`,
-      icon: UserCircle,
-      label: "Profile",
-      color: "text-blue-500",
-    },
+
     {
       path: "/my-contributions",
       icon: CreditCard,
@@ -111,6 +106,12 @@ const Layout: React.FC = () => {
       icon: Calendar,
       label: "Calendar",
       color: "text-sky-500",
+    },
+    {
+      path: `/members/${userDetails?.id}`,
+      icon: UserCircle,
+      label: "Profile",
+      color: "text-blue-500",
     },
   ];
 

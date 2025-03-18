@@ -64,12 +64,17 @@ const DependantsSection: React.FC<DependantsSectionProps> = ({
             icon={UserPlus}
             onClick={handleAddDependantClick}
             disabled={!canAddDependant}
-            className={!canAddDependant ? "opacity-50 cursor-not-allowed" : ""}
+            className={`md:w-auto w-10 h-10 md:h-auto md:p-2 p-0 rounded-full md:rounded-lg ${
+              !canAddDependant ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            Add Dependant
+            <span className="hidden md:inline">Add Dependant</span>
             {!canAddDependant && (
-              <span className="ml-2">({dependantsCount}/3)</span>
+              <span className="hidden md:inline ml-2">
+                ({dependantsCount}/3)
+              </span>
             )}
+            <span className="md:hidden sr-only">Add</span>
           </Button>
           {showMaxDependantsMessage && !canAddDependant && (
             <div className="absolute right-0 top-full mt-2 bg-red-100 text-red-800 px-4 py-2 rounded-md shadow-lg z-10 whitespace-nowrap">

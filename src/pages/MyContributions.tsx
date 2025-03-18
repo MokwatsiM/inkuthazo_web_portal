@@ -108,8 +108,13 @@ const MyContributions: React.FC = () => {
           title="My Contributions"
           description="View and manage your contributions"
           actions={
-            <Button icon={PlusCircle} onClick={() => setIsAddModalOpen(true)}>
-              Add Contribution
+            <Button
+              icon={PlusCircle}
+              onClick={() => setIsAddModalOpen(true)}
+              className="md:w-auto w-10 h-10 md:h-auto md:p-2 p-0 rounded-full md:rounded-lg"
+            >
+              <span className="hidden md:inline">Add Contribution</span>
+              <span className="md:hidden sr-only">Add</span>
             </Button>
           }
         />

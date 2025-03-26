@@ -18,6 +18,11 @@ service cloud.firestore {
         get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'member';
     }
     
+     function isDCMember() {
+      return isSignedIn() && 
+        exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'dc_member';
+    }
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
@@ -43,6 +48,15 @@ service cloud.firestore {
         !request.resource.data.diff(resource.data).affectedKeys()
           .hasAny(['role', 'status'])
       );
+      allow delete: if isAdmin();
+    }
+
+      // Disciplinary records collection
+    match /disciplinary_records/{recordId} {
+      allow read: if isAdmin() || isDCMember() || 
+        (isSignedIn() && resource.data.member_id == request.auth.uid);
+      allow create: if isAdmin() || isDCMember();
+      allow update: if isAdmin() || isDCMember();
       allow delete: if isAdmin();
     }
 

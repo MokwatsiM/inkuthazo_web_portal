@@ -29,7 +29,8 @@ import ClaimsSection from "../components/claims/ClaimsSection";
 import Card, { CardBody } from "../components/ui/Card";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import EmptyState from "../components/ui/EmptyState";
-import {  Ghost } from "lucide-react";
+import { Ghost } from "lucide-react";
+import DisciplinarySection from "../components/disciplinary/DisciplinarySection";
 
 const MemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -179,6 +180,10 @@ const MemberDetail: React.FC = () => {
 
             <div className="mt-8">
               <ClaimsSection member={member} />
+            </div>
+
+            <div className="mt-8">
+              <DisciplinarySection member={member} />
             </div>
 
             <div className="space-y-6 mt-8">

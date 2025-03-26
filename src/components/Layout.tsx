@@ -221,7 +221,7 @@ const Layout: React.FC = () => {
                   className="h-8 w-8 text-brand-600 dark:text-brand-400"
                 />
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2 md:ml-0">
-                  Inkuthazo Burial Club
+                  Inkuthazo Portal
                 </h1>
               </div>
             </div>

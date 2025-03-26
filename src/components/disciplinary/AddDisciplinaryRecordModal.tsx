@@ -97,7 +97,34 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Infringement Type
             </label>
-            <input
+            <select
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              value={formData.infringement_type}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  infringement_type: e.target.value,
+                }))
+              }
+            >
+              <option value="Non-payment of Contributions">
+                Non payment/Late Payment
+              </option>
+              <option value="Non-attendance-meetings">
+                Non-attendance meetings
+              </option>
+              <option value="Late attendance">Late attendance</option>
+              <option value="Other">Other Reasons</option>
+              {/* <option value="">Select a Infringement type</option>
+              {members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.full_name}
+                </option> */}
+              {/* ))} */}
+            </select>
+
+            {/* <input
               type="text"
               required
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
@@ -109,7 +136,7 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
                 }))
               }
               placeholder="e.g., Meeting Absence, Late Payment"
-            />
+            /> */}
           </div>
 
           <div>

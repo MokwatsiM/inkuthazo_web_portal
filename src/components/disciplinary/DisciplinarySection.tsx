@@ -8,6 +8,7 @@ import ResolveDisciplinaryModal from "./ResolveDisciplinaryModal";
 import {
   addDisciplinaryRecord,
   resolveDisciplinaryRecord,
+  deleteDisciplinaryRecord,
   getMemberDisciplinaryRecords,
 } from "../../services/disciplinaryService";
 import type { DisciplinaryRecord, Member } from "../../types";
@@ -20,7 +21,9 @@ const DisciplinarySection: React.FC<DisciplinarySectionProps> = ({
   member,
 }) => {
   const { userDetails } = useAuth();
-  const [records, setRecords] = useState<DisciplinaryRecord[]>([]);
+  const [records, setRecords] = useState<
+    (DisciplinaryRecord & { memberName: string })[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
@@ -29,20 +32,22 @@ const DisciplinarySection: React.FC<DisciplinarySectionProps> = ({
 
   const isDCMember =
     userDetails?.role === "dc_member" || userDetails?.role === "admin";
+  const isAdmin = userDetails?.role === "admin";
   const isOwnProfile = userDetails?.id === member.id;
 
   // Show section if user is DC member or if it's their own profile with records
   const shouldShowSection = isDCMember || (isOwnProfile && records.length > 0);
 
-  useEffect(() => {
-    fetchRecords();
-  }, [member.id]);
-
   const fetchRecords = async () => {
     try {
       setLoading(true);
       const fetchedRecords = await getMemberDisciplinaryRecords(member.id);
-      setRecords(fetchedRecords);
+      // Ensure each record has the member's name
+      const enrichedRecords = fetchedRecords.map((record) => ({
+        ...record,
+        memberName: member.full_name,
+      }));
+      setRecords(enrichedRecords);
     } catch (error) {
       console.error("Error fetching disciplinary records:", error);
     } finally {
@@ -50,12 +55,21 @@ const DisciplinarySection: React.FC<DisciplinarySectionProps> = ({
     }
   };
 
+  useEffect(() => {
+    fetchRecords();
+  }, [member.id, member.full_name, fetchRecords]);
+
   const handleAddRecord = async (
     data: Omit<DisciplinaryRecord, "id" | "status" | "created_at">
   ) => {
     try {
       const newRecord = await addDisciplinaryRecord(data);
-      setRecords((prev) => [newRecord, ...prev]);
+      // Add the member name to the new record
+      const enrichedRecord = {
+        ...newRecord,
+        memberName: member.full_name,
+      };
+      setRecords((prev) => [enrichedRecord, ...prev]);
     } catch (error) {
       console.error("Error adding disciplinary record:", error);
     }
@@ -66,9 +80,18 @@ const DisciplinarySection: React.FC<DisciplinarySectionProps> = ({
 
     try {
       await resolveDisciplinaryRecord(id, notes, userDetails.id);
-      await fetchRecords();
+      await fetchRecords(); // Refresh the records to get the updated status
     } catch (error) {
       console.error("Error resolving disciplinary record:", error);
+    }
+  };
+
+  const handleDeleteRecord = async (record: DisciplinaryRecord) => {
+    try {
+      await deleteDisciplinaryRecord(record.id);
+      setRecords((prev) => prev.filter((r) => r.id !== record.id));
+    } catch (error) {
+      console.error("Error deleting disciplinary record:", error);
     }
   };
 
@@ -101,7 +124,9 @@ const DisciplinarySection: React.FC<DisciplinarySectionProps> = ({
             setSelectedRecord(record);
             setIsResolveModalOpen(true);
           }}
+          onDelete={handleDeleteRecord}
           canResolve={isDCMember}
+          canDelete={isAdmin}
         />
       )}
 

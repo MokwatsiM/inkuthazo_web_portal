@@ -10,6 +10,7 @@ import ResolveDisciplinaryModal from "../components/disciplinary/ResolveDiscipli
 import {
   addDisciplinaryRecord,
   resolveDisciplinaryRecord,
+  deleteDisciplinaryRecord,
   getAllDisciplinaryRecords,
   getMemberDisciplinaryRecords,
 } from "../services/disciplinaryService";
@@ -29,6 +30,7 @@ const Disciplinary: React.FC = () => {
 
   const isDCMember =
     userDetails?.role === "dc_member" || userDetails?.role === "admin";
+  const isAdmin = userDetails?.role === "admin";
 
   useEffect(() => {
     fetchRecords();
@@ -54,10 +56,10 @@ const Disciplinary: React.FC = () => {
       // Enrich records with member names
       const enrichedRecords = await Promise.all(
         fetchedRecords.map(async (record) => {
-          const member = members.find((m) => m.id === record.member_id);
+          // const member = members.find((m) => m.id === record.member_id);
           return {
             ...record,
-            memberName: member?.full_name || "Unknown Member",
+            memberName: record?.memberName || "Unknown Member",
           };
         })
       );
@@ -92,6 +94,15 @@ const Disciplinary: React.FC = () => {
       setSelectedRecord(null);
     } catch (error) {
       console.error("Error resolving disciplinary record:", error);
+    }
+  };
+
+  const handleDeleteRecord = async (record: DisciplinaryRecord) => {
+    try {
+      await deleteDisciplinaryRecord(record.id);
+      await fetchRecords();
+    } catch (error) {
+      console.error("Error deleting disciplinary record:", error);
     }
   };
 
@@ -150,7 +161,9 @@ const Disciplinary: React.FC = () => {
                 setSelectedRecord(record);
                 setIsResolveModalOpen(true);
               }}
+              onDelete={handleDeleteRecord}
               canResolve={isDCMember}
+              canDelete={isAdmin}
             />
           )}
         </div>

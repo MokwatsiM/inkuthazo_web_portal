@@ -9,9 +9,10 @@ import {
   getDocs,
   Timestamp,
   orderBy,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import type { DisciplinaryRecord } from "../types";
+import type { DisciplinaryRecord, Member } from "../types";
 
 export const addDisciplinaryRecord = async (
   data: Omit<DisciplinaryRecord, "id" | "status" | "created_at">
@@ -23,12 +24,17 @@ export const addDisciplinaryRecord = async (
       created_at: Timestamp.now(),
     });
 
+    // Get member details
+    const memberDoc = await getDoc(doc(db, "members", data.member_id));
+    const memberData = memberDoc.data() as Member;
+
     return {
       id: docRef.id,
       ...data,
       status: "pending",
       created_at: Timestamp.now(),
-    } as DisciplinaryRecord;
+      memberName: memberData.full_name,
+    } as DisciplinaryRecord & { memberName: string };
   } catch (error) {
     console.error("Error adding disciplinary record:", error);
     throw error;
@@ -91,10 +97,20 @@ export const getMemberDisciplinaryRecords = async (
     );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
+    const records = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     })) as DisciplinaryRecord[];
+
+    // Get member details
+    const memberDoc = await getDoc(doc(db, "members", memberId));
+    const memberData = memberDoc.data() as Member;
+
+    // Add member name to each record
+    return records.map((record) => ({
+      ...record,
+      memberName: memberData.full_name,
+    }));
   } catch (error) {
     console.error("Error fetching disciplinary records:", error);
     throw error;
@@ -109,10 +125,24 @@ export const getAllDisciplinaryRecords = async (): Promise<
     const q = query(recordsRef, orderBy("created_at", "desc"));
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
+    const records = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     })) as DisciplinaryRecord[];
+
+    // Get member details for each record
+    const enrichedRecords = await Promise.all(
+      records.map(async (record) => {
+        const memberDoc = await getDoc(doc(db, "members", record.member_id));
+        const memberData = memberDoc.data() as Member;
+        return {
+          ...record,
+          memberName: memberData.full_name,
+        };
+      })
+    );
+
+    return enrichedRecords;
   } catch (error) {
     console.error("Error fetching all disciplinary records:", error);
     throw error;

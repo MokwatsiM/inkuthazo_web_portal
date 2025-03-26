@@ -321,7 +321,7 @@ const Layout: React.FC = () => {
       {/* Mobile Bottom Navigation for Members Only */}
       {!isAdmin && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50">
-          <div className="grid grid-cols-4 gap-1 px-2 py-1">
+          <div className="grid grid-cols-5 gap-1 px-2 py-1">
             {menuItems.map((item) => (
               <MenuItem key={item.path} item={item} mobile />
             ))}

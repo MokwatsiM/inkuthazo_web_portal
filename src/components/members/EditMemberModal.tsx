@@ -147,6 +147,7 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
                   }
                 >
                   <option value="member">Member</option>
+                  <option value="dc_member">DC Member</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>

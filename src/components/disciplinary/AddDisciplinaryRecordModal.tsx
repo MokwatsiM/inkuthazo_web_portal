@@ -116,27 +116,7 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
               </option>
               <option value="Late attendance">Late attendance</option>
               <option value="Other">Other Reasons</option>
-              {/* <option value="">Select a Infringement type</option>
-              {members.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.full_name}
-                </option> */}
-              {/* ))} */}
             </select>
-
-            {/* <input
-              type="text"
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
-              value={formData.infringement_type}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  infringement_type: e.target.value,
-                }))
-              }
-              placeholder="e.g., Meeting Absence, Late Payment"
-            /> */}
           </div>
 
           <div>

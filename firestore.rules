@@ -46,15 +46,52 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+		 // Claims collection
+    match /claims/{claimId} {
+      // Allow members to read their own claims and admins to read all claims
+      allow read: if isAdmin() || (isMember() && resource.data.member_id == request.auth.uid);
+      
+      // Allow members to create claims for themselves
+      allow create: if isSignedIn() && (isAdmin() || (isMember() && 
+        request.resource.data.member_id == request.auth.uid &&
+        request.resource.data.status == 'pending'));
+      
+      // Allow admins to update claim status and add review notes
+      allow update: if isAdmin() &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasAll(['status', 'review_notes', 'reviewed_by', 'reviewed_at']);
+      
+      // Never allow direct deletion of claims
+      allow delete: if false;
+    }
+
+ // Events collection
+    match /events/{eventId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin() && isOwner(resource.data.created_by);
+      allow delete: if isAdmin() && isOwner(resource.data.created_by);
+    }
+     // Expenses collection
+    match /expenses/{expenseId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
 		 // Deletion requests collection
     match /deletion_requests/{requestId} {
       allow read: if isAdmin();
       allow create: if isAdmin() && 
-        request.resource.data.keys().hasAll(['member_id', 'requested_by', 'requested_at']) &&
-        request.resource.data.requested_by == request.auth.uid;
-      allow delete: if isAdmin();
+        request.resource.data.keys().hasAll(['member_id', 'requested_by', 'requested_at', 'status']) &&
+        request.resource.data.requested_by == request.auth.uid &&
+        request.resource.data.status == 'pending';
+      allow update: if isAdmin() &&
+        request.resource.data.status in ['completed', 'rejected'] &&
+        resource.data.status == 'pending';
+      allow delete: if false; // Never allow direct deletion of requests
     }
-
     // Contributions collection
     match /contributions/{contributionId} {
       allow read: if isSignedIn();
@@ -79,6 +116,19 @@ service cloud.firestore {
     match /analytics/{docId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
+    }
+    
+     // Invitations collection
+    match /invitations/{invitationId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin() && 
+        request.resource.data.keys().hasAll(['email', 'full_name', 'phone', 'invited_by', 'status', 'created_at', 'expires_at', 'invitation_token']) &&
+        request.resource.data.invited_by == request.auth.uid &&
+        request.resource.data.status == 'pending';
+      allow update: if isAdmin() &&
+        request.resource.data.status in ['accepted', 'expired'] &&
+        resource.data.status == 'pending';
+      allow delete: if false;
     }
   }
 }

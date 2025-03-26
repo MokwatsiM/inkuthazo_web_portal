@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Button from "../ui/Button";
 import { useAuth } from "../../hooks/useAuth";
+import { useMembers } from "../../hooks/useMembers";
 import type { DisciplinaryRecord } from "../../types";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
 
@@ -10,17 +11,19 @@ interface AddDisciplinaryRecordModalProps {
   onSubmit: (
     data: Omit<DisciplinaryRecord, "id" | "status" | "created_at">
   ) => Promise<void>;
-  memberId: string;
+  memberId?: string;
 }
 
 const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  memberId,
+  memberId: defaultMemberId,
 }) => {
   const { userDetails } = useAuth();
+  const { members } = useMembers();
   const [formData, setFormData] = useState({
+    member_id: defaultMemberId || "",
     infringement_type: "",
     description: "",
     penalty_amount: "",
@@ -32,11 +35,16 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.member_id) {
+      alert("Please select a member");
+      return;
+    }
+
     setLoading(true);
 
     try {
       await onSubmit({
-        member_id: memberId,
+        member_id: formData.member_id,
         infringement_type: formData.infringement_type,
         description: formData.description,
         penalty_amount: formData.penalty_amount
@@ -59,6 +67,32 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
         <h2 className="text-xl font-bold mb-4">Add Disciplinary Record</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!defaultMemberId && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Member
+              </label>
+              <select
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                value={formData.member_id}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    member_id: e.target.value,
+                  }))
+                }
+              >
+                <option value="">Select a member</option>
+                {members.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.full_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Infringement Type

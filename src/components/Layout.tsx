@@ -15,6 +15,7 @@ import {
   Calendar,
   Receipt,
   Home,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
@@ -67,6 +68,13 @@ const Layout: React.FC = () => {
       color: "text-pink-500",
     },
     {
+      path: "/disciplinary",
+      icon: AlertTriangle,
+      label: "Disciplinary",
+      color: "text-orange-500",
+    },
+
+    {
       path: "/calendar",
       icon: Calendar,
       label: "Calendar",
@@ -101,11 +109,18 @@ const Layout: React.FC = () => {
       label: "Contributions",
       color: "text-violet-500",
     },
+
     {
       path: "/calendar",
       icon: Calendar,
       label: "Calendar",
       color: "text-sky-500",
+    },
+    {
+      path: "/disciplinary",
+      icon: AlertTriangle,
+      label: "Disciplinary",
+      color: "text-orange-500",
     },
     {
       path: `/members/${userDetails?.id}`,

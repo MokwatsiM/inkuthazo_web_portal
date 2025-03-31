@@ -27,6 +27,7 @@ import LoadingSpinner from "./components/ui/LoadingSpinner";
 import Calendar from "./pages/Calendar";
 import Expenses from "./pages/Expenses";
 import Disciplinary from "./pages/Disciplinary";
+import ResetPassword from "./components/auth/ResetPassword";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -53,6 +54,7 @@ const AppRoutes: React.FC = () => {
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
       </Route>
 
       <Route

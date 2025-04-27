@@ -8,14 +8,17 @@ import {
   getDocs,
   Timestamp,
   orderBy,
+  doc,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { formatDate } from "../dateUtils";
-import type { ReportPeriod } from "../../types/report";
-import type { ReportType } from "../../types/report";
+import type { ReportType, ReportPeriod } from "../../types/report";
+
 import type { Contribution } from "../../types/contribution";
 import type { Payout } from "../../types/payout";
 import type { Expense } from "../../types/expense";
+import type { Member } from "../../types";
 
 const addLogo = async (doc: jsPDF): Promise<void> => {
   try {
@@ -33,7 +36,7 @@ const addLogo = async (doc: jsPDF): Promise<void> => {
     const width = maxWidth;
     const height = width / aspectRatio;
     const x = pageWidth - width - 20;
-    const y = 15;
+    const y = 3;
 
     doc.addImage(img, "PNG", x, y, width, height);
   } catch (error) {
@@ -66,6 +69,20 @@ const getPeriodDates = (
   }
 
   return { startDate, endDate };
+};
+
+const getMemberName = async (memberId: string): Promise<string> => {
+  try {
+    const memberDoc = await getDoc(doc(db, "members", memberId));
+    if (memberDoc.exists()) {
+      const memberData = memberDoc.data() as Member;
+      return memberData.full_name;
+    }
+    return "Unknown Member";
+  } catch (error) {
+    console.error("Error fetching member name:", error);
+    return "Unknown Member";
+  }
 };
 
 const addHeader = async (
@@ -115,13 +132,25 @@ export const generateReport = async (
           where("date", "<=", Timestamp.fromDate(endDate)),
           orderBy("date", "desc")
         )
-      ).then(
-        (snapshot) =>
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Contribution[]
-      ),
+      ).then(async (snapshot) => {
+        const contributionsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Contribution[];
+
+        // Fetch member names for each contribution
+        const enrichedContributions = await Promise.all(
+          contributionsData.map(async (contribution) => {
+            const memberName = await getMemberName(contribution.member_id);
+            return {
+              ...contribution,
+              member_name: memberName,
+            };
+          })
+        );
+
+        return enrichedContributions;
+      }),
 
       // Fetch payouts
       getDocs(
@@ -131,13 +160,25 @@ export const generateReport = async (
           where("date", "<=", Timestamp.fromDate(endDate)),
           orderBy("date", "desc")
         )
-      ).then(
-        (snapshot) =>
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Payout[]
-      ),
+      ).then(async (snapshot) => {
+        const payoutsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Payout[];
+
+        // Fetch member names for each payout
+        const enrichedPayouts = await Promise.all(
+          payoutsData.map(async (payout) => {
+            const memberName = await getMemberName(payout.member_id);
+            return {
+              ...payout,
+              member_name: memberName,
+            };
+          })
+        );
+
+        return enrichedPayouts;
+      }),
 
       // Fetch expenses
       getDocs(
@@ -292,7 +333,7 @@ export const generateReport = async (
 
         const contributionsData = contributions.map((contribution) => [
           formatDate(contribution.date),
-          contribution.members?.full_name || "Unknown Member",
+          contribution.member_name,
           contribution.type,
           contribution.status,
           `R ${contribution.amount.toFixed(2)}`,
@@ -344,7 +385,7 @@ export const generateReport = async (
 
         const payoutsData = payouts.map((payout) => [
           formatDate(payout.date),
-          payout.members?.full_name || "Unknown Member",
+          payout.member_name,
           payout.reason,
           payout.status,
           `R ${payout.amount.toFixed(2)}`,

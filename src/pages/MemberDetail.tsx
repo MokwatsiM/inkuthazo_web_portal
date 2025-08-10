@@ -41,13 +41,14 @@ const MemberDetail: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGenerateInvoice = () => {
+  const handleGenerateInvoice = async () => {
     if (member) {
-      const invoiceDetails = generateInvoiceDetails(
+       generateInvoiceDetails(
         member.contributions,
         member.join_date
-      );
-      generateInvoicePDF(member, invoiceDetails);
+      ).then((invoiceDetails) => {
+        generateInvoicePDF(member, invoiceDetails);
+      });
     }
   };
 

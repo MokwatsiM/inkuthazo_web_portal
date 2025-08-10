@@ -28,6 +28,7 @@ import Calendar from "./pages/Calendar";
 import Expenses from "./pages/Expenses";
 import Disciplinary from "./pages/Disciplinary";
 import ResetPassword from "./components/auth/ResetPassword";
+import Configuration from "./pages/Configuration";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -156,6 +157,15 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleBasedRoute allowedRoles={["admin"]}>
               <DeletionRequests />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="configuration"
+          element={
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <Configuration />
             </RoleBasedRoute>
           }
         />

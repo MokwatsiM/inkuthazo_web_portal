@@ -4,6 +4,8 @@ export interface MonthlyFee {
   isLate: boolean;
   isPaid: boolean;
   latePenaltyPaid: boolean;
+  monthlyFeeAmount: number;
+  latePenaltyAmount: number;
 }
 
 export interface InvoiceDetails {

@@ -3,6 +3,7 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   Users,
   CreditCard,
+  // PieChart,
   FileText,
   LogOut,
   DollarSign,
@@ -17,6 +18,7 @@ import {
   Home,
   AlertTriangle,
 } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
 import Avatar from "./avatar/Avatar";
@@ -73,7 +75,6 @@ const Layout: React.FC = () => {
       label: "Disciplinary",
       color: "text-orange-500",
     },
-
     {
       path: "/calendar",
       icon: Calendar,
@@ -97,6 +98,12 @@ const Layout: React.FC = () => {
       icon: UserX,
       label: "Deletion Requests",
       color: "text-red-500",
+    },
+    {
+      path: "/configuration",
+      icon: Settings,
+      label: "Configuration",
+      color: "text-gray-500",
     },
   ];
 

@@ -1,35 +1,31 @@
 import { Timestamp } from "firebase/firestore";
 import {
-  // startOfMonth,
   // endOfMonth,
   eachMonthOfInterval,
   isSameMonth,
   // isAfter,
   getDate,
 } from "date-fns";
-import type { Contribution } from "../../types/contribution";
-import type { InvoiceDetails } from "./types";
+import { getConfigurationValue } from "../../services/configurationService";
+import type { Contribution } from "../../types";
+import type { InvoiceDetails, MonthlyFee } from "./types";
 
-const MONTHLY_FEE = 150;
-const LATE_PAYMENT_PENALTY = 50;
 const PAYMENT_DUE_DAY = 7;
 
-interface MonthlyFee {
-  month: Date;
-  amount: number;
-  isLate: boolean;
-  isPaid: boolean;
-  latePenaltyPaid: boolean;
-}
 
 const isPaymentLate = (paymentDate: Date): boolean => {
   return getDate(paymentDate) > PAYMENT_DUE_DAY;
 };
 
-const calculateMonthlyAmount = (
+const calculateMonthlyAmount = async (
   date: Date,
-  contribution?: Contribution
-): MonthlyFee => {
+  contribution?: Contribution,
+  excessPayment: number = 0
+): Promise<{ fee: MonthlyFee; remainingExcess: number }> => {
+  // Get configuration values for this specific month
+  const monthlyFee = await getConfigurationValue("monthly_fee", date);
+  const latePenalty = await getConfigurationValue("late_penalty", date);
+
   const today = new Date();
   const isCurrentMonth = isSameMonth(date, today);
   // const isPastMonth = isAfter(today, endOfMonth(date));
@@ -39,98 +35,145 @@ const calculateMonthlyAmount = (
     const paymentDate = contribution.date.toDate();
     const wasPaymentLate = isPaymentLate(paymentDate);
 
+    // For paid months, we need to determine what is still owed
+    const totalAvailable = contribution.amount + excessPayment;
+    const monthlyFeePaid = Math.min(totalAvailable, monthlyFee);
+    const isMonthlyFeePaid = monthlyFeePaid >= monthlyFee;
+
+    let latePenaltyOwed = 0;
+    let remainingAfterMonthlyFee = Math.max(0, totalAvailable - monthlyFee);
+
+    if (wasPaymentLate) {
+      // Late penalty applies
+      latePenaltyOwed = Math.max(0, latePenalty - remainingAfterMonthlyFee);
+    }
+
+    const totalOwed = (isMonthlyFeePaid ? 0 : monthlyFee - monthlyFeePaid) + latePenaltyOwed;
+    const remainingExcess = Math.max(0, totalAvailable - monthlyFee - (wasPaymentLate ? latePenalty : 0));
+
     return {
-      month: date,
-      amount: wasPaymentLate ? LATE_PAYMENT_PENALTY : 0, // Only charge late fee if paid after due date
-      isLate: wasPaymentLate,
-      isPaid: contribution.amount > 0,
-      latePenaltyPaid: contribution.amount > MONTHLY_FEE,
+      fee: {
+        month: date,
+        amount: totalOwed,
+        isLate: wasPaymentLate,
+        isPaid: isMonthlyFeePaid && latePenaltyOwed === 0,
+        latePenaltyPaid: wasPaymentLate ? latePenaltyOwed === 0 : true,
+        monthlyFeeAmount: monthlyFee,
+        latePenaltyAmount: latePenalty,
+      },
+      remainingExcess,
     };
   }
 
   // For current month
   if (isCurrentMonth) {
     const isPastDueDate = getDate(today) > PAYMENT_DUE_DAY;
+
+    // Calculate what's due
+    const monthlyFeeOwed = Math.max(0, monthlyFee - excessPayment);
+    const remainingAfterMonthlyFee = Math.max(0, excessPayment - monthlyFee);
+
+    let latePenaltyOwed = 0;
+    if (isPastDueDate) {
+      latePenaltyOwed = Math.max(0, latePenalty - remainingAfterMonthlyFee);
+    }
+
+    const totalOwed = monthlyFeeOwed + latePenaltyOwed;
+    const remainingExcess = Math.max(0, excessPayment - monthlyFee - (isPastDueDate ? latePenalty : 0));
+
     return {
-      month: date,
-      amount: MONTHLY_FEE + (isPastDueDate ? LATE_PAYMENT_PENALTY : 0),
-      isLate: isPastDueDate,
-      isPaid: false,
-      latePenaltyPaid: false,
+      fee: {
+        month: date,
+        amount: totalOwed,
+        isLate: isPastDueDate,
+        isPaid: monthlyFeeOwed === 0 && latePenaltyOwed === 0,
+        latePenaltyPaid: isPastDueDate ? latePenaltyOwed === 0 : true,
+        monthlyFeeAmount: monthlyFee,
+        latePenaltyAmount: latePenalty,
+      },
+      remainingExcess,
     };
   }
 
-  // For past months
+  // For past months without payment - both monthly fee and late penalty are due
+  const monthlyFeeOwed = Math.max(0, monthlyFee - excessPayment);
+  const remainingAfterMonthlyFee = Math.max(0, excessPayment - monthlyFee);
+  const latePenaltyOwed = Math.max(0, latePenalty - remainingAfterMonthlyFee);
+
+  const totalOwed = monthlyFeeOwed + latePenaltyOwed;
+  const remainingExcess = Math.max(0, excessPayment - monthlyFee - latePenalty);
+
   return {
-    month: date,
-    amount: MONTHLY_FEE + LATE_PAYMENT_PENALTY, // Past months always include late fee
-    isLate: true,
-    isPaid: false,
-    latePenaltyPaid: false,
+    fee: {
+      month: date,
+      amount: totalOwed,
+      isLate: true,
+      isPaid: monthlyFeeOwed === 0 && latePenaltyOwed === 0,
+      latePenaltyPaid: latePenaltyOwed === 0,
+      monthlyFeeAmount: monthlyFee,
+      latePenaltyAmount: latePenalty,
+    },
+    remainingExcess,
   };
 };
 
-export const calculateUnpaidMonths = (
+const calculateUnpaidMonths = async (
   contributions: Contribution[],
   startDate: Date
-): MonthlyFee[] => {
+): Promise<MonthlyFee[]> => {
   const today = new Date();
   const endDate = today; // Include current month
 
   // Get all months in the range
   const months = eachMonthOfInterval({ start: startDate, end: endDate });
 
-  // Filter approved contributions
-  const approvedContributions = contributions.filter(
-    (c) => c.status === "approved" && c.type === "monthly"
-  );
+  // Filter and sort approved contributions by date
+  const approvedContributions = contributions
+    .filter((c) => c.status === "approved" && c.type === "monthly")
+    .sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime());
 
-  // Calculate fees for all months
-  return months
-    .map((month) => {
-      const monthContribution = approvedContributions.find((contribution) =>
-        isSameMonth(contribution.date.toDate(), month)
-      );
+  // Calculate excess payments and apply them to outstanding balances
+  let excessPayment = 0;
+  const monthlyFees: MonthlyFee[] = [];
 
-      const monthlyFee = calculateMonthlyAmount(month, monthContribution);
+  for (const month of months) {
+    const monthContribution = approvedContributions.find((contribution) =>
+      isSameMonth(contribution.date.toDate(), month)
+    );
 
-      // If the month is paid but was paid late and late fee wasn't included
-      if (
-        monthlyFee.isPaid &&
-        monthlyFee.isLate &&
-        !monthlyFee.latePenaltyPaid
-      ) {
-        return {
-          ...monthlyFee,
-          amount: LATE_PAYMENT_PENALTY, // Only charge the late fee
-        };
-      }
+    // Calculate fees for this month, applying any excess from previous payments
+    const { fee, remainingExcess } = await calculateMonthlyAmount(
+      month,
+      monthContribution,
+      excessPayment
+    );
 
-      // If the month is fully paid (including any applicable late fees), return with zero amount
-      if (
-        monthlyFee.isPaid &&
-        (!monthlyFee.isLate || monthlyFee.latePenaltyPaid)
-      ) {
-        return {
-          ...monthlyFee,
-          amount: 0, // No amount due
-        };
-      }
+    // Update excess payment for next iteration
+    excessPayment = remainingExcess;
 
-      return monthlyFee;
-    })
-    .filter((fee) => fee.amount > 0); // Only include months with amounts due
+    // Only add months with outstanding amounts
+    if (fee.amount > 0) {
+      monthlyFees.push(fee);
+    }
+  }
+
+  return monthlyFees;
 };
 
 export const calculateInvoiceAmount = (unpaidMonths: MonthlyFee[]): number => {
   return unpaidMonths.reduce((total, { amount }) => total + amount, 0);
 };
 
-export const generateInvoiceDetails = (
+export const generateInvoiceDetails = async (
   contributions: Contribution[],
   joinDate: Timestamp
-): InvoiceDetails => {
-  const unpaidMonthsFees = calculateUnpaidMonths(
+): Promise<InvoiceDetails> => {
+  // Get current configuration values for display purposes
+  // Note: Individual month calculations use historical values from getConfigurationValue(type, date)
+  const monthlyFee = await getConfigurationValue("monthly_fee");
+  const latePenalty = await getConfigurationValue("late_penalty");
+
+  const unpaidMonthsFees = await calculateUnpaidMonths(
     contributions,
     joinDate.toDate()
   );
@@ -138,7 +181,9 @@ export const generateInvoiceDetails = (
   return {
     unpaidMonths: unpaidMonthsFees,
     totalAmount: calculateInvoiceAmount(unpaidMonthsFees),
-    monthlyFee: MONTHLY_FEE,
-    latePenalty: LATE_PAYMENT_PENALTY,
+    monthlyFee,
+    latePenalty,
   };
 };
+
+export { calculateUnpaidMonths };

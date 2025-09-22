@@ -4,19 +4,60 @@ import { format } from "date-fns";
 import type { Member } from "../../types";
 import type { InvoiceDetails } from "./types";
 
+// Cache the logo to avoid repeated loading
+let logoCache: HTMLImageElement | null = null;
+let logoLoadPromise: Promise<HTMLImageElement> | null = null;
+
+const loadLogo = async (): Promise<HTMLImageElement> => {
+  if (logoCache) {
+    return logoCache;
+  }
+
+  if (logoLoadPromise) {
+    return logoLoadPromise;
+  }
+
+  logoLoadPromise = new Promise((resolve, reject) => {
+    const img = new Image();
+
+    const timeout = setTimeout(() => {
+      reject(new Error("Logo loading timeout"));
+    }, 2000); // 2 second timeout
+
+    img.onload = () => {
+      clearTimeout(timeout);
+      logoCache = img;
+      resolve(img);
+    };
+
+    img.onerror = (e) => {
+      clearTimeout(timeout);
+      console.error("Error loading logo:", e);
+      reject(e);
+    };
+
+    img.src = "/logo.png";
+  });
+
+  return logoLoadPromise;
+};
+
+// Preload logo when module loads
+const preloadLogo = () => {
+  if (typeof window !== 'undefined') {
+    // Only preload in browser environment
+    loadLogo().catch(() => {
+      // Ignore errors during preload
+    });
+  }
+};
+
+// Start preloading immediately
+preloadLogo();
+
 const addLogo = async (doc: jsPDF): Promise<void> => {
   try {
-    // Load logo image
-    const img = new Image();
-    img.src = "/logo.png"; // Updated path to use public directory
-
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = (e) => {
-        console.error("Error loading logo:", e);
-        reject(e);
-      };
-    });
+    const img = await loadLogo();
 
     // Get page dimensions
     const pageWidth = doc.internal.pageSize.width;
@@ -35,6 +76,7 @@ const addLogo = async (doc: jsPDF): Promise<void> => {
     doc.addImage(img, "PNG", x, y, width, height);
   } catch (error) {
     console.error("Error adding logo to invoice:", error);
+    // Continue without logo if it fails to load
   }
 };
 
@@ -104,7 +146,7 @@ export const generateInvoicePDF = async (
 
   // Unpaid Months Table
   const tableData = invoice.unpaidMonths.map(
-    ({ month, amount, isLate, isPaid, latePenaltyPaid, monthlyFeeAmount, latePenaltyAmount }) => {
+    ({ month, isLate, isPaid, latePenaltyPaid, monthlyFeeAmount, latePenaltyAmount }) => {
       let description, breakdown, total;
 
       if (isLate) {

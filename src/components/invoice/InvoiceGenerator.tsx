@@ -113,9 +113,6 @@ export const InvoiceGeneratorWithProgress: React.FC<InvoiceGeneratorProps & {
         setProgress({ step: 'Download ready!', percentage: 100 });
       }
 
-      // Small delay to show completion
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       if (onSuccess) {
         onSuccess();
       }
@@ -137,19 +134,20 @@ export const InvoiceGeneratorWithProgress: React.FC<InvoiceGeneratorProps & {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="relative">
       <Button
         onClick={handleGenerateInvoice}
         icon={isGenerating ? FileText : Download}
         loading={isGenerating}
         disabled={isGenerating}
         size="medium"
+        className="min-w-[180px]"
       >
         {isGenerating ? 'Generating...' : 'Generate Monthly Invoice'}
       </Button>
 
       {showProgress && progress && (
-        <div className="w-full">
+        <div className="absolute top-full left-0 right-0 mt-2 min-w-[180px]">
           <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
             <span>{progress.step}</span>
             <span>{progress.percentage}%</span>

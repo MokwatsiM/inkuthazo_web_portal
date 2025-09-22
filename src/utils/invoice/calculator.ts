@@ -7,6 +7,29 @@ import {
   getDate,
 } from "date-fns";
 import { getConfigurationValue } from "../../services/configurationService";
+
+// Cache for configuration values to avoid repeated database calls
+const configCache = new Map<string, { monthlyFee: number; latePenalty: number }>();
+
+const getConfigurationValues = async (
+  date: Date
+): Promise<{ monthlyFee: number; latePenalty: number }> => {
+  const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+
+  if (configCache.has(monthKey)) {
+    return configCache.get(monthKey)!;
+  }
+
+  // Batch fetch both values for this month
+  const [monthlyFee, latePenalty] = await Promise.all([
+    getConfigurationValue("monthly_fee", date),
+    getConfigurationValue("late_penalty", date),
+  ]);
+
+  const values = { monthlyFee, latePenalty };
+  configCache.set(monthKey, values);
+  return values;
+};
 import type { Contribution } from "../../types";
 import type { InvoiceDetails, MonthlyFee } from "./types";
 
@@ -19,12 +42,12 @@ const isPaymentLate = (paymentDate: Date): boolean => {
 
 const calculateMonthlyAmount = async (
   date: Date,
+  monthlyFee: number,
+  latePenalty: number,
   contribution?: Contribution,
   excessPayment: number = 0
 ): Promise<{ fee: MonthlyFee; remainingExcess: number }> => {
-  // Get configuration values for this specific month
-  const monthlyFee = await getConfigurationValue("monthly_fee", date);
-  const latePenalty = await getConfigurationValue("late_penalty", date);
+  // Configuration values are now passed in to avoid repeated async calls
 
   const today = new Date();
   const isCurrentMonth = isSameMonth(date, today);
@@ -127,23 +150,33 @@ const calculateUnpaidMonths = async (
   // Get all months in the range
   const months = eachMonthOfInterval({ start: startDate, end: endDate });
 
-  // Filter and sort approved contributions by date
-  const approvedContributions = contributions
+  // Filter and sort approved contributions by date, create a Map for O(1) lookup
+  const contributionMap = new Map<string, Contribution>();
+  contributions
     .filter((c) => c.status === "approved" && c.type === "monthly")
-    .sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime());
+    .forEach((contribution) => {
+      const date = contribution.date.toDate();
+      const key = `${date.getFullYear()}-${date.getMonth()}`;
+      contributionMap.set(key, contribution);
+    });
 
   // Calculate excess payments and apply them to outstanding balances
   let excessPayment = 0;
   const monthlyFees: MonthlyFee[] = [];
 
   for (const month of months) {
-    const monthContribution = approvedContributions.find((contribution) =>
-      isSameMonth(contribution.date.toDate(), month)
-    );
+    // O(1) lookup instead of O(n) find operation
+    const monthKey = `${month.getFullYear()}-${month.getMonth()}`;
+    const monthContribution = contributionMap.get(monthKey);
+
+    // Get configuration values with caching
+    const { monthlyFee, latePenalty } = await getConfigurationValues(month);
 
     // Calculate fees for this month, applying any excess from previous payments
     const { fee, remainingExcess } = await calculateMonthlyAmount(
       month,
+      monthlyFee,
+      latePenalty,
       monthContribution,
       excessPayment
     );

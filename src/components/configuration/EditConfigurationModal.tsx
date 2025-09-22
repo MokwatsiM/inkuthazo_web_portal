@@ -5,7 +5,7 @@ import type {
   Configuration,
   ConfigurationType,
 } from "../../types/configuration";
-import { Timestamp } from "firebase/firestore/lite";
+import { Timestamp } from "firebase/firestore";
 
 interface EditConfigurationModalProps {
   isOpen: boolean;
@@ -28,6 +28,9 @@ const EditConfigurationModal: React.FC<EditConfigurationModalProps> = ({
       .toDate()
       .toISOString()
       .split("T")[0],
+    end_date: configuration.end_date
+      ? configuration.end_date.toDate().toISOString().split("T")[0]
+      : "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +44,9 @@ const EditConfigurationModal: React.FC<EditConfigurationModalProps> = ({
         .toDate()
         .toISOString()
         .split("T")[0],
+      end_date: configuration.end_date
+        ? configuration.end_date.toDate().toISOString().split("T")[0]
+        : "",
     });
   }, [configuration]);
 
@@ -52,12 +58,19 @@ const EditConfigurationModal: React.FC<EditConfigurationModalProps> = ({
     setError(null);
 
     try {
-      await onSubmit(configuration.id, {
+      const updateData: Partial<Configuration> = {
         name: formData.name,
         description: formData.description,
         value: formData.value,
         effective_date: Timestamp.fromDate(new Date(formData.effective_date)),
-      });
+      };
+
+      // Only include end_date if a value is provided
+      if (formData.end_date) {
+        updateData.end_date = Timestamp.fromDate(new Date(formData.end_date));
+      }
+
+      await onSubmit(configuration.id, updateData);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to update configuration"
@@ -96,6 +109,10 @@ const EditConfigurationModal: React.FC<EditConfigurationModalProps> = ({
           <p className="text-sm text-gray-600 dark:text-gray-400">
             <span className="font-medium">Current Effective Date:</span>{" "}
             {formatDate(configuration.effective_date)}
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="font-medium">Current End Date:</span>{" "}
+            {configuration.end_date ? formatDate(configuration.end_date) : "No end date (active indefinitely)"}
           </p>
         </div>
 
@@ -176,6 +193,26 @@ const EditConfigurationModal: React.FC<EditConfigurationModalProps> = ({
             />
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Changes will take effect from this date onwards
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              End Date (Optional)
+            </label>
+            <input
+              type="date"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              value={formData.end_date}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  end_date: e.target.value,
+                }))
+              }
+            />
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Leave empty for configuration to remain active indefinitely. Set an end date to automatically expire this configuration.
             </p>
           </div>
 

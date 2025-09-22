@@ -9,6 +9,7 @@ export interface Configuration {
   description: string;
   value: number;
   effective_date: Timestamp;
+  end_date?: Timestamp; // Optional end date for configuration validity
   created_by: string;
   created_at: Timestamp;
   updated_at: Timestamp;
@@ -21,4 +22,5 @@ export interface ConfigurationInput {
   description: string;
   value: number;
   effective_date: Date;
+  end_date?: Date; // Optional end date
 }

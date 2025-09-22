@@ -25,6 +25,7 @@ const AddConfigurationModal: React.FC<AddConfigurationModalProps> = ({
     description: "",
     value: 0,
     effective_date: new Date(),
+    end_date: undefined,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +48,7 @@ const AddConfigurationModal: React.FC<AddConfigurationModalProps> = ({
         description: "",
         value: 0,
         effective_date: new Date(),
+        end_date: undefined,
       });
     } catch (err) {
       setError(
@@ -182,6 +184,26 @@ const AddConfigurationModal: React.FC<AddConfigurationModalProps> = ({
             />
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               This configuration will take effect from this date onwards
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              End Date (Optional)
+            </label>
+            <input
+              type="date"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              value={formData.end_date ? formData.end_date.toISOString().split("T")[0] : ""}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  end_date: e.target.value ? new Date(e.target.value) : undefined,
+                }))
+              }
+            />
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Leave empty for configuration to remain active indefinitely. Set an end date to automatically expire this configuration.
             </p>
           </div>
 

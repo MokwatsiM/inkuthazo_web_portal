@@ -15,12 +15,17 @@ const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
   member,
   contributions,
 }) => {
-  const handleGenerateInvoice = () => {
-    const invoiceDetails = generateInvoiceDetails(
-      contributions,
-      member.join_date
-    );
-    generateInvoicePDF(member, invoiceDetails);
+  const handleGenerateInvoice = async () => {
+    try {
+      const invoiceDetails = await generateInvoiceDetails(
+        contributions,
+        member.join_date
+      );
+      generateInvoicePDF(member, invoiceDetails);
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      // You might want to show an error notification here
+    }
   };
 
   return (

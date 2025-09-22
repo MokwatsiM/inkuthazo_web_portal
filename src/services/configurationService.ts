@@ -22,14 +22,24 @@ export const addConfiguration = async (
   createdBy: string
 ): Promise<void> => {
   try {
-    await addDoc(collection(db, "configurations"), {
-      ...data,
+    const configData: any = {
+      type: data.type,
+      name: data.name,
+      description: data.description,
+      value: data.value,
       effective_date: Timestamp.fromDate(data.effective_date),
       created_by: createdBy,
       created_at: Timestamp.now(),
       updated_at: Timestamp.now(),
       is_active: true,
-    });
+    };
+
+    // Only add end_date if it exists (Firestore doesn't allow undefined values)
+    if (data.end_date) {
+      configData.end_date = Timestamp.fromDate(data.end_date);
+    }
+
+    await addDoc(collection(db, "configurations"), configData);
   } catch (error) {
     console.error("Error adding configuration:", error);
     throw error;
@@ -42,10 +52,49 @@ export const updateConfiguration = async (
 ): Promise<void> => {
   try {
     const configRef = doc(db, "configurations", id);
-    await updateDoc(configRef, {
-      ...data,
+
+    // Build update data without undefined values
+    const updateData: any = {
       updated_at: Timestamp.now(),
-    });
+    };
+
+    // Handle each field explicitly to ensure proper type conversion
+    if (data.name !== undefined) {
+      updateData.name = data.name;
+    }
+    if (data.description !== undefined) {
+      updateData.description = data.description;
+    }
+    if (data.value !== undefined) {
+      updateData.value = data.value;
+    }
+    if (data.type !== undefined) {
+      updateData.type = data.type;
+    }
+    if (data.is_active !== undefined) {
+      updateData.is_active = data.is_active;
+    }
+
+    // Handle dates - convert to Firestore Timestamp if they're Date objects or already Timestamps
+    if (data.effective_date !== undefined) {
+      if (data.effective_date instanceof Date) {
+        updateData.effective_date = Timestamp.fromDate(data.effective_date);
+      } else {
+        // If it's already a Timestamp, convert to Date then back to ensure compatibility
+        updateData.effective_date = Timestamp.fromDate(data.effective_date.toDate());
+      }
+    }
+
+    if (data.end_date !== undefined) {
+      if (data.end_date instanceof Date) {
+        updateData.end_date = Timestamp.fromDate(data.end_date);
+      } else if (data.end_date) {
+        // If it's already a Timestamp, convert to Date then back to ensure compatibility
+        updateData.end_date = Timestamp.fromDate(data.end_date.toDate());
+      }
+    }
+
+    await updateDoc(configRef, updateData);
   } catch (error) {
     console.error("Error updating configuration:", error);
     throw error;
@@ -109,8 +158,31 @@ export const getConfigurationValue = async (
       return defaults[type];
     }
 
-    const latestConfig = snapshot.docs[0].data() as Configuration;
-    return latestConfig.value;
+    // Find the configuration that was valid for the specific date
+    for (const doc of snapshot.docs) {
+      const config = doc.data() as Configuration;
+
+      // Check if this configuration was valid for the given date
+      const configEffectiveDate = config.effective_date.toDate();
+      const configEndDate = config.end_date?.toDate();
+
+      // Configuration is valid if:
+      // 1. Effective date is <= query date
+      // 2. No end date specified OR end date is > query date
+      if (configEffectiveDate <= effectiveDate &&
+          (!configEndDate || configEndDate > effectiveDate)) {
+        return config.value;
+      }
+    }
+
+    // If no valid configuration found, return defaults
+    const defaults: Record<ConfigurationType, number> = {
+      monthly_fee: 150,
+      late_penalty: 50,
+      registration_fee: 500,
+      other: 0,
+    };
+    return defaults[type];
   } catch (error) {
     console.error("Error getting configuration value:", error);
     // Return default values on error

@@ -8,17 +8,10 @@ import {
 } from "date-fns";
 import { getConfigurationValue } from "../../services/configurationService";
 import type { Contribution } from "../../types";
-import type { InvoiceDetails } from "./types";
+import type { InvoiceDetails, MonthlyFee } from "./types";
 
 const PAYMENT_DUE_DAY = 7;
 
-interface MonthlyFee {
-  month: Date;
-  amount: number;
-  isLate: boolean;
-  isPaid: boolean;
-  latePenaltyPaid: boolean;
-}
 
 const isPaymentLate = (paymentDate: Date): boolean => {
   return getDate(paymentDate) > PAYMENT_DUE_DAY;
@@ -41,21 +34,32 @@ const calculateMonthlyAmount = async (
   if (contribution) {
     const paymentDate = contribution.date.toDate();
     const wasPaymentLate = isPaymentLate(paymentDate);
-    const totalDue = wasPaymentLate ? monthlyFee + latePenalty : monthlyFee;
 
-    // Check if the contribution amount plus any excess covers the total due
+    // For paid months, we need to determine what is still owed
     const totalAvailable = contribution.amount + excessPayment;
-    const isFullyPaid = totalAvailable >= totalDue;
-    const remainingExcess = isFullyPaid ? totalAvailable - totalDue : 0;
+    const monthlyFeePaid = Math.min(totalAvailable, monthlyFee);
+    const isMonthlyFeePaid = monthlyFeePaid >= monthlyFee;
+
+    let latePenaltyOwed = 0;
+    let remainingAfterMonthlyFee = Math.max(0, totalAvailable - monthlyFee);
+
+    if (wasPaymentLate) {
+      // Late penalty applies
+      latePenaltyOwed = Math.max(0, latePenalty - remainingAfterMonthlyFee);
+    }
+
+    const totalOwed = (isMonthlyFeePaid ? 0 : monthlyFee - monthlyFeePaid) + latePenaltyOwed;
+    const remainingExcess = Math.max(0, totalAvailable - monthlyFee - (wasPaymentLate ? latePenalty : 0));
 
     return {
       fee: {
         month: date,
-        amount: isFullyPaid ? 0 : totalDue - totalAvailable,
+        amount: totalOwed,
         isLate: wasPaymentLate,
-        isPaid: isFullyPaid,
-        latePenaltyPaid:
-          isFullyPaid || totalAvailable >= monthlyFee + latePenalty,
+        isPaid: isMonthlyFeePaid && latePenaltyOwed === 0,
+        latePenaltyPaid: wasPaymentLate ? latePenaltyOwed === 0 : true,
+        monthlyFeeAmount: monthlyFee,
+        latePenaltyAmount: latePenalty,
       },
       remainingExcess,
     };
@@ -64,37 +68,50 @@ const calculateMonthlyAmount = async (
   // For current month
   if (isCurrentMonth) {
     const isPastDueDate = getDate(today) > PAYMENT_DUE_DAY;
-    const totalDue = monthlyFee + (isPastDueDate ? latePenalty : 0);
 
-    // Apply any excess payment
-    const isFullyPaid = excessPayment >= totalDue;
-    const remainingExcess = isFullyPaid ? excessPayment - totalDue : 0;
+    // Calculate what's due
+    const monthlyFeeOwed = Math.max(0, monthlyFee - excessPayment);
+    const remainingAfterMonthlyFee = Math.max(0, excessPayment - monthlyFee);
+
+    let latePenaltyOwed = 0;
+    if (isPastDueDate) {
+      latePenaltyOwed = Math.max(0, latePenalty - remainingAfterMonthlyFee);
+    }
+
+    const totalOwed = monthlyFeeOwed + latePenaltyOwed;
+    const remainingExcess = Math.max(0, excessPayment - monthlyFee - (isPastDueDate ? latePenalty : 0));
 
     return {
       fee: {
         month: date,
-        amount: isFullyPaid ? 0 : totalDue - excessPayment,
+        amount: totalOwed,
         isLate: isPastDueDate,
-        isPaid: isFullyPaid,
-        latePenaltyPaid:
-          isFullyPaid || excessPayment >= monthlyFee + latePenalty,
+        isPaid: monthlyFeeOwed === 0 && latePenaltyOwed === 0,
+        latePenaltyPaid: isPastDueDate ? latePenaltyOwed === 0 : true,
+        monthlyFeeAmount: monthlyFee,
+        latePenaltyAmount: latePenalty,
       },
       remainingExcess,
     };
   }
 
-  // For past months
-  const totalDue = monthlyFee + latePenalty;
-  const isFullyPaid = excessPayment >= totalDue;
-  const remainingExcess = isFullyPaid ? excessPayment - totalDue : 0;
+  // For past months without payment - both monthly fee and late penalty are due
+  const monthlyFeeOwed = Math.max(0, monthlyFee - excessPayment);
+  const remainingAfterMonthlyFee = Math.max(0, excessPayment - monthlyFee);
+  const latePenaltyOwed = Math.max(0, latePenalty - remainingAfterMonthlyFee);
+
+  const totalOwed = monthlyFeeOwed + latePenaltyOwed;
+  const remainingExcess = Math.max(0, excessPayment - monthlyFee - latePenalty);
 
   return {
     fee: {
       month: date,
-      amount: isFullyPaid ? 0 : totalDue - excessPayment,
+      amount: totalOwed,
       isLate: true,
-      isPaid: isFullyPaid,
-      latePenaltyPaid: isFullyPaid || excessPayment >= monthlyFee + latePenalty,
+      isPaid: monthlyFeeOwed === 0 && latePenaltyOwed === 0,
+      latePenaltyPaid: latePenaltyOwed === 0,
+      monthlyFeeAmount: monthlyFee,
+      latePenaltyAmount: latePenalty,
     },
     remainingExcess,
   };
@@ -131,22 +148,8 @@ const calculateUnpaidMonths = async (
       excessPayment
     );
 
-    // Get the monthly fee for this specific month to check for excess
-    const monthlyFeeForThisMonth = await getConfigurationValue(
-      "monthly_fee",
-      month
-    );
-
-    // If there's a contribution for this month, check for excess payment
-    if (
-      monthContribution &&
-      monthContribution.amount > monthlyFeeForThisMonth
-    ) {
-      const excess = monthContribution.amount - monthlyFeeForThisMonth;
-      excessPayment = excess + remainingExcess;
-    } else {
-      excessPayment = remainingExcess;
-    }
+    // Update excess payment for next iteration
+    excessPayment = remainingExcess;
 
     // Only add months with outstanding amounts
     if (fee.amount > 0) {
@@ -165,7 +168,8 @@ export const generateInvoiceDetails = async (
   contributions: Contribution[],
   joinDate: Timestamp
 ): Promise<InvoiceDetails> => {
-  // Get current configuration values
+  // Get current configuration values for display purposes
+  // Note: Individual month calculations use historical values from getConfigurationValue(type, date)
   const monthlyFee = await getConfigurationValue("monthly_fee");
   const latePenalty = await getConfigurationValue("late_penalty");
 

@@ -104,32 +104,43 @@ export const generateInvoicePDF = async (
 
   // Unpaid Months Table
   const tableData = invoice.unpaidMonths.map(
-    ({ month, amount, isLate, isPaid, latePenaltyPaid }) => {
-      let description, breakdown;
+    ({ month, amount, isLate, isPaid, latePenaltyPaid, monthlyFeeAmount, latePenaltyAmount }) => {
+      let description, breakdown, total;
 
       if (isLate) {
         if (isPaid && !latePenaltyPaid) {
-          // Only late fee is due
+          // Monthly fee was paid but late penalty is still owed
           description = "Late Payment Penalty";
-          breakdown = `R ${invoice.latePenalty.toFixed(2)} (Late Fee)`;
-        } else if (!isPaid ) {
-          // Both monthly fee and late fee are due
+          breakdown = `R ${latePenaltyAmount.toFixed(2)} (Late Fee)`;
+          total = `R ${latePenaltyAmount.toFixed(2)}`;
+        } else if (!isPaid && !latePenaltyPaid) {
+          // Both monthly fee and late penalty are owed
           description = "Monthly Contribution + Late Payment Penalty";
-          breakdown = `R ${invoice.monthlyFee.toFixed(
-            2
-          )} + R ${invoice.latePenalty.toFixed(2)} (Late Fee)`;
+          breakdown = `R ${monthlyFeeAmount.toFixed(2)} + R ${latePenaltyAmount.toFixed(2)} (Late Fee)`;
+          total = `R ${(monthlyFeeAmount + latePenaltyAmount).toFixed(2)}`;
+        } else if (!isPaid && latePenaltyPaid) {
+          // Only monthly fee is owed (rare case with excess payment covering penalty first)
+          description = "Monthly Contribution";
+          breakdown = `R ${monthlyFeeAmount.toFixed(2)}`;
+          total = `R ${monthlyFeeAmount.toFixed(2)}`;
+        } else {
+          // This shouldn't appear in invoice as amount should be 0
+          description = "Outstanding Balance";
+          breakdown = `Fully paid`;
+          total = `R 0.00`;
         }
       } else {
-        // Regular monthly contribution
+        // Regular monthly contribution (not late)
         description = "Monthly Contribution";
-        breakdown = `R ${invoice.monthlyFee.toFixed(2)}`;
+        breakdown = `R ${monthlyFeeAmount.toFixed(2)}`;
+        total = `R ${monthlyFeeAmount.toFixed(2)}`;
       }
 
       return [
         format(month, "MMMM yyyy"),
         description,
         breakdown,
-        `R ${amount.toFixed(2)}`,
+        total,
       ];
     }
   );

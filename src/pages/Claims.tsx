@@ -59,7 +59,7 @@ const Claims: React.FC = () => {
             <SearchInput
               placeholder="Search by member or claimant name..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={setSearchTerm}
             />
             <select
               className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"

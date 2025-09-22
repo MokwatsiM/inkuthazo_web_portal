@@ -119,7 +119,7 @@ const ConfigurationPage: React.FC = () => {
           <SearchInput
             placeholder="Search configurations..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
           />
         </div>
 

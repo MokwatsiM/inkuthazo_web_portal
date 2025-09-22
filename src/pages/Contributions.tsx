@@ -157,7 +157,7 @@ const Contributions: React.FC = () => {
               <SearchInput
                 placeholder="Search by member name..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={setSearchTerm}
               />
               <MonthFilter
                 onChange={(start, end) => setDateRange({ start, end })}

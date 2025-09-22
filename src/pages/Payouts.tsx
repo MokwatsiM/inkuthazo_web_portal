@@ -84,7 +84,7 @@ const Payouts: React.FC = () => {
           <SearchInput
             placeholder="Search payouts..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
           />
         </div>
         {loading ? (

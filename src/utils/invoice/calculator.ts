@@ -56,7 +56,7 @@ const calculateMonthlyAmount = async (
         month: date,
         amount: totalOwed,
         isLate: wasPaymentLate,
-        isPaid: isMonthlyFeePaid && latePenaltyOwed === 0,
+        isPaid: isMonthlyFeePaid,
         latePenaltyPaid: wasPaymentLate ? latePenaltyOwed === 0 : true,
         monthlyFeeAmount: monthlyFee,
         latePenaltyAmount: latePenalty,
@@ -160,6 +160,19 @@ const calculateUnpaidMonths = async (
   return monthlyFees;
 };
 
+/**
+ * Calculates the total amount due for an invoice.
+ *
+ * IMPORTANT: The 'amount' field in each MonthlyFee already includes:
+ * - Outstanding monthly fee amount
+ * - Outstanding late penalty amount (if applicable)
+ *
+ * This function correctly sums all outstanding amounts including both
+ * monthly contributions and late penalties for all unpaid months.
+ *
+ * @param unpaidMonths Array of MonthlyFee objects with outstanding balances
+ * @returns Total amount due including all fees and penalties
+ */
 export const calculateInvoiceAmount = (unpaidMonths: MonthlyFee[]): number => {
   return unpaidMonths.reduce((total, { amount }) => total + amount, 0);
 };
@@ -175,7 +188,7 @@ export const generateInvoiceDetails = async (
 
   const unpaidMonthsFees = await calculateUnpaidMonths(
     contributions,
-    joinDate.toDate()
+    joinDate.toDate(),
   );
 
   return {

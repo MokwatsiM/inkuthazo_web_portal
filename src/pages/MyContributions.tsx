@@ -145,7 +145,7 @@ const MyContributions: React.FC = () => {
               <SearchInput
                 placeholder="Search by contribution type..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={setSearchTerm}
               />
             </CardHeader>
           </div>

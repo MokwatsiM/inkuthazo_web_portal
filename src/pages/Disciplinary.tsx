@@ -132,7 +132,7 @@ const Disciplinary: React.FC = () => {
             <SearchInput
               placeholder="Search records..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={setSearchTerm}
             />
             {isDCMember && (
               <select

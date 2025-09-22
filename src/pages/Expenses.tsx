@@ -159,7 +159,7 @@ const Expenses: React.FC = () => {
           <SearchInput
             placeholder="Search expenses..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
           />
         </div>
 

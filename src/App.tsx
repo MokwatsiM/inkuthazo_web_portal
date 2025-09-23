@@ -84,7 +84,7 @@ const AppRoutes: React.FC = () => {
         <Route
           path="contributions"
           element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
+            <RoleBasedRoute allowedRoles={["admin", ]}>
               <Contributions />
             </RoleBasedRoute>
           }
@@ -93,7 +93,7 @@ const AppRoutes: React.FC = () => {
         <Route
           path="my-contributions"
           element={
-            <RoleBasedRoute allowedRoles={["member"]}>
+            <RoleBasedRoute allowedRoles={["member","dc_member"]}>
               <MyContributions />
             </RoleBasedRoute>
           }

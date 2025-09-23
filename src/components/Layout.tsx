@@ -17,6 +17,7 @@ import {
   Receipt,
   Home,
   AlertTriangle,
+  CalendarDays,
 } from "lucide-react";
 import { Settings } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -82,6 +83,12 @@ const Layout: React.FC = () => {
       color: "text-sky-500",
     },
     {
+      path: "/host-assignments",
+      icon: CalendarDays,
+      label: "Host Assignments",
+      color: "text-purple-500",
+    },
+    {
       path: "/analytics",
       icon: BarChart2,
       label: "Analytics",
@@ -122,6 +129,12 @@ const Layout: React.FC = () => {
       icon: Calendar,
       label: "Calendar",
       color: "text-sky-500",
+    },
+    {
+      path: "/my-hosting-schedule",
+      icon: CalendarDays,
+      label: "My Hosting",
+      color: "text-purple-500",
     },
     {
       path: "/disciplinary",

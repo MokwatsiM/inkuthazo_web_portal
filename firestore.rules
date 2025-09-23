@@ -135,7 +135,7 @@ service cloud.firestore {
      // Invitations collection
     match /invitations/{invitationId} {
       allow read: if isSignedIn();
-      allow create: if isAdmin() && 
+      allow create: if isAdmin() &&
         request.resource.data.keys().hasAll(['email', 'full_name', 'phone', 'invited_by', 'status', 'created_at', 'expires_at', 'invitation_token']) &&
         request.resource.data.invited_by == request.auth.uid &&
         request.resource.data.status == 'pending';
@@ -143,6 +143,36 @@ service cloud.firestore {
         request.resource.data.status in ['accepted', 'expired'] &&
         resource.data.status == 'pending';
       allow delete: if false;
+    }
+
+    // Host Assignments collection
+    match /hostAssignments/{assignmentId} {
+      // All signed-in users can read host assignments
+      allow read: if isSignedIn();
+
+      // Only admins can create, update, and delete host assignments
+      allow create: if isAdmin() &&
+        request.resource.data.keys().hasAll(['member_id', 'member_name', 'assigned_month', 'year', 'month', 'status', 'created_at', 'created_by']) &&
+        request.resource.data.created_by == request.auth.uid;
+
+      allow update: if isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // Host Schedules collection
+    match /hostSchedules/{scheduleId} {
+      // All signed-in users can read host schedules
+      allow read: if isSignedIn();
+
+      // Only admins can create, update, and delete host schedules
+      allow create: if isAdmin() &&
+        request.resource.data.keys().hasAll(['year', 'assignments', 'generated_at', 'generated_by', 'last_modified', 'is_finalized']) &&
+        request.resource.data.generated_by == request.auth.uid;
+
+      allow update: if isAdmin();
+
+      allow delete: if isAdmin();
     }
   }
 }

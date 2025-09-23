@@ -22,13 +22,14 @@ import { generateMemberStatement } from "../utils/reportGenerator";
 import type { MemberDetail as MemberDetailType } from "../types";
 import type { Contribution } from "../types/contribution";
 import type { Payout } from "../types/payout";
-import { InvoiceGeneratorWithProgress } from "../components/invoice/InvoiceGenerator";
+import { generateInvoiceDetails } from "../utils/invoice/calculator";
+import { generateInvoicePDF } from "../utils/invoice/generator";
 import ClaimsSection from "../components/claims/ClaimsSection";
 import Card, { CardBody } from "../components/ui/Card";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import EmptyState from "../components/ui/EmptyState";
-import Button from "../components/ui/Button";
-import { Ghost, Edit, FileText } from "lucide-react";
+import MemberActions from "../components/members/MemberActions";
+import { Ghost } from "lucide-react";
 
 const MemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -124,6 +125,20 @@ const MemberDetail: React.FC = () => {
     }
   };
 
+  const handleGenerateInvoice = async () => {
+    if (!member) return;
+
+    try {
+      const invoiceDetails = await generateInvoiceDetails(
+        member.contributions,
+        member.join_date
+      );
+      await generateInvoicePDF(member, invoiceDetails);
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -141,29 +156,12 @@ const MemberDetail: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Member Details</h2>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button
-            icon={Edit}
-            onClick={() => setIsEditModalOpen(true)}
-            size="medium"
-          >
-            <span className="hidden sm:inline">Edit Member</span>
-            <span className="sm:hidden">Edit</span>
-          </Button>
-          <Button
-            icon={FileText}
-            onClick={() => generateMemberStatement(member)}
-            size="medium"
-          >
-            <span className="hidden sm:inline">Generate Statement</span>
-            <span className="sm:hidden">Statement</span>
-          </Button>
-          <InvoiceGeneratorWithProgress
-            member={member}
-            contributions={member.contributions}
-            showProgress={true}
-          />
-        </div>
+        <MemberActions
+          member={member}
+          onEdit={() => setIsEditModalOpen(true)}
+          onGenerateStatement={() => generateMemberStatement(member)}
+          onGenerateInvoice={handleGenerateInvoice}
+        />
       </div>
       <Card>
         <CardBody>

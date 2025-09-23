@@ -31,6 +31,8 @@ import ResetPassword from "./components/auth/ResetPassword";
 import Configuration from "./pages/Configuration";
 import HostAssignments from "./pages/HostAssignments";
 import MemberHostView from "./components/hostAssignments/MemberHostView";
+import Meetings from "./pages/Meetings";
+import Attendance from "./pages/Attendance";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -186,6 +188,24 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleBasedRoute allowedRoles={["member"]}>
               <MemberHostView />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="meetings"
+          element={
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <Meetings />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="attendance"
+          element={
+            <RoleBasedRoute allowedRoles={["member", "dc_member"]}>
+              <Attendance />
             </RoleBasedRoute>
           }
         />

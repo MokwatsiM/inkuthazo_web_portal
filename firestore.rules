@@ -174,5 +174,36 @@ service cloud.firestore {
 
       allow delete: if isAdmin();
     }
+
+    // Meetings collection (QR Attendance System)
+    match /meetings/{meetingId} {
+      // All signed-in users can read meetings
+      allow read: if isSignedIn();
+
+      // Only admins can create, update, and delete meetings
+      allow create: if isAdmin() &&
+        request.resource.data.keys().hasAll(['title', 'date', 'startTime', 'questionnaire', 'isActive', 'createdBy', 'createdAt', 'updatedAt']) &&
+        request.resource.data.createdBy == request.auth.uid;
+
+      allow update: if isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // Attendance collection (QR Attendance System)
+    match /attendance/{attendanceId} {
+      // Admins can read all attendance records
+      // Members can read their own attendance records
+      allow read: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+
+      // Only authenticated members can create attendance records for themselves
+      allow create: if isSignedIn() &&
+        request.resource.data.memberId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['meetingId', 'memberId', 'memberName', 'responses', 'submittedAt']);
+
+      // Only admins can update or delete attendance records
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
   }
 }

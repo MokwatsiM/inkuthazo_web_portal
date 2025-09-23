@@ -2,7 +2,9 @@ import * as functions from "firebase-functions";
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
+import { getFirestore } from "firebase-admin/firestore";
 import Mailjet from "node-mailjet";
+import { googleSheetsService } from "./services/googleSheetsService";
 
 
 initializeApp();
@@ -150,6 +152,332 @@ export const sendMemberInvitation = functions.https.onCall(
         "internal",
         "Failed to send email",
         error.response?.data || error.message
+      );
+    }
+  }
+);
+
+// Helper function to verify user authentication and get user details
+async function verifyUserAuth(context: functions.https.CallableContext) {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "Must be authenticated to access this endpoint"
+    );
+  }
+
+  const db = getFirestore();
+  const userDoc = await db.collection('members').doc(context.auth.uid).get();
+
+  if (!userDoc.exists) {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "User profile not found"
+    );
+  }
+
+  return {
+    uid: context.auth.uid,
+    userData: userDoc.data(),
+    isAdmin: userDoc.data()?.role === 'admin'
+  };
+}
+
+// Google Sheets API Endpoints for Attendance System
+
+// Create sheet for meeting
+export const createAttendanceSheet = functions.https.onCall(
+  async (data: { meetingId: string }, context) => {
+    try {
+      const { isAdmin } = await verifyUserAuth(context);
+
+      if (!isAdmin) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Only admins can create attendance sheets"
+        );
+      }
+
+      const { meetingId } = data;
+      if (!meetingId) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Meeting ID is required"
+        );
+      }
+
+      // Get meeting data from Firestore
+      const db = getFirestore();
+      const meetingDoc = await db.collection('meetings').doc(meetingId).get();
+
+      if (!meetingDoc.exists) {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "Meeting not found"
+        );
+      }
+
+      const meeting = { id: meetingDoc.id, ...meetingDoc.data() } as any;
+      const sheetName = await googleSheetsService.createSheetForMeeting(meeting as any);
+
+      return {
+        success: true,
+        sheetName,
+        message: "Attendance sheet created successfully"
+      };
+    } catch (error) {
+      functions.logger.error("Error creating attendance sheet:", error);
+
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+
+      throw new functions.https.HttpsError(
+        "internal",
+        "Failed to create attendance sheet"
+      );
+    }
+  }
+);
+
+// Record attendance in Google Sheets
+export const recordAttendanceInSheets = functions.https.onCall(
+  async (data: {
+    meetingId: string;
+    memberId: string;
+    memberName: string;
+    responses: Record<string, any>;
+  }, context) => {
+    try {
+      const { uid } = await verifyUserAuth(context);
+
+      const { meetingId, memberId, memberName, responses } = data;
+
+      // Verify user can only submit attendance for themselves
+      if (uid !== memberId) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Can only submit attendance for yourself"
+        );
+      }
+
+      if (!meetingId || !memberId || !memberName || !responses) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Missing required fields"
+        );
+      }
+
+      // Get meeting data
+      const db = getFirestore();
+      const meetingDoc = await db.collection('meetings').doc(meetingId).get();
+
+      if (!meetingDoc.exists) {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "Meeting not found"
+        );
+      }
+
+      const meeting = { id: meetingDoc.id, ...meetingDoc.data() } as any;
+
+      // Check if user already attended
+      const hasAttended = await googleSheetsService.hasUserAttended(
+        meetingId,
+        memberId,
+        meeting as any
+      );
+
+      if (hasAttended) {
+        throw new functions.https.HttpsError(
+          "already-exists",
+          "Attendance already recorded for this meeting"
+        );
+      }
+
+      // Record attendance
+      const attendanceRecord = {
+        memberId,
+        memberName,
+        meetingId,
+        meetingDate: meeting.date,
+        responses,
+        submissionTimestamp: new Date().toISOString(),
+      };
+
+      await googleSheetsService.recordAttendance(meeting as any, attendanceRecord);
+
+      return {
+        success: true,
+        message: "Attendance recorded successfully"
+      };
+    } catch (error) {
+      functions.logger.error("Error recording attendance:", error);
+
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+
+      throw new functions.https.HttpsError(
+        "internal",
+        (error as Error).message || "Failed to record attendance"
+      );
+    }
+  }
+);
+
+// Get attendance records for a meeting
+export const getAttendanceRecords = functions.https.onCall(
+  async (data: { meetingId: string }, context) => {
+    try {
+      const { isAdmin } = await verifyUserAuth(context);
+
+      if (!isAdmin) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Only admins can view attendance records"
+        );
+      }
+
+      const { meetingId } = data;
+      if (!meetingId) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Meeting ID is required"
+        );
+      }
+
+      // Get meeting data
+      const db = getFirestore();
+      const meetingDoc = await db.collection('meetings').doc(meetingId).get();
+
+      if (!meetingDoc.exists) {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "Meeting not found"
+        );
+      }
+
+      const meeting = { id: meetingDoc.id, ...meetingDoc.data() } as any;
+      const records = await googleSheetsService.getAttendanceRecords(meeting as any);
+
+      return {
+        success: true,
+        data: records
+      };
+    } catch (error) {
+      functions.logger.error("Error getting attendance records:", error);
+
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+
+      throw new functions.https.HttpsError(
+        "internal",
+        "Failed to get attendance records"
+      );
+    }
+  }
+);
+
+// Check if user has attended a meeting
+export const checkAttendanceStatus = functions.https.onCall(
+  async (data: { meetingId: string, memberId?: string }, context) => {
+    try {
+      const { uid, isAdmin } = await verifyUserAuth(context);
+
+      const { meetingId, memberId } = data;
+      const targetMemberId = memberId || uid;
+
+      // Non-admins can only check their own attendance
+      if (!isAdmin && targetMemberId !== uid) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Can only check your own attendance status"
+        );
+      }
+
+      if (!meetingId) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Meeting ID is required"
+        );
+      }
+
+      // Get meeting data
+      const db = getFirestore();
+      const meetingDoc = await db.collection('meetings').doc(meetingId).get();
+
+      if (!meetingDoc.exists) {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "Meeting not found"
+        );
+      }
+
+      const meeting = { id: meetingDoc.id, ...meetingDoc.data() } as any;
+      const hasAttended = await googleSheetsService.hasUserAttended(
+        meetingId,
+        targetMemberId,
+        meeting as any
+      );
+
+      return {
+        success: true,
+        hasAttended
+      };
+    } catch (error) {
+      functions.logger.error("Error checking attendance status:", error);
+
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+
+      throw new functions.https.HttpsError(
+        "internal",
+        "Failed to check attendance status"
+      );
+    }
+  }
+);
+
+// Export attendance data with shareable link
+export const exportAttendanceData = functions.https.onCall(
+  async (data: { meetingId: string }, context) => {
+    try {
+      const { isAdmin } = await verifyUserAuth(context);
+
+      if (!isAdmin) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Only admins can export attendance data"
+        );
+      }
+
+      const { meetingId } = data;
+      if (!meetingId) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Meeting ID is required"
+        );
+      }
+
+      const exportData = await googleSheetsService.exportAttendanceData(meetingId);
+
+      return {
+        success: true,
+        ...exportData
+      };
+    } catch (error) {
+      functions.logger.error("Error exporting attendance data:", error);
+
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+
+      throw new functions.https.HttpsError(
+        "internal",
+        "Failed to export attendance data"
       );
     }
   }

@@ -17,6 +17,7 @@ import {
   Home,
   AlertTriangle,
   CalendarDays,
+  QrCode,
 } from "lucide-react";
 import { Settings } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -88,6 +89,12 @@ const Layout: React.FC = () => {
       color: "text-purple-500",
     },
     {
+      path: "/meetings",
+      icon: QrCode,
+      label: "Meetings",
+      color: "text-green-500",
+    },
+    {
       path: "/analytics",
       icon: BarChart2,
       label: "Analytics",
@@ -134,6 +141,12 @@ const Layout: React.FC = () => {
       icon: CalendarDays,
       label: "Hosting",
       color: "text-purple-500",
+    },
+    {
+      path: "/attendance",
+      icon: QrCode,
+      label: "Attendance",
+      color: "text-green-500",
     },
     {
       path: "/disciplinary",

@@ -7,7 +7,6 @@ import {
   FileText,
   LogOut,
   DollarSign,
-  UserCircle,
   Menu,
   X,
   BarChart2,
@@ -133,7 +132,7 @@ const Layout: React.FC = () => {
     {
       path: "/my-hosting-schedule",
       icon: CalendarDays,
-      label: "My Hosting",
+      label: "Hosting",
       color: "text-purple-500",
     },
     {
@@ -141,12 +140,6 @@ const Layout: React.FC = () => {
       icon: AlertTriangle,
       label: "Disciplinary",
       color: "text-orange-500",
-    },
-    {
-      path: `/members/${userDetails?.id}`,
-      icon: UserCircle,
-      label: "Profile",
-      color: "text-blue-500",
     },
   ];
 
@@ -247,7 +240,7 @@ const Layout: React.FC = () => {
             </div>
             <div className="flex items-center space-x-4">
               {userDetails && (
-                <div className="hidden md:flex items-center space-x-3">
+                <div className={`${isAdmin ? 'hidden md:flex' : 'flex'} items-center space-x-3`}>
                   <Link
                     to={`/members/${userDetails.id}`}
                     className="relative group"
@@ -255,7 +248,7 @@ const Layout: React.FC = () => {
                     <Avatar member={userDetails} size="sm" />
                     <div className="absolute inset-0 rounded-full ring-2 ring-transparent group-hover:ring-brand-500 transition-all duration-200" />
                   </Link>
-                  <div className="text-sm">
+                  <div className={`text-sm ${!isAdmin ? 'hidden md:block' : ''}`}>
                     <p className="font-medium text-gray-700 dark:text-gray-200">
                       {userDetails.full_name}
                     </p>

@@ -4,16 +4,48 @@ import { useMemberHostAssignments } from "../../hooks/useHostAssignments";
 import { useAuth } from "../../hooks/useAuth";
 import { formatDate } from "../../utils/dateUtils";
 import { LoadingSkeleton } from "../ui/LoadingOverlay";
+import Button from "../ui/Button";
+import { FileSpreadsheet, FileText } from "lucide-react";
+import { exportHostScheduleToExcel, exportHostScheduleToPDF } from "../../services/hostAssignmentExportService";
+import { useHostAssignments } from "../../hooks/useHostAssignments";
 
 const MemberHostView: React.FC = () => {
   const { userDetails } = useAuth();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const { assignments, loading, error } = useMemberHostAssignments(userDetails?.id);
+  const { schedule } = useHostAssignments(selectedYear);
+  const [isExporting, setIsExporting] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
   const filteredAssignments = assignments.filter(assignment => assignment.year === selectedYear);
+
+  const handleExportExcel = async () => {
+    if (!schedule) return;
+    try {
+      setIsExporting(true);
+      await exportHostScheduleToExcel(schedule);
+    } catch (error) {
+      console.error('Export to Excel failed:', error);
+      alert('Failed to export to Excel. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (!schedule) return;
+    try {
+      setIsExporting(true);
+      await exportHostScheduleToPDF(schedule);
+    } catch (error) {
+      console.error('Export to PDF failed:', error);
+      alert('Failed to export to PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -86,15 +118,39 @@ const MemberHostView: React.FC = () => {
               My Hosting Schedule
             </h2>
           </div>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-          >
-            {yearOptions.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-3">
+            {schedule && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  icon={FileSpreadsheet}
+                  onClick={handleExportExcel}
+                  disabled={isExporting}
+                  size="sm"
+                >
+                  Excel
+                </Button>
+                <Button
+                  variant="outline"
+                  icon={FileText}
+                  onClick={handleExportPDF}
+                  disabled={isExporting}
+                  size="sm"
+                >
+                  PDF
+                </Button>
+              </div>
+            )}
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            >
+              {yearOptions.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="flex items-center p-4 bg-blue-50 border border-blue-200 rounded-lg">

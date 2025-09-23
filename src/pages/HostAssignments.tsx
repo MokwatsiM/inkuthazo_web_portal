@@ -6,6 +6,7 @@ import { useHostAssignments } from "../hooks/useHostAssignments";
 import { useAuth } from "../hooks/useAuth";
 import HostScheduleTable from "../components/hostAssignments/HostScheduleTable";
 import GenerateScheduleModal from "../components/hostAssignments/GenerateScheduleModal";
+import ExportButtons from "../components/hostAssignments/ExportButtons";
 import { LoadingSkeleton } from "../components/ui/LoadingOverlay";
 import { formatDate } from "../utils/dateUtils";
 
@@ -143,6 +144,7 @@ const HostAssignments: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <ExportButtons schedule={schedule} />
               {!schedule.is_finalized && (
                 <>
                   <Button

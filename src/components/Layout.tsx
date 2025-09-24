@@ -22,6 +22,7 @@ import { Settings } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
 import Avatar from "./avatar/Avatar";
+import { ThemeToggle } from "./ui/ThemeToggle";
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
@@ -233,12 +234,13 @@ const Layout: React.FC = () => {
                   alt="Logo"
                   className="h-8 w-8 text-brand-600 dark:text-brand-400"
                 />
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2 md:ml-0">
+                <h1 className="text-xl font-bold text-text-primary dark:text-text-primary-dark ml-2 md:ml-0">
                   Inkuthazo Portal
                 </h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <ThemeToggle variant="button" />
               {userDetails && (
                 <div className={`${isAdmin ? 'hidden md:flex' : 'flex'} items-center space-x-3`}>
                   <Link

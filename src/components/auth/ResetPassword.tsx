@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { confirmPasswordReset } from "firebase/auth";
 import { Lock } from "lucide-react";
 import { auth } from "../../config/firebase";
+import { ThemeToggle } from "../ui/ThemeToggle";
+import Button from "../ui/Button";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -47,35 +49,55 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen bg-background dark:bg-background-dark flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle variant="button" />
+      </div>
+
+      <div className="max-w-md w-full space-y-8 bg-surface dark:bg-surface-dark p-8 rounded-base shadow-card border border-line dark:border-line-dark">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <div className="flex items-center justify-center mb-6">
+            <img
+              src="/logo.png"
+              alt="Inkuthazo Social Club"
+              className="h-12 w-12"
+            />
+          </div>
+          <h2 className="text-center text-3xl font-extrabold text-text-primary dark:text-text-primary-dark">
             Set new password
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-text-secondary dark:text-text-secondary-dark">
             Please enter your new password below.
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="space-y-4">
             <div className="relative">
-              <Lock className="absolute top-3 left-3 h-5 w-5 text-gray-400" />
+              <label htmlFor="password" className="block text-sm font-medium text-text-primary dark:text-text-primary-dark mb-2">
+                New Password
+              </label>
+              <Lock className="absolute top-10 left-3 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
+                id="password"
                 type="password"
                 required
-                className="appearance-none rounded-t-md relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="New password"
+                className="appearance-none block w-full px-10 py-3 border border-line dark:border-line-dark rounded-input shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark sm:text-sm"
+                placeholder="Enter new password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <div className="relative">
-              <Lock className="absolute top-3 left-3 h-5 w-5 text-gray-400" />
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-text-primary dark:text-text-primary-dark mb-2">
+                Confirm New Password
+              </label>
+              <Lock className="absolute top-10 left-3 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
+                id="confirmPassword"
                 type="password"
                 required
-                className="appearance-none rounded-b-md relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none block w-full px-10 py-3 border border-line dark:border-line-dark rounded-input shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark sm:text-sm"
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -84,13 +106,13 @@ export default function ResetPassword() {
           </div>
 
           <div>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="w-full flex justify-center"
             >
               {loading ? "Resetting..." : "Reset password"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark mode CSS variables and transitions */
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+/* Smooth theme transitions */
+* {
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
 /* Custom animations for progress indicators */
 @keyframes progress-indeterminate {
   0% {

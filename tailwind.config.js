@@ -48,14 +48,38 @@ export default {
           800: '#155e75',
           900: '#164e63'
         },
-        // Background and surface colors
-        background: '#F7FAFC',
-        surface: '#FFFFFF',
-        muted: '#6B7280',
+        // Background and surface colors with dark mode support
+        background: {
+          DEFAULT: '#F7FAFC',
+          dark: '#0F172A'
+        },
+        surface: {
+          DEFAULT: '#FFFFFF',
+          dark: '#1E293B'
+        },
+        'surface-2': {
+          DEFAULT: '#F8FAFC',
+          dark: '#334155'
+        },
+        muted: {
+          DEFAULT: '#6B7280',
+          dark: '#94A3B8'
+        },
+        'text-primary': {
+          DEFAULT: '#111827',
+          dark: '#F1F5F9'
+        },
+        'text-secondary': {
+          DEFAULT: '#6B7280',
+          dark: '#CBD5E1'
+        },
         danger: '#EF4444',
         success: '#10B981',
         warning: '#F59E0B',
-        line: '#E6E9EE',
+        line: {
+          DEFAULT: '#E6E9EE',
+          dark: '#475569'
+        },
         // Enhanced gray scale
         gray: {
           50: '#F9FAFB',

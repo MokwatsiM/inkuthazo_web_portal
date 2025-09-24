@@ -48,20 +48,20 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <Button
-          variant="outline"
+          variant="ghost"
           icon={FileSpreadsheet}
           onClick={handleExportExcel}
           disabled={isExporting}
-          size="sm"
+          size="small"
         >
           Export Excel
         </Button>
         <Button
-          variant="outline"
+          variant="ghost"
           icon={FileText}
           onClick={handleExportPDF}
           disabled={isExporting}
-          size="sm"
+          size="small"
         >
           Export PDF
         </Button>
@@ -72,13 +72,13 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({
   return (
     <div className={`relative ${className}`}>
       <Button
-        variant="outline"
+        variant="ghost"
         icon={Download}
+        size="small"
         onClick={() => setShowDropdown(!showDropdown)}
         disabled={isExporting}
         className="flex items-center gap-2"
       >
-        Export
         <ChevronDown className="w-4 h-4" />
       </Button>
 

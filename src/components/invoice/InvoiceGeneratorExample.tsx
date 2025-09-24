@@ -51,8 +51,8 @@ const InvoiceGeneratorExample: React.FC<InvoiceGeneratorExampleProps> = ({
   return (
     <div className="space-y-6">
       {/* Standard Invoice Generator */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg border border-line dark:border-line-dark p-6">
+        <h3 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mb-4">
           Standard Invoice Generator
         </h3>
         <InvoiceGenerator
@@ -64,8 +64,8 @@ const InvoiceGeneratorExample: React.FC<InvoiceGeneratorExampleProps> = ({
       </div>
 
       {/* Enhanced Invoice Generator with Progress */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg border border-line dark:border-line-dark p-6">
+        <h3 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mb-4">
           Enhanced Invoice Generator with Progress
         </h3>
         <InvoiceGeneratorWithProgress

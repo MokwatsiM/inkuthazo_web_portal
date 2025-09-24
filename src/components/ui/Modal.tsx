@@ -140,15 +140,15 @@ const Modal: React.FC<ModalProps> = ({
           tabIndex={-1}
           className={`
             relative w-full ${sizeStyles[size]} transform overflow-hidden
-            rounded-base bg-surface shadow-lg ring-1 ring-line
+            rounded-base bg-surface dark:bg-surface-dark shadow-lg ring-1 ring-line dark:ring-line-dark
             transition-all animate-slide-up
           `}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-line px-6 py-4">
+          <div className="flex items-center justify-between border-b border-line dark:border-line-dark px-6 py-4">
             <h3
               id="modal-title"
-              className="text-lg font-semibold text-gray-900 dark:text-gray-100"
+              className="text-lg font-semibold text-text-primary dark:text-text-primary-dark"
             >
               {title}
             </h3>
@@ -171,7 +171,7 @@ const Modal: React.FC<ModalProps> = ({
 
           {/* Footer */}
           {(primaryAction || secondaryAction) && (
-            <div className="flex justify-end gap-3 border-t border-line px-6 py-4">
+            <div className="flex justify-end gap-3 border-t border-line dark:border-line-dark px-6 py-4">
               {secondaryAction && (
                 <Button
                   variant="secondary"
@@ -236,7 +236,7 @@ export const ConfirmModal: React.FC<{
         onClick: onClose,
       }}
     >
-      <p className="text-gray-600 dark:text-gray-300">{message}</p>
+      <p className="text-text-secondary dark:text-text-secondary-dark">{message}</p>
     </Modal>
   );
 };

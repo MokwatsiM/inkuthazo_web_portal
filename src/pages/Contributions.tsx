@@ -150,7 +150,7 @@ const Contributions: React.FC = () => {
         }
       />
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow border border-line dark:border-line-dark">
         <Card>
           <div className="p-4 border-b">
             <CardHeader>

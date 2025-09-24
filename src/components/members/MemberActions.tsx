@@ -63,7 +63,7 @@ const MemberActions: React.FC<MemberActionsProps> = ({
         </Button>
 
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+          <div className="absolute right-0 mt-2 w-56 rounded-base shadow-lg bg-surface dark:bg-surface-dark ring-1 ring-line dark:ring-line-dark z-10">
             <div className="py-1" role="menu">
               {actions.map(({ label, icon: Icon, onClick }) => (
                 <button
@@ -72,7 +72,7 @@ const MemberActions: React.FC<MemberActionsProps> = ({
                     onClick();
                     setIsOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  className="w-full text-left px-4 py-2 text-sm text-text-primary dark:text-text-primary-dark hover:bg-surface-2 dark:hover:bg-surface-2-dark flex items-center"
                   role="menuitem"
                 >
                   <Icon className="mr-3 h-4 w-4" />

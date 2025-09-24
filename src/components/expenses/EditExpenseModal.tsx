@@ -67,18 +67,18 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Edit Expense</h2>
+      <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Edit Expense</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Title
             </label>
             <input
               type="text"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               value={formData.title}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -87,11 +87,11 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Description
             </label>
             <textarea
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               rows={3}
               value={formData.description}
               onChange={(e) =>
@@ -104,14 +104,14 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Amount (R)
             </label>
             <input
               type="number"
               step="0.01"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               value={formData.amount}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, amount: e.target.value }))
@@ -120,13 +120,13 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Date
             </label>
             <input
               type="date"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               value={formData.date}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, date: e.target.value }))
@@ -149,7 +149,7 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
             />
             <label
               htmlFor="isRecurring"
-              className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
+              className="ml-2 block text-sm text-text-primary dark:text-text-primary-dark"
             >
               This is a recurring expense
             </label>
@@ -157,11 +157,11 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
 
           {formData.isRecurring && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Day of Month
               </label>
               <select
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                 value={formData.dayOfMonth}
                 onChange={(e) =>
                   setFormData((prev) => ({

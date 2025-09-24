@@ -28,7 +28,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
   ];
 
   return (
-    <div className={`flex rounded-lg border border-gray-300 p-1 bg-gray-50 ${className}`}>
+    <div className={`flex rounded-lg border border-line dark:border-line-dark p-1 bg-surface-2 dark:bg-surface-2-dark ${className}`}>
       {views.map(({ type, icon: Icon, label }) => {
         const isActive = currentView === type;
 
@@ -40,8 +40,8 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
               flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium
               transition-all duration-200
               ${isActive
-                ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm border border-line dark:border-line-dark'
+                : 'text-text-secondary dark:text-text-secondary-dark hover:text-text-primary dark:hover:text-text-primary-dark hover:bg-surface-2 dark:hover:bg-surface-2-dark'
               }
             `}
             title={label}

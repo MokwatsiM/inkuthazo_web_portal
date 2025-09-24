@@ -64,17 +64,17 @@ const EditAssignmentModal: React.FC<EditAssignmentModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div className="flex items-center justify-between p-6 border-b border-line dark:border-line-dark">
           <div className="flex items-center">
             <Calendar className="w-6 h-6 text-primary-600 mr-3" />
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-text-primary dark:text-text-primary-dark">
               Edit Assignment
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-2 dark:hover:bg-surface-2-dark rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -82,11 +82,11 @@ const EditAssignmentModal: React.FC<EditAssignmentModalProps> = ({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Assignment Info */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">
+          <div className="p-4 bg-surface-2 dark:bg-surface-2-dark rounded-lg">
+            <h3 className="text-sm font-medium text-text-primary dark:text-text-primary-dark mb-2">
               Assignment Details
             </h3>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-text-secondary dark:text-text-secondary-dark">
               <div><strong>Month:</strong> {monthNames[assignment.month - 1]} {assignment.year}</div>
               <div><strong>Date:</strong> {new Date(assignment.assigned_month.toDate()).toLocaleDateString()}</div>
               <div><strong>Current Host:</strong> {assignment.member_name}</div>
@@ -95,13 +95,13 @@ const EditAssignmentModal: React.FC<EditAssignmentModalProps> = ({
 
           {/* Member Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark mb-2">
               Assign to Member
             </label>
             <select
               value={selectedMemberId}
               onChange={(e) => setSelectedMemberId(e.target.value)}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               required
             >
               <option value="">Select a member...</option>
@@ -115,13 +115,13 @@ const EditAssignmentModal: React.FC<EditAssignmentModalProps> = ({
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark mb-2">
               Status
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as any)}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               required
             >
               <option value="pending">Pending</option>
@@ -133,32 +133,32 @@ const EditAssignmentModal: React.FC<EditAssignmentModalProps> = ({
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark mb-2">
               Notes (optional)
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               placeholder="Add any notes about this assignment..."
             />
           </div>
 
           {/* Selected Member Preview */}
           {selectedMember && (
-            <div className="p-3 bg-primary-50 border border-primary-200 rounded-lg">
+            <div className="p-3 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg">
               <div className="flex items-center">
                 <div className="flex-shrink-0 h-8 w-8">
-                  <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-800 flex items-center justify-center">
                     <User className="h-4 w-4 text-primary-600" />
                   </div>
                 </div>
                 <div className="ml-3">
-                  <div className="text-sm font-medium text-primary-900">
+                  <div className="text-sm font-medium text-primary-900 dark:text-primary-100">
                     {selectedMember.full_name}
                   </div>
-                  <div className="text-sm text-primary-700">
+                  <div className="text-sm text-primary-700 dark:text-primary-300">
                     {selectedMember.email} • {selectedMember.phone}
                   </div>
                 </div>
@@ -167,7 +167,7 @@ const EditAssignmentModal: React.FC<EditAssignmentModalProps> = ({
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-line dark:border-line-dark">
             <Button
               type="button"
               variant="outline"

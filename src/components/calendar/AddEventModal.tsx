@@ -170,7 +170,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                 <input
                   type="text"
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                  className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                   value={formData.title}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -183,7 +183,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   Description
                 </label>
                 <textarea
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                  className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                   rows={3}
                   value={formData.description}
                   onChange={(e) =>
@@ -201,7 +201,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                  className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                   value={formData.venue}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, venue: e.target.value }))
@@ -216,7 +216,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                 </label>
                 <select
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                  className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                   value={formData.type}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -236,7 +236,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   Recurrence
                 </label>
                 <select
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                  className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                   value={formData.recurrenceType}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -285,7 +285,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   <input
                     type="date"
                     required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                    className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                     value={formData.start}
                     onChange={(e) =>
                       setFormData((prev) => ({
@@ -303,7 +303,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                     <input
                       type="time"
                       required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                      className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                       value={formData.startTime}
                       onChange={(e) =>
                         setFormData((prev) => ({
@@ -324,7 +324,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   <input
                     type="date"
                     required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                    className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                     value={formData.end}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, end: e.target.value }))
@@ -339,7 +339,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                     <input
                       type="time"
                       required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                      className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                       value={formData.endTime}
                       onChange={(e) =>
                         setFormData((prev) => ({

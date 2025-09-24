@@ -21,7 +21,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`pb-6 border-b border-line mb-8 ${className}`}>
+    <div className={`pb-6 border-b border-line dark:border-line-dark mb-8 ${className}`}>
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="mb-4" aria-label="Breadcrumb">
@@ -52,11 +52,11 @@ const PageHeader: React.FC<PageHeaderProps> = ({
       {/* Header Content */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+          <h1 className="text-3xl font-bold text-text-primary dark:text-text-primary-dark leading-tight">
             {title}
           </h1>
           {description && (
-            <p className="mt-2 text-base text-gray-600 dark:text-gray-400 max-w-3xl">
+            <p className="mt-2 text-base text-text-secondary dark:text-text-secondary-dark max-w-3xl">
               {description}
             </p>
           )}

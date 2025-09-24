@@ -70,41 +70,41 @@ const HostScheduleTable: React.FC<HostScheduleTableProps> = ({
   const sortedAssignments = [...schedule.assignments].sort((a, b) => a.month - b.month);
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900 flex items-center">
+    <div className="bg-surface dark:bg-surface-dark rounded-lg shadow overflow-hidden">
+      <div className="px-6 py-4 border-b border-line dark:border-line-dark">
+        <h3 className="text-lg font-medium text-text-primary dark:text-text-primary-dark flex items-center">
           <Calendar className="w-5 h-5 mr-2" />
           {schedule.year} Meeting Host Schedule
         </h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
           Second Sunday of each month • {canEdit ? "Drag and drop to reassign" : "Read-only view"}
         </p>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-line dark:divide-line-dark">
+          <thead className="bg-surface-2 dark:bg-surface-2-dark">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary dark:text-text-secondary-dark uppercase tracking-wider">
                 Month
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary dark:text-text-secondary-dark uppercase tracking-wider">
                 Meeting Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary dark:text-text-secondary-dark uppercase tracking-wider">
                 Host
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary dark:text-text-secondary-dark uppercase tracking-wider">
                 Status
               </th>
               {canEdit && (
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary dark:text-text-secondary-dark uppercase tracking-wider">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-surface dark:bg-surface-dark divide-y divide-line dark:divide-line-dark">
             {sortedAssignments.map((assignment) => (
               <tr
                 key={assignment.id}
@@ -113,37 +113,37 @@ const HostScheduleTable: React.FC<HostScheduleTableProps> = ({
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, assignment)}
                 onDragEnd={handleDragEnd}
-                className={`hover:bg-gray-50 transition-colors ${
+                className={`hover:bg-surface-2 dark:hover:bg-surface-2-dark transition-colors ${
                   canEdit ? "cursor-move" : ""
                 } ${
                   draggedAssignment?.id === assignment.id ? "opacity-50" : ""
                 }`}
               >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="font-medium text-gray-900">
+                  <div className="font-medium text-text-primary dark:text-text-primary-dark">
                     {monthNames[assignment.month - 1]}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-text-secondary dark:text-text-secondary-dark">
                     {assignment.year}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
+                  <div className="text-sm text-text-primary dark:text-text-primary-dark">
                     {formatDate(assignment.assigned_month)}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-8 w-8">
-                      <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-800 flex items-center justify-center">
                         <User className="h-4 w-4 text-primary-600" />
                       </div>
                     </div>
                     <div className="ml-3">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-text-primary dark:text-text-primary-dark">
                         {assignment.member_name}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-text-secondary dark:text-text-secondary-dark">
                         ID: {assignment.member_id.slice(0, 8)}
                       </div>
                     </div>
@@ -155,7 +155,7 @@ const HostScheduleTable: React.FC<HostScheduleTableProps> = ({
                   </span>
                 </td>
                 {canEdit && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary dark:text-text-secondary-dark">
                     <button
                       onClick={() => setEditingAssignment(assignment)}
                       className="text-primary-600 hover:text-primary-900 mr-3"
@@ -163,7 +163,7 @@ const HostScheduleTable: React.FC<HostScheduleTableProps> = ({
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
-                    <ArrowUpDown className="h-4 w-4 text-gray-400" title="Drag to reorder" />
+                    <ArrowUpDown className="h-4 w-4 text-text-tertiary dark:text-text-tertiary-dark" title="Drag to reorder" />
                   </td>
                 )}
               </tr>
@@ -173,7 +173,7 @@ const HostScheduleTable: React.FC<HostScheduleTableProps> = ({
       </div>
 
       {canEdit && sortedAssignments.length > 0 && (
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        <div className="px-6 py-4 bg-surface-2 dark:bg-surface-2-dark border-t border-line dark:border-line-dark">
           <p className="text-sm text-gray-600">
             💡 <strong>Tip:</strong> Drag and drop rows to swap host assignments between months.
             Click the edit icon to change assignment details or status.

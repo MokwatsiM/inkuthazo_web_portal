@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Button from "../ui/Button";
 import { ConfirmModal } from "../ui/Modal";
-import type { Member } from "../../types";
+import type { Member, MemberStatus } from "../../types";
 
 interface BatchActionsProps {
   selectedMembers: Member[];
@@ -19,7 +19,7 @@ interface BatchActionsProps {
   onBulkDelete?: (memberIds: string[]) => Promise<void>;
   onBulkEmail?: (memberIds: string[]) => void;
   onBulkExport?: (memberIds: string[]) => void;
-  onBulkStatusChange?: (memberIds: string[], status: string) => Promise<void>;
+  onBulkStatusChange?: (memberIds: string[], status: MemberStatus) => Promise<void>;
 }
 
 const BatchActions: React.FC<BatchActionsProps> = ({

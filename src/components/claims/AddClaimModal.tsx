@@ -109,8 +109,8 @@ const AddClaimModal: React.FC<AddClaimModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Submit New Claim</h2>
+      <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Submit New Claim</h2>
 
         {error && (
           <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
@@ -120,12 +120,12 @@ const AddClaimModal: React.FC<AddClaimModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Claimant
             </label>
             <select
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               value={formData.claimantId}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, claimantId: e.target.value }))
@@ -142,12 +142,12 @@ const AddClaimModal: React.FC<AddClaimModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Claim Type
             </label>
             <select
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               value={formData.type}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -162,13 +162,13 @@ const AddClaimModal: React.FC<AddClaimModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Amount (R)
             </label>
             <input
               type="number"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               value={formData.amount}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, amount: e.target.value }))
@@ -177,7 +177,7 @@ const AddClaimModal: React.FC<AddClaimModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Supporting Documents
             </label>
             <input
@@ -199,7 +199,7 @@ const AddClaimModal: React.FC<AddClaimModalProps> = ({
               </Button>
             </div>
             {selectedFiles.length > 0 && (
-              <ul className="mt-2 text-sm text-gray-500">
+              <ul className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
                 {selectedFiles.map((file, index) => (
                   <li key={index}>{file.name}</li>
                 ))}

@@ -40,55 +40,55 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onSubm
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Add New Member</h2>
+      <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Add New Member</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Full Name</label>
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">Full Name</label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                 value={formData.full_name}
                 onChange={e => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">Email</label>
               <input
                 type="email"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                 value={formData.email}
                 onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">Phone</label>
               <input
                 type="tel"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                 value={formData.phone}
                 onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Join Date</label>
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">Join Date</label>
               <input
                 type="date"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                 value={formData.join_date}
                 onChange={e => setFormData(prev => ({ ...prev, join_date: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">Status</label>
               <select
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                 value={formData.status}
                 onChange={e => setFormData(prev => ({ ...prev, status: e.target.value as Member['status'] }))}
               >
@@ -97,10 +97,10 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onSubm
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Role</label>
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">Role</label>
               <select
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                 value={formData.role}
                 onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as Member['role'] }))}
               >

@@ -15,7 +15,7 @@ import BatchActions from "../components/members/BatchActions";
 import Avatar from "../components/avatar/Avatar";
 import { useMembers } from "../hooks/useMembers";
 import { formatDate } from "../utils/dateUtils";
-import type { Member } from "../types";
+import type { Member, MemberStatus } from "../types";
 import { StatusPill } from "../components/ui/Badge";
 import PageHeader from "../components/ui/PageHeader";
 import InviteMemberModal from "../components/members/InviteMemberModal";
@@ -179,7 +179,7 @@ const Members: React.FC = () => {
     }
   };
 
-  const handleBulkStatusChange = async (memberIds: string[], status: string) => {
+  const handleBulkStatusChange = async (memberIds: string[], status: MemberStatus) => {
     for (const id of memberIds) {
       await updateMember(id, { status });
     }
@@ -235,8 +235,8 @@ const Members: React.FC = () => {
       />
 
       {/* Search and Content */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b border-gray-200">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow">
+        <div className="p-4 border-b border-line dark:border-line-dark">
           <div className="flex items-center justify-between">
             <SearchInput
               placeholder="Search members..."
@@ -252,9 +252,9 @@ const Members: React.FC = () => {
                   type="checkbox"
                   checked={selectedMembers.length === filteredMembers.length}
                   onChange={(e) => handleSelectAll(e.target.checked)}
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-4 h-4 text-primary-600 border-line dark:border-line-dark rounded focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-600">Select all</span>
+                <span className="text-sm text-text-secondary dark:text-text-secondary-dark">Select all</span>
               </div>
             )}
           </div>
@@ -275,11 +275,11 @@ const Members: React.FC = () => {
           </div>
         ) : filteredMembers.length === 0 ? (
           <div className="text-center py-12">
-            <Mail className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <Mail className="mx-auto h-12 w-12 text-text-tertiary dark:text-text-tertiary-dark mb-4" />
+            <h3 className="text-lg font-medium text-text-primary dark:text-text-primary-dark mb-2">
               No members found
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-text-secondary dark:text-text-secondary-dark mb-6">
               {searchTerm || filters.status.length > 0 || filters.quickFilter !== 'all'
                 ? "Try adjusting your search or filters"
                 : "Get started by inviting your first member"
@@ -319,31 +319,31 @@ const Members: React.FC = () => {
             ]}
           >
             {filteredMembers.map((member) => (
-              <tr key={member.id} className="hover:bg-gray-50">
+              <tr key={member.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
                       checked={selectedMembers.some(m => m.id === member.id)}
                       onChange={(e) => handleMemberSelect(member, e.target.checked)}
-                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      className="w-4 h-4 text-primary-600 border-line dark:border-line-dark rounded focus:ring-primary-500"
                     />
                     <Avatar member={member} size="sm" />
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
-                    <div className="font-medium text-gray-900">{member.full_name}</div>
+                    <div className="font-medium text-text-primary dark:text-text-primary-dark">{member.full_name}</div>
                     <div className="text-sm text-gray-500">ID: {member.id.slice(0, 8)}</div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary dark:text-text-primary-dark">
                   {member.email}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary dark:text-text-primary-dark">
                   {member.phone}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary dark:text-text-primary-dark">
                   {formatDate(member.join_date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

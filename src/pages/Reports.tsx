@@ -86,17 +86,17 @@ const Reports: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Financial Reports</h2>
+        <h2 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark">Financial Reports</h2>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-surface-2 dark:bg-surface-2-dark rounded-lg shadow p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-secondary dark:text-text-secondary-dark mb-2">
               Report Type
             </label>
             <select
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               value={reportType}
               onChange={(e) => setReportType(e.target.value as ReportType)}
             >
@@ -109,11 +109,11 @@ const Reports: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-secondary dark:text-text-secondary-dark mb-2">
               Period
             </label>
             <select
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
               value={period}
               onChange={(e) => setPeriod(e.target.value as ReportPeriod)}
               disabled={reportType === "dependants"} // Disable period selection for dependants report
@@ -139,11 +139,11 @@ const Reports: React.FC = () => {
           {/* Progress Indicator */}
           {progress && (
             <div className="w-full max-w-md">
-              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+              <div className="flex justify-between text-sm text-text-secondary dark:text-text-secondary-dark mb-1">
                 <span>{progress.step}</span>
                 <span>{progress.percentage}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+              <div className="w-full bg-surface-2 dark:bg-surface-2-dark rounded-full h-2">
                 <div
                   className="bg-primary-600 h-2 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progress.percentage}%` }}

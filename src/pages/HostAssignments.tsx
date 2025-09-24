@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, Settings, RefreshCw, CheckCircle, AlertTriangle } from "lucide-react";
+import { Calendar, Settings, RefreshCw, CheckCircle, AlertTriangle, Trash2 } from "lucide-react";
 import Button from "../components/ui/Button";
 import PageHeader from "../components/ui/PageHeader";
 import { useHostAssignments } from "../hooks/useHostAssignments";
@@ -66,10 +66,10 @@ const HostAssignments: React.FC = () => {
     return (
       <div className="text-center py-12">
         <AlertTriangle className="mx-auto h-12 w-12 text-red-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <h3 className="text-lg font-medium text-text-primary dark:text-text-primary-dark mb-2">
           Access Denied
         </h3>
-        <p className="text-gray-500">
+        <p className="text-text-secondary dark:text-text-secondary-dark">
           You don't have permission to manage host assignments.
         </p>
       </div>
@@ -86,14 +86,14 @@ const HostAssignments: React.FC = () => {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring-primary-500 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
             >
               {yearOptions.map(year => (
                 <option key={year} value={year}>{year}</option>
               ))}
             </select>
             <Button
-              variant="outline"
+              variant="ghost"
               icon={RefreshCw}
               onClick={() => refetchSchedule(selectedYear)}
               disabled={loading}
@@ -115,13 +115,13 @@ const HostAssignments: React.FC = () => {
 
       {/* Schedule Status */}
       {schedule && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-text-primary dark:text-text-primary-dark mb-2">
                 {selectedYear} Host Schedule
               </h3>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-4 text-sm text-text-secondary dark:text-text-secondary-dark">
                 <span>Generated: {formatDate(schedule.generated_at)}</span>
                 <span>Last Modified: {formatDate(schedule.last_modified)}</span>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -148,15 +148,18 @@ const HostAssignments: React.FC = () => {
               {!schedule.is_finalized && (
                 <>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={handleDeleteSchedule}
+                    icon={Trash2}
+                    size="small"
                     className="text-red-600 border-red-300 hover:bg-red-50"
                   >
-                    Delete Schedule
+                  Delete Schedule
                   </Button>
                   <Button
                     onClick={handleFinalizeSchedule}
                     icon={CheckCircle}
+                    size="small"
                   >
                     Finalize Schedule
                   </Button>
@@ -169,15 +172,15 @@ const HostAssignments: React.FC = () => {
 
       {/* Schedule Content */}
       {loading ? (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-6">
           <LoadingSkeleton lines={10} className="space-y-4" />
         </div>
       ) : error ? (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-6">
           <div className="text-center">
             <AlertTriangle className="mx-auto h-8 w-8 text-red-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Error</h3>
-            <p className="text-red-600">{error}</p>
+            <h3 className="text-lg font-medium text-text-primary dark:text-text-primary-dark mb-2">Error</h3>
+            <p className="text-red-600 dark:text-red-400">{error}</p>
           </div>
         </div>
       ) : schedule ? (
@@ -188,13 +191,13 @@ const HostAssignments: React.FC = () => {
           canEdit={!schedule.is_finalized}
         />
       ) : (
-        <div className="bg-white rounded-lg shadow p-12">
+        <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-12">
           <div className="text-center">
-            <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <Calendar className="mx-auto h-12 w-12 text-text-tertiary dark:text-text-tertiary-dark mb-4" />
+            <h3 className="text-lg font-medium text-text-primary dark:text-text-primary-dark mb-2">
               No Schedule Found
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-text-secondary dark:text-text-secondary-dark mb-6">
               No host schedule exists for {selectedYear}. Generate one to get started.
             </p>
             <Button

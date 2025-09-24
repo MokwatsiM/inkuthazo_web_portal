@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { NotificationProvider } from "./context/NotificationContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import NotificationContainer from "./components/notifications/NotificationContainer";
 import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
 import ConnectionStatus from "./components/ui/ConnectionStatus";
@@ -211,19 +212,21 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <NotificationProvider>
-      <AuthProvider>
-        <AnalyticsProvider>
-          <BrowserRouter>
-            <SessionProvider>
-              <NotificationContainer />
-              <ConnectionStatus />
-              <AppRoutes />
-            </SessionProvider>
-          </BrowserRouter>
-        </AnalyticsProvider>
-      </AuthProvider>
-    </NotificationProvider>
+    <ThemeProvider>
+      <NotificationProvider>
+        <AuthProvider>
+          <AnalyticsProvider>
+            <BrowserRouter>
+              <SessionProvider>
+                <NotificationContainer />
+                <ConnectionStatus />
+                <AppRoutes />
+              </SessionProvider>
+            </BrowserRouter>
+          </AnalyticsProvider>
+        </AuthProvider>
+      </NotificationProvider>
+    </ThemeProvider>
   );
 };
 

@@ -74,17 +74,17 @@ const MemberFilters: React.FC<MemberFiltersProps> = ({
     filters.joinDateRange.end;
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-surface dark:bg-surface-dark border-b border-line dark:border-line-dark">
       {/* Quick filters */}
       <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-secondary-dark">
               <Filter className="w-4 h-4" />
               <span>Filters</span>
             </div>
             {filteredCount !== totalCount && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-text-secondary dark:text-text-secondary-dark">
                 Showing {filteredCount} of {totalCount} members
               </span>
             )}
@@ -122,8 +122,8 @@ const MemberFilters: React.FC<MemberFiltersProps> = ({
               className={`
                 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
                 ${filters.quickFilter === filter.value
-                  ? 'bg-primary-100 text-primary-800 border border-primary-200'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent'
+                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200 border border-primary-200 dark:border-primary-700'
+                  : 'bg-surface-2 dark:bg-surface-2-dark text-text-primary dark:text-text-primary-dark hover:bg-surface-3 dark:hover:bg-surface-3-dark border border-transparent'
                 }
               `}
             >
@@ -138,11 +138,11 @@ const MemberFilters: React.FC<MemberFiltersProps> = ({
 
       {/* Expanded filters */}
       {isExpanded && (
-        <div className="px-4 pb-4 border-t border-gray-100">
+        <div className="px-4 pb-4 border-t border-line dark:border-line-dark">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
             {/* Status filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark mb-2">
                 Status
               </label>
               <div className="space-y-2">
@@ -152,11 +152,11 @@ const MemberFilters: React.FC<MemberFiltersProps> = ({
                       type="checkbox"
                       checked={filters.status.includes(option.value)}
                       onChange={() => handleStatusToggle(option.value)}
-                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      className="w-4 h-4 text-primary-600 border-line dark:border-line-dark rounded focus:ring-primary-500"
                     />
                     <StatusPill status={option.value as any} />
                     {option.count > 0 && (
-                      <span className="text-xs text-gray-500">({option.count})</span>
+                      <span className="text-xs text-text-secondary dark:text-text-secondary-dark">({option.count})</span>
                     )}
                   </label>
                 ))}
@@ -165,7 +165,7 @@ const MemberFilters: React.FC<MemberFiltersProps> = ({
 
             {/* Date range filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark mb-2">
                 Join Date Range
               </label>
               <div className="space-y-2">
@@ -176,7 +176,7 @@ const MemberFilters: React.FC<MemberFiltersProps> = ({
                     ...filters,
                     joinDateRange: { ...filters.joinDateRange, start: e.target.value }
                   })}
-                  className="block w-full rounded-md border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500"
+                  className="block w-full rounded-input border border-line dark:border-line-dark text-sm focus:border-primary-500 focus:ring-primary-500 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                   placeholder="Start date"
                 />
                 <input
@@ -186,7 +186,7 @@ const MemberFilters: React.FC<MemberFiltersProps> = ({
                     ...filters,
                     joinDateRange: { ...filters.joinDateRange, end: e.target.value }
                   })}
-                  className="block w-full rounded-md border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500"
+                  className="block w-full rounded-input border border-line dark:border-line-dark text-sm focus:border-primary-500 focus:ring-primary-500 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                   placeholder="End date"
                 />
               </div>
@@ -194,7 +194,7 @@ const MemberFilters: React.FC<MemberFiltersProps> = ({
 
             {/* Additional filters space */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark mb-2">
                 Actions
               </label>
               <div className="space-y-2">

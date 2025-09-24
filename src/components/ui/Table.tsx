@@ -37,10 +37,10 @@ const Table: React.FC<TableProps> = ({
     <div className={`overflow-hidden ${className}`}>
       <div className="overflow-x-auto">
         <div className="inline-block min-w-full align-middle">
-          <div className="overflow-hidden shadow-card rounded-base border border-line">
+          <div className="overflow-hidden shadow-card rounded-base border border-line dark:border-line-dark">
             <table className="min-w-full">
-              <thead className={`bg-gray-50 dark:bg-gray-800 ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
-                <tr className="border-b border-line">
+              <thead className={`bg-surface-2 dark:bg-surface-2-dark ${stickyHeader ? 'sticky top-0 z-10' : ''}`}>
+                <tr className="border-b border-line dark:border-line-dark">
                   {tableHeaders.map((header, index) => {
                     const isSortable = typeof header === 'object' ? header.sortable : false;
                     const headerKey = typeof header === 'object' ? header.key : header;
@@ -60,7 +60,7 @@ const Table: React.FC<TableProps> = ({
                         key={index}
                         scope="col"
                         className={`
-                          px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100
+                          px-6 py-4 text-sm font-semibold text-text-primary dark:text-text-primary-dark
                           ${alignClass}
                           ${isSortable ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none' : ''}
                           transition-colors duration-150
@@ -94,7 +94,7 @@ const Table: React.FC<TableProps> = ({
                   })}
                 </tr>
               </thead>
-              <tbody className="bg-surface divide-y divide-line">
+              <tbody className="bg-surface dark:bg-surface-dark divide-y divide-line dark:divide-line-dark">
                 {children}
               </tbody>
             </table>
@@ -116,7 +116,7 @@ export const TableRow: React.FC<{
     <tr
       className={`
         transition-colors duration-150
-        ${interactive || onClick ? 'hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer' : ''}
+        ${interactive || onClick ? 'hover:bg-surface-2 dark:hover:bg-surface-2-dark cursor-pointer' : ''}
         ${className}
       `.replace(/\s+/g, ' ').trim()}
       onClick={onClick}
@@ -139,7 +139,7 @@ export const TableCell: React.FC<{
   }[align];
 
   return (
-    <td className={`px-6 py-4 text-sm text-gray-900 dark:text-gray-100 ${alignClass} ${className}`}>
+    <td className={`px-6 py-4 text-sm text-text-primary dark:text-text-primary-dark ${alignClass} ${className}`}>
       {children}
     </td>
   );

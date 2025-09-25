@@ -73,17 +73,17 @@ const EditContributionModal: React.FC<EditContributionModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Edit Contribution</h2>
+      <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Edit Contribution</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Member
               </label>
               <select
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
                 value={formData.member_id}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -101,14 +101,14 @@ const EditContributionModal: React.FC<EditContributionModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium  text-text-primary dark:text-text-primary-dark">
                 Amount (R)
               </label>
               <input
                 type="number"
                 step="0.01"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
                 value={formData.amount}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, amount: e.target.value }))
@@ -116,12 +116,12 @@ const EditContributionModal: React.FC<EditContributionModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Type
               </label>
               <select
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
                 value={formData.type}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -136,13 +136,13 @@ const EditContributionModal: React.FC<EditContributionModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Date
               </label>
               <input
                 type="date"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
                 value={formData.date}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, date: e.target.value }))
@@ -150,7 +150,7 @@ const EditContributionModal: React.FC<EditContributionModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Proof of Payment
               </label>
               <input
@@ -171,18 +171,18 @@ const EditContributionModal: React.FC<EditContributionModalProps> = ({
                 </Button>
               </div>
               {selectedFile && (
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
                   Selected file: {selectedFile.name}
                 </p>
               )}
               {contribution.proof_of_payment && !selectedFile && (
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
                   Current file:{" "}
                   <a
                     href={contribution.proof_of_payment}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-600 hover:text-indigo-900"
+                    className="text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300"
                   >
                     View
                   </a>

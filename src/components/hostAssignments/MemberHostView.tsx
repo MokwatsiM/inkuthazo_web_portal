@@ -114,7 +114,7 @@ const MemberHostView: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Calendar className="w-6 h-6 text-primary-600 mr-3" />
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-text-text-primary-900 dark:text-text-primary-dar">
               My Hosting Schedule
             </h2>
           </div>
@@ -122,20 +122,20 @@ const MemberHostView: React.FC = () => {
             {schedule && (
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   icon={FileSpreadsheet}
                   onClick={handleExportExcel}
                   disabled={isExporting}
-                  size="sm"
+                  size="small"
                 >
                   Excel
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   icon={FileText}
                   onClick={handleExportPDF}
                   disabled={isExporting}
-                  size="sm"
+                  size="small"
                 >
                   PDF
                 </Button>
@@ -144,7 +144,8 @@ const MemberHostView: React.FC = () => {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              className="block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary
+          +  dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
             >
               {yearOptions.map(year => (
                 <option key={year} value={year}>{year}</option>
@@ -167,13 +168,13 @@ const MemberHostView: React.FC = () => {
 
       {/* Assignments */}
       {sortedAssignments.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12">
+        <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-12">
           <div className="text-center">
-            <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <Calendar className="mx-auto h-12 w-12 text-text-secondary dark:text-text-secondary-dark mb-4" />
+            <h3 className="text-lg font-medium text-text-primary dark:text-text-primary-dark mb-2">
               No Hosting Assignments
             </h3>
-            <p className="text-gray-500">
+            <p className="text-text-secondary dark:text-text-secondary-dark">
               You don't have any hosting assignments for {selectedYear}.
             </p>
           </div>
@@ -187,8 +188,8 @@ const MemberHostView: React.FC = () => {
             return (
               <div
                 key={assignment.id}
-                className={`bg-white rounded-lg shadow border-l-4 p-6 ${
-                  upcoming ? "border-l-orange-400 bg-orange-50" : "border-l-primary-400"
+                className={`bg-surface dark:bg-surface-dark rounded-lg shadow border-l-4 p-6 ${
+                  upcoming ? "border-l-orange-400 bg-orange-50 dark:bg-orange-900/20" : "border-l-primary-400"
                 }`}
               >
                 <div className="flex items-center justify-between mb-4">
@@ -199,10 +200,10 @@ const MemberHostView: React.FC = () => {
                       </div>
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-lg font-medium text-gray-900">
+                      <h3 className="text-lg font-medium text-text-primary dark:text-text-primary-dark">
                         {monthNames[assignment.month - 1]}
                       </h3>
-                      <p className="text-sm text-gray-500">{assignment.year}</p>
+                      <p className="text-sm text-text-secondary dark:text-text-secondary-dark">{assignment.year}</p>
                     </div>
                   </div>
                   {upcoming && (
@@ -215,12 +216,12 @@ const MemberHostView: React.FC = () => {
 
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Meeting Date</p>
-                    <p className="text-sm text-gray-900">{formatDate(assignment.assigned_month)}</p>
+                    <p className="text-sm font-medium text-text-primary-700 dark:text-text-primary-700-dark">Meeting Date</p>
+                    <p className="text-sm text-text-gray-900 dark:text-text-primary-900-dark">{formatDate(assignment.assigned_month)}</p>
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Status</p>
+                    <p className="text-sm font-medium text-text-text-primary-700 dark:text-text-primary-dark">Status</p>
                     <span className={`inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-full border ${getStatusColor(assignment.status)}`}>
                       <span className="mr-1">{getStatusIcon(assignment.status)}</span>
                       {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
@@ -253,7 +254,7 @@ const MemberHostView: React.FC = () => {
 
       {/* Legend */}
       <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">Status Legend</h3>
+        <h3 className="text-sm font-medium text-text-gray-900 dark:text-text-primary-900-dark mb-3">Status Legend</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="flex items-center">
             <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 mr-2">

@@ -99,7 +99,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
               {member.full_name}
             </h3>
             <p className="text-sm text-text-secondary dark:text-text-secondary-dark truncate">
-              Member since {formatDate(member.join_date, 'MMM yyyy')}
+              Member since {formatDate(member.join_date)}
             </p>
           </div>
         </div>

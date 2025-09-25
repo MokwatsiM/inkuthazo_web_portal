@@ -136,7 +136,7 @@ const Disciplinary: React.FC = () => {
             />
             {isDCMember && (
               <select
-                className="block w-full md:w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                className="block w-full md:w-64 rounded-md border-gray-300 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
                 value={selectedMemberId}
                 onChange={(e) => setSelectedMemberId(e.target.value)}
               >

@@ -28,9 +28,9 @@ const DeletePayoutModal: React.FC<DeletePayoutModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Delete Payout</h2>
-        <p className="mb-4">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Delete Payout</h2>
+        <p className="mb-4 text-text-secondary dark:text-text-secondary-dark">
           Are you sure you want to delete this payout of R{payout.amount.toFixed(2)} for {payout.members?.full_name}? 
           This action cannot be undone.
         </p>

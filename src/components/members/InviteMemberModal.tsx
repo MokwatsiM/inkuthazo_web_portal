@@ -46,8 +46,8 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Invite New Member</h2>
+      <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Invite New Member</h2>
 
         {error && (
           <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
@@ -57,13 +57,13 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Full Name
             </label>
             <input
               type="text"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={formData.full_name}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, full_name: e.target.value }))
@@ -72,13 +72,13 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Email
             </label>
             <input
               type="email"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={formData.email}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, email: e.target.value }))
@@ -87,13 +87,13 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Phone
             </label>
             <input
               type="tel"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={formData.phone}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, phone: e.target.value }))

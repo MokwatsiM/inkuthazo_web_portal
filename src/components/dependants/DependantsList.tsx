@@ -18,7 +18,7 @@ const DependantsList: React.FC<DependantsListProps> = ({
       {dependants.map((dependant) => (
         <div
           key={dependant.id}
-          className="bg-white p-4 rounded-lg shadow border border-gray-200"
+          className="bg-surface dark:bg-surface-dark p-4 rounded-lg shadow border border-line dark:border-line-dark"
         >
           <div className="flex justify-between items-start">
             <div>

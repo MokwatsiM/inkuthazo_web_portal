@@ -38,37 +38,37 @@ const ReviewClaimModal: React.FC<ReviewClaimModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Review Claim</h2>
+      <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Review Claim</h2>
 
         <div className="mb-6 space-y-4">
           <div>
-            <p className="text-sm text-gray-500">Member</p>
-            <p className="font-medium">{claim.members?.full_name}</p>
+            <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Member</p>
+            <p className="font-medium text-text-primary dark:text-text-primary-dark">{claim.members?.full_name}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Claimant</p>
-            <p className="font-medium">
+            <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Claimant</p>
+            <p className="font-medium text-text-primary dark:text-text-primary-dark">
               {claim.claimant.full_name}
               {claim.claimant.relationship &&
                 ` (${claim.claimant.relationship})`}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Type</p>
+            <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Type</p>
             <p className="font-medium capitalize">{claim.type}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Amount</p>
-            <p className="font-medium">R {claim.amount.toFixed(2)}</p>
+            <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Amount</p>
+            <p className="font-medium text-text-primary dark:text-text-primary-dark">R {claim.amount.toFixed(2)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Date</p>
-            <p className="font-medium">{formatDate(claim.date)}</p>
+            <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Date</p>
+            <p className="font-medium text-text-primary dark:text-text-primary-dark">{formatDate(claim.date)}</p>
           </div>
           {claim.documents_url && claim.documents_url.length > 0 && (
             <div>
-              <p className="text-sm text-gray-500">Supporting Documents</p>
+              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Supporting Documents</p>
               <div className="space-y-1">
                 {claim.documents_url.map((url, index) => (
                   <a
@@ -76,7 +76,7 @@ const ReviewClaimModal: React.FC<ReviewClaimModalProps> = ({
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-600 hover:text-indigo-900 flex items-center"
+                    className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 flex items-center"
                   >
                     Document {index + 1}{" "}
                     <ExternalLink className="ml-1 w-4 h-4" />
@@ -89,12 +89,12 @@ const ReviewClaimModal: React.FC<ReviewClaimModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Status
             </label>
             <select
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={status}
               onChange={(e) => setStatus(e.target.value as ClaimStatus)}
             >
@@ -105,11 +105,11 @@ const ReviewClaimModal: React.FC<ReviewClaimModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Review Notes
             </label>
             <textarea
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

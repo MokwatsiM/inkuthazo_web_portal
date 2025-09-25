@@ -79,7 +79,7 @@ const Payouts: React.FC = () => {
         }
       />
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow">
         <div className="p-4 border-b">
           <SearchInput
             placeholder="Search payouts..."

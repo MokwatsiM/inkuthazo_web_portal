@@ -103,14 +103,14 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Amount (R)
               </label>
               <input
                 type="number"
                 step="0.01"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
                 value={formData.amount}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, amount: e.target.value }))
@@ -118,12 +118,12 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Type
               </label>
               <select
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
                 value={formData.type}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -138,13 +138,13 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Date
               </label>
               <input
                 type="date"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
                 value={formData.date}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, date: e.target.value }))
@@ -152,7 +152,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Proof of Payment
               </label>
               <input
@@ -174,7 +174,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
                 </Button>
               </div>
               {selectedFile && (
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
                   Selected file: {selectedFile.name}
                 </p>
               )}

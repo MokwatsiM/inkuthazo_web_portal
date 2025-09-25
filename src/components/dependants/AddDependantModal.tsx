@@ -33,9 +33,9 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
   if (currentDependantsCount >= 3) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4">Maximum Dependants Reached</h2>
-          <p className="text-gray-600 mb-4">
+        <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Maximum Dependants Reached</h2>
+          <p className="text-text-secondary dark:text-text-secondary-dark mb-4">
             You have reached the maximum limit of 3 dependants.
           </p>
           <div className="flex justify-end">
@@ -91,8 +91,8 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Add New Dependant</h2>
+      <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Add New Dependant</h2>
 
         {error && (
           <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
@@ -102,13 +102,13 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Full Name
             </label>
             <input
               type="text"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={formData.full_name}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, full_name: e.target.value }))
@@ -117,13 +117,13 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Date of Birth
             </label>
             <input
               type="date"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={formData.date_of_birth}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -135,12 +135,12 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Relationship
             </label>
             <select
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={formData.relationship}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -163,13 +163,13 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
           </div>
           {formData.relationship === "other" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Relationship Description
               </label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
                 value={formData.relationship_description}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -182,13 +182,13 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               ID Number
             </label>
             <input
               type="text"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={formData.id_number}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, id_number: e.target.value }))
@@ -197,7 +197,7 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               ID Document
             </label>
             <input
@@ -218,7 +218,7 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
               </Button>
             </div>
             {selectedFile && (
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
                 Selected file: {selectedFile.name}
               </p>
             )}

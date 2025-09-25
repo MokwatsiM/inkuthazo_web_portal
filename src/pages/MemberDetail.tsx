@@ -167,7 +167,7 @@ const MemberDetail: React.FC = () => {
       </div>
       <Card>
         <CardBody>
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-6">
             <MemberProfile
               member={member}
               onAvatarUpload={handleAvatarUpload}

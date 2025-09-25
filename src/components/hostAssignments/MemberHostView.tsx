@@ -89,7 +89,7 @@ const MemberHostView: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-6">
         <LoadingSkeleton lines={5} className="space-y-4" />
       </div>
     );
@@ -97,7 +97,7 @@ const MemberHostView: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-6">
         <div className="text-center">
           <Calendar className="mx-auto h-8 w-8 text-red-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Error</h3>
@@ -110,7 +110,7 @@ const MemberHostView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Calendar className="w-6 h-6 text-primary-600 mr-3" />
@@ -252,7 +252,7 @@ const MemberHostView: React.FC = () => {
       )}
 
       {/* Legend */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow p-6">
         <h3 className="text-sm font-medium text-gray-900 mb-3">Status Legend</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="flex items-center">

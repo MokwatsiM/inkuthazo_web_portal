@@ -91,12 +91,12 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({
           />
 
           {/* Dropdown Menu */}
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-20">
+          <div className="absolute right-0 mt-2 w-48 bg-surface dark:bg-surface-dark rounded-md shadow-lg border border-line dark:border-line-dark z-20">
             <div className="py-1">
               <button
                 onClick={handleExportExcel}
                 disabled={isExporting}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center w-full px-4 py-2 text-sm text-text-primary dark:text-text-primary-dark hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FileSpreadsheet className="w-4 h-4 mr-3 text-green-600" />
                 <div className="text-left">
@@ -108,7 +108,7 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({
               <button
                 onClick={handleExportPDF}
                 disabled={isExporting}
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center w-full px-4 py-2 text-sm text-text-primary dark:text-text-primary-dark hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FileText className="w-4 h-4 mr-3 text-red-600" />
                 <div className="text-left">

@@ -63,18 +63,18 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Add Disciplinary Record</h2>
+      <div className="bg-surface dark:bg-surface-dark rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Add Disciplinary Record</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!defaultMemberId && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Member
               </label>
               <select
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
                 value={formData.member_id}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -94,12 +94,12 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Infringement Type
             </label>
             <select
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={formData.infringement_type}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -120,12 +120,12 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Description
             </label>
             <textarea
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               rows={3}
               value={formData.description}
               onChange={(e) =>
@@ -139,17 +139,17 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Penalty Amount (Optional)
             </label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">R</span>
+                <span className="text-text-secondary dark:text-text-secondary-dark sm:text-sm">R</span>
               </div>
               <input
                 type="number"
                 step="0.01"
-                className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+                className="pl-7 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
                 value={formData.penalty_amount}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -163,13 +163,13 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
               Date of Infringement
             </label>
             <input
               type="date"
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={formData.date}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, date: e.target.value }))

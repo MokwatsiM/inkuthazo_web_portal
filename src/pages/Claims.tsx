@@ -50,11 +50,11 @@ const Claims: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Claims Management</h2>
+        <h2 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark">Claims Management</h2>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b">
+      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow">
+        <div className="p-4 border-b border-line dark:border-line-dark">
           <div className="flex flex-col md:flex-row gap-4">
             <SearchInput
               placeholder="Search by member or claimant name..."
@@ -62,7 +62,7 @@ const Claims: React.FC = () => {
               onChange={setSearchTerm}
             />
             <select
-              className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200"
+              className="block w-48 rounded-input border border-line dark:border-line-dark bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200"
               value={statusFilter}
               onChange={(e) =>
                 setStatusFilter(e.target.value as Claim["status"] | "all")
@@ -93,7 +93,7 @@ const Claims: React.FC = () => {
           >
             {filteredClaims.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={8} className="px-6 py-4 text-center text-text-secondary dark:text-text-secondary-dark">
                   No claims found
                 </td>
               </tr>
@@ -109,7 +109,7 @@ const Claims: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {claim.claimant.full_name}
                     {claim.claimant.relationship && (
-                      <span className="text-gray-500 text-sm">
+                      <span className="text-text-secondary dark:text-text-secondary-dark text-sm">
                         {" "}
                         ({claim.claimant.relationship})
                       </span>
@@ -141,7 +141,7 @@ const Claims: React.FC = () => {
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-indigo-600 hover:text-indigo-900 flex items-center mb-1"
+                        className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300 flex items-center mb-1"
                       >
                         Document {index + 1}{" "}
                         <ExternalLink className="ml-1 w-4 h-4" />

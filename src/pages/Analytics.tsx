@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "../contexts/ThemeContext";
 import { subMonths, format, startOfMonth, endOfMonth } from "date-fns";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsivePie } from "@nivo/pie";
@@ -22,6 +23,8 @@ import type { Payout } from "../types/payout";
 import { Expense } from "../types/expense";
 
 const Analytics: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [period, setPeriod] = useState<"3m" | "6m" | "12m" | "all">("3m");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
@@ -333,7 +336,7 @@ const Analytics: React.FC = () => {
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <h3 className="text-sm font-medium text-gray-500 dark:text-white-400">
             Fund Balance
           </h3>
           <p
@@ -392,15 +395,22 @@ const Analytics: React.FC = () => {
                 areaOpacity={0.15}
                 useMesh={true}
                 theme={{
-                  axis: { domain: { line: { stroke: "#64748b" } } },
-                  grid: { line: { stroke: "#cbd5e1", strokeWidth: 1 } },
+                  axis: {
+                    domain: { line: { stroke: isDark ? "#9ca3af" : "#64748b" } },
+                    ticks: { text: { fill: isDark ? "#d1d5db" : "#374151" } },
+                    legend: { text: { fill: isDark ? "#d1d5db" : "#374151" } }
+                  },
+                  grid: { line: { stroke: isDark ? "#4b5563" : "#cbd5e1", strokeWidth: 1 } },
                   crosshair: {
                     line: {
-                      stroke: "#64748b",
+                      stroke: isDark ? "#9ca3af" : "#64748b",
                       strokeWidth: 1,
                       strokeOpacity: 0.35,
                     },
                   },
+                  legends: {
+                    text: { fill: isDark ? "#d1d5db" : "#374151" }
+                  }
                 }}
                 tooltip={({ point }) => {
                   const { x, y } = point.data;
@@ -445,6 +455,15 @@ const Analytics: React.FC = () => {
                 }}
                 labelSkipWidth={12}
                 labelSkipHeight={12}
+                theme={{
+                  axis: {
+                    ticks: { text: { fill: isDark ? "#d1d5db" : "#374151" } },
+                    legend: { text: { fill: isDark ? "#d1d5db" : "#374151" } }
+                  },
+                  legends: {
+                    text: { fill: isDark ? "#d1d5db" : "#374151" }
+                  }
+                }}
                 legends={[
                   {
                     dataFrom: "keys",
@@ -459,6 +478,7 @@ const Analytics: React.FC = () => {
                     itemDirection: "left-to-right",
                     itemOpacity: 0.85,
                     symbolSize: 20,
+                    itemTextColor: isDark ? "#d1d5db" : "#374151",
                   },
                 ]}
               />
@@ -484,7 +504,7 @@ const Analytics: React.FC = () => {
               borderWidth={1}
               borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
               arcLinkLabelsSkipAngle={10}
-              arcLinkLabelsTextColor="#64748b"
+              arcLinkLabelsTextColor={isDark ? "#d1d5db" : "#64748b"}
               arcLinkLabelsThickness={2}
               arcLinkLabelsColor={{ from: "color" }}
               arcLabelsSkipAngle={10}
@@ -499,7 +519,7 @@ const Analytics: React.FC = () => {
                   itemsSpacing: 0,
                   itemWidth: 100,
                   itemHeight: 18,
-                  itemTextColor: "#64748b",
+                  itemTextColor: isDark ? "#d1d5db" : "#64748b",
                   itemDirection: "left-to-right",
                   itemOpacity: 1,
                   symbolSize: 18,
@@ -524,7 +544,7 @@ const Analytics: React.FC = () => {
               borderWidth={1}
               borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
               arcLinkLabelsSkipAngle={10}
-              arcLinkLabelsTextColor="#64748b"
+              arcLinkLabelsTextColor={isDark ? "#d1d5db" : "#64748b"}
               arcLinkLabelsThickness={2}
               arcLinkLabelsColor={{ from: "color" }}
               arcLabelsSkipAngle={10}
@@ -539,7 +559,7 @@ const Analytics: React.FC = () => {
                   itemsSpacing: 0,
                   itemWidth: 100,
                   itemHeight: 18,
-                  itemTextColor: "#64748b",
+                  itemTextColor: isDark ? "#d1d5db" : "#64748b",
                   itemDirection: "left-to-right",
                   itemOpacity: 1,
                   symbolSize: 18,
@@ -567,6 +587,17 @@ const Analytics: React.FC = () => {
               borderWidth={2}
               borderColor={{ from: "color" }}
               gridLabelOffset={36}
+              theme={{
+                grid: {
+                  line: { stroke: isDark ? "#4b5563" : "#e2e8f0" }
+                },
+                labels: {
+                  text: { fill: isDark ? "#d1d5db" : "#374151" }
+                },
+                dots: {
+                  text: { fill: isDark ? "#d1d5db" : "#374151" }
+                }
+              }}
               dotSize={10}
               dotColor={{ theme: "background" }}
               dotBorderWidth={2}
@@ -581,7 +612,7 @@ const Analytics: React.FC = () => {
                   translateY: -40,
                   itemWidth: 80,
                   itemHeight: 20,
-                  itemTextColor: "#64748b",
+                  itemTextColor: isDark ? "#d1d5db" : "#64748b",
                   symbolSize: 12,
                   symbolShape: "circle",
                 },
@@ -603,13 +634,18 @@ const Analytics: React.FC = () => {
                 period === "3m" ? 3 : period === "6m" ? 6 : 12
               )}
               to={new Date()}
-              emptyColor="#f3f4f6"
-              colors={["#c7d2fe", "#a5b4fc", "#818cf8", "#6366f1", "#4f46e5"]}
+              emptyColor={isDark ? "#374151" : "#f3f4f6"}
+              colors={isDark ? ["#4c1d95", "#5b21b6", "#7c2d92", "#8b5cf6", "#a855f7"] : ["#c7d2fe", "#a5b4fc", "#818cf8", "#6366f1", "#4f46e5"]}
+              theme={{
+                labels: {
+                  text: { fill: isDark ? "#f3f4f6" : "#1f2937" }
+                }
+              }}
               margin={{ top: 40, right: 40, bottom: 40, left: 40 }}
               yearSpacing={40}
-              monthBorderColor="#ffffff"
+              monthBorderColor={isDark ? "#4b5563" : "#ffffff"}
               dayBorderWidth={2}
-              dayBorderColor="#ffffff"
+              dayBorderColor={isDark ? "#4b5563" : "#ffffff"}
             />
           </div>
         </div>

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "../contexts/ThemeContext";
 import { subMonths, format, startOfMonth, endOfMonth } from "date-fns";
-import { ResponsiveLine } from "@nivo/line";
 import { ResponsivePie } from "@nivo/pie";
 import { ResponsiveBar } from "@nivo/bar";
-import { ResponsiveCalendar } from "@nivo/calendar";
-import { ResponsiveRadar } from "@nivo/radar";
+import { getConfigurationValue } from "../services/configurationService";
 import {
   collection,
   query,
@@ -22,6 +21,8 @@ import type { Payout } from "../types/payout";
 import { Expense } from "../types/expense";
 
 const Analytics: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const [period, setPeriod] = useState<"3m" | "6m" | "12m" | "all">("3m");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{
@@ -36,6 +37,19 @@ const Analytics: React.FC = () => {
     claims: [],
     payouts: [],
     expenses: [],
+  });
+  const [penaltyAnalysis, setPenaltyAnalysis] = useState<{
+    totalPremiums: number;
+    totalPenalties: number;
+    monthlyBreakdown: Array<{
+      month: string;
+      premiums: number;
+      penalties: number;
+    }>;
+  }>({
+    totalPremiums: 0,
+    totalPenalties: 0,
+    monthlyBreakdown: [],
   });
 
   useEffect(() => {
@@ -117,6 +131,9 @@ const Analytics: React.FC = () => {
         })) as Expense[];
 
         setData({ members, contributions, claims, payouts, expenses });
+
+        // Calculate penalty analysis
+        await calculatePenaltyAnalysis(contributions);
       } catch (error) {
         console.error("Error fetching analytics data:", error);
       } finally {
@@ -124,26 +141,114 @@ const Analytics: React.FC = () => {
       }
     };
 
+    const calculatePenaltyAnalysis = async (contributions: Contribution[]) => {
+      try {
+        // Only analyze approved monthly contributions
+        const monthlyContributions = contributions.filter(
+          (c) => c.status === "approved" && c.type === "monthly"
+        );
+
+        let totalPremiums = 0;
+        let totalPenalties = 0;
+        const monthlyBreakdown: Array<{
+          month: string;
+          premiums: number;
+          penalties: number;
+        }> = [];
+
+        // Group contributions by month
+        const contributionsByMonth = new Map<string, Contribution[]>();
+        monthlyContributions.forEach((contribution) => {
+          const date = contribution.date.toDate();
+          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          if (!contributionsByMonth.has(monthKey)) {
+            contributionsByMonth.set(monthKey, []);
+          }
+          contributionsByMonth.get(monthKey)!.push(contribution);
+        });
+
+        // Analyze each month
+        for (const [monthKey, monthContributions] of contributionsByMonth) {
+          const [year, month] = monthKey.split('-');
+          const monthDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+          const monthName = format(monthDate, 'MMM yyyy');
+
+          // Get configuration for this month
+          const monthlyFee = await getConfigurationValue("monthly_fee", monthDate);
+
+          let monthPremiums = 0;
+          let monthPenalties = 0;
+
+          monthContributions.forEach((contribution) => {
+            if (contribution.amount > monthlyFee) {
+              // Payment exceeds monthly fee - likely includes penalty
+              monthPremiums += monthlyFee;
+              monthPenalties += contribution.amount - monthlyFee;
+            } else {
+              // Payment is equal to or less than monthly fee
+              monthPremiums += contribution.amount;
+            }
+          });
+
+          totalPremiums += monthPremiums;
+          totalPenalties += monthPenalties;
+
+          if (monthPremiums > 0 || monthPenalties > 0) {
+            monthlyBreakdown.push({
+              month: monthName,
+              premiums: monthPremiums,
+              penalties: monthPenalties,
+            });
+          }
+        }
+
+        setPenaltyAnalysis({
+          totalPremiums,
+          totalPenalties,
+          monthlyBreakdown: monthlyBreakdown.sort((a, b) =>
+            new Date(a.month).getTime() - new Date(b.month).getTime()
+          ),
+        });
+      } catch (error) {
+        console.error("Error calculating penalty analysis:", error);
+      }
+    };
+
     fetchData();
   }, [period]);
 
-  // Calculate key metrics including expenses
+  // Calculate enhanced metrics
+  const totalContributions = data.contributions.reduce((sum, c) => sum + c.amount, 0);
+  const totalClaims = data.claims.reduce((sum, c) => sum + c.amount, 0);
+
   const metrics = {
     totalMembers: data.members.length,
     activeMembers: data.members.filter((m) => m.status === "active").length,
-    totalContributions: data.contributions.reduce(
-      (sum, c) => sum + c.amount,
-      0
-    ),
-    totalClaims: data.claims.reduce((sum, c) => sum + c.amount, 0),
+    inactiveMembers: data.members.filter((m) => m.status === "inactive").length,
+    approvedMembers: data.members.filter((m) => m.status === "approved").length,
+    totalContributions,
+    totalClaims,
     totalPayouts: data.payouts.reduce((sum, p) => sum + p.amount, 0),
     totalExpenses: data.expenses.reduce((sum, e) => sum + e.amount, 0),
     pendingClaims: data.claims.filter((c) => c.status === "pending").length,
+    approvedClaims: data.claims.filter((c) => c.status === "approved").length,
+    rejectedClaims: data.claims.filter((c) => c.status === "rejected").length,
     pendingExpenses: data.expenses.filter((e) => e.status === "pending").length,
     avgContribution:
       data.contributions.length > 0
-        ? data.contributions.reduce((sum, c) => sum + c.amount, 0) /
-          data.contributions.length
+        ? totalContributions / data.contributions.length
+        : 0,
+    avgClaimAmount:
+      data.claims.length > 0
+        ? totalClaims / data.claims.length
+        : 0,
+    claimsToContributionRatio:
+      totalContributions > 0
+        ? (totalClaims / totalContributions) * 100
+        : 0,
+    memberRetentionRate:
+      data.members.length > 0
+        ? (data.members.filter((m) => m.status === "approved").length / data.members.length) * 100
         : 0,
   };
 
@@ -151,106 +256,93 @@ const Analytics: React.FC = () => {
   const fundBalance =
     metrics.totalContributions - metrics.totalPayouts - metrics.totalExpenses;
 
-  // Prepare contribution trends data
-  const contributionTrends = Array.from({
+  // Prepare cashflow data (contributions vs payouts + expenses)
+  const cashflowData = Array.from({
     length:
-      period === "3m" ? 3 : period === "6m" ? 6 : period === "12m" ? 12 : 24,
+      period === "3m" ? 3 : period === "6m" ? 6 : period === "12m" ? 12 : 12,
   })
     .map((_, i) => {
       const date = subMonths(new Date(), i);
       const monthStart = startOfMonth(date);
       const monthEnd = endOfMonth(date);
+
       const monthContributions = data.contributions.filter((c) => {
         const contribDate = c.date.toDate();
         return contribDate >= monthStart && contribDate <= monthEnd;
-      });
-      return {
-        x: format(date, "MMM yyyy"),
-        y: monthContributions.reduce((sum, c) => sum + c.amount, 0),
-      };
-    })
-    .reverse();
+      }).reduce((sum, c) => sum + c.amount, 0);
 
-  // Calculate minimum width based on number of data points
-  const minChartWidth = Math.max(contributionTrends.length * 80, 800);
+      const monthPayouts = data.payouts.filter((p) => {
+        const payoutDate = p.date.toDate();
+        return payoutDate >= monthStart && payoutDate <= monthEnd;
+      }).reduce((sum, p) => sum + p.amount, 0);
 
-  // Prepare contribution types data
-  const contributionTypes = data.contributions.reduce((acc, curr) => {
-    acc[curr.type] = (acc[curr.type] || 0) + curr.amount;
-    return acc;
-  }, {} as Record<string, number>);
+      const monthExpenses = data.expenses.filter((e) => {
+        const expenseDate = e.date.toDate();
+        return expenseDate >= monthStart && expenseDate <= monthEnd;
+      }).reduce((sum, e) => sum + e.amount, 0);
 
-  const contributionPieData = Object.entries(contributionTypes).map(
-    ([id, value]) => ({
-      id: id.charAt(0).toUpperCase() + id.slice(1),
-      value,
-    })
-  );
-
-  // Prepare claims distribution data
-  const claimTypes = data.claims.reduce((acc, curr) => {
-    acc[curr.type] = (acc[curr.type] || 0) + curr.amount;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const claimsPieData = Object.entries(claimTypes).map(([id, value]) => ({
-    id: id.charAt(0).toUpperCase() + id.slice(1),
-    value,
-  }));
-
-  // Update member growth data calculation to handle 'all' period
-  const memberGrowth = Array.from({
-    length:
-      period === "3m" ? 3 : period === "6m" ? 6 : period === "12m" ? 12 : 24,
-  })
-    .map((_, i) => {
-      const date =
-        period === "all"
-          ? subMonths(new Date(), 24 - i)
-          : subMonths(new Date(), i);
-      const monthStart = startOfMonth(date);
-      const monthEnd = endOfMonth(date);
-      const newMembers = data.members.filter((m) => {
-        const joinDate = m.join_date.toDate();
-        return joinDate >= monthStart && joinDate <= monthEnd;
-      });
       return {
         month: format(date, "MMM yyyy"),
-        "New Members": newMembers.length,
-        "Total Members": data.members.filter(
-          (m) => m.join_date.toDate() <= monthEnd
-        ).length,
+        Contributions: monthContributions,
+        "Payouts & Expenses": monthPayouts + monthExpenses,
+        "Net Flow": monthContributions - (monthPayouts + monthExpenses),
       };
     })
     .reverse();
 
-  // Prepare financial health radar data
-  const financialMetrics = [
+  // Claims status breakdown
+  const claimsStatusData = [
+    { id: "Pending", value: metrics.pendingClaims, color: "#f59e0b" },
+    { id: "Approved", value: metrics.approvedClaims, color: "#10b981" },
+    { id: "Rejected", value: metrics.rejectedClaims, color: "#ef4444" },
+  ].filter(item => item.value > 0);
+
+  // Member status breakdown
+  const memberStatusData = [
+    { id: "Active", value: metrics.activeMembers, color: "#10b981" },
+    { id: "Inactive", value: metrics.inactiveMembers, color: "#6b7280" },
+    { id: "Approved", value: metrics.approvedMembers, color: "#8b5cf6" },
+  ].filter(item => item.value > 0);
+
+  // Penalty vs Premium breakdown for pie chart
+  const penaltyBreakdownData = [
     {
-      metric: "Contribution Rate",
-      value: (data.contributions.length / metrics.activeMembers) * 100 || 0,
+      id: "Regular Premiums",
+      value: penaltyAnalysis.totalPremiums,
+      color: "#10b981",
     },
     {
-      metric: "Claims Ratio",
-      value: (metrics.totalClaims / metrics.totalContributions) * 100 || 0,
+      id: "Penalty Fees",
+      value: penaltyAnalysis.totalPenalties,
+      color: "#ef4444",
+    },
+  ].filter(item => item.value > 0);
+
+  // Top insights
+  const insights = [
+    {
+      title: "Claims Efficiency",
+      value: `${((metrics.approvedClaims / (metrics.approvedClaims + metrics.rejectedClaims)) * 100 || 0).toFixed(1)}%`,
+      description: "of claims are approved",
+      trend: metrics.approvedClaims > metrics.rejectedClaims ? "positive" : "negative",
     },
     {
-      metric: "Member Retention",
-      value: (metrics.activeMembers / metrics.totalMembers) * 100 || 0,
+      title: "Fund Utilization",
+      value: `${((metrics.totalPayouts / metrics.totalContributions) * 100 || 0).toFixed(1)}%`,
+      description: "of contributions are paid out",
+      trend: (metrics.totalPayouts / metrics.totalContributions) < 0.8 ? "positive" : "warning",
     },
     {
-      metric: "Payout Efficiency",
-      value:
-        (data.payouts.filter((p) => p.status === "paid").length /
-          data.payouts.length) *
-          100 || 0,
+      title: "Member Retention",
+      value: `${metrics.memberRetentionRate.toFixed(1)}%`,
+      description: "of members are active",
+      trend: metrics.memberRetentionRate > 85 ? "positive" : "negative",
     },
     {
-      metric: "Fund Balance",
-      value:
-        ((metrics.totalContributions - metrics.totalPayouts) /
-          metrics.totalContributions) *
-          100 || 0,
+      title: "Penalty Rate",
+      value: `${(penaltyAnalysis.totalPenalties / (penaltyAnalysis.totalPremiums + penaltyAnalysis.totalPenalties) * 100 || 0).toFixed(1)}%`,
+      description: "of contributions are penalties",
+      trend: (penaltyAnalysis.totalPenalties / (penaltyAnalysis.totalPremiums + penaltyAnalysis.totalPenalties) * 100) < 10 ? "positive" : "warning",
     },
   ];
 
@@ -294,7 +386,32 @@ const Analytics: React.FC = () => {
         </div>
       </div>
 
-      {/* Key Metrics */}
+      {/* Key Insights */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {insights.map((insight, index) => (
+          <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border-l-4 border-blue-500">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              {insight.title}
+            </h3>
+            <p className={`mt-2 text-2xl font-semibold ${
+              insight.trend === "positive"
+                ? "text-green-600 dark:text-green-400"
+                : insight.trend === "negative"
+                ? "text-red-600 dark:text-red-400"
+                : insight.trend === "warning"
+                ? "text-yellow-600 dark:text-yellow-400"
+                : "text-gray-900 dark:text-white"
+            }`}>
+              {insight.value}
+            </p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {insight.description}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Core Financial Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -303,33 +420,30 @@ const Analytics: React.FC = () => {
           <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
             {metrics.totalMembers}
           </p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-green-600 dark:text-green-400">
             {metrics.activeMembers} active
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Total Income
+            Total Contributions
           </h3>
           <p className="mt-2 text-3xl font-semibold text-green-600 dark:text-green-400">
-            R {metrics.totalContributions.toFixed(2)}
+            R {metrics.totalContributions.toFixed(0)}
           </p>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Avg: R {metrics.avgContribution.toFixed(2)}
+            Avg: R {metrics.avgContribution.toFixed(0)} per contribution
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Total Outflows
+            Total Payouts
           </h3>
           <p className="mt-2 text-3xl font-semibold text-red-600 dark:text-red-400">
-            R {(metrics.totalPayouts + metrics.totalExpenses).toFixed(2)}
+            R {(metrics.totalPayouts + metrics.totalExpenses).toFixed(0)}
           </p>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Claims: R {metrics.totalClaims.toFixed(2)}
-          </p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Other expense: R {metrics.totalExpenses.toFixed(2)}
+            Claims: R {metrics.totalPayouts.toFixed(0)} | Expenses: R {metrics.totalExpenses.toFixed(0)}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
@@ -343,274 +457,363 @@ const Analytics: React.FC = () => {
                 : "text-red-600 dark:text-red-400"
             }`}
           >
-            R {fundBalance.toFixed(2)}
+            R {fundBalance.toFixed(0)}
           </p>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {metrics.pendingExpenses} pending expenses
+            {metrics.pendingClaims} pending claims
           </p>
         </div>
       </div>
 
+      {/* Cash Flow Analysis */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4">Cash Flow Analysis</h3>
+        <div className="h-[400px]">
+          <ResponsiveBar
+            data={cashflowData}
+            keys={["Contributions", "Payouts & Expenses", "Net Flow"]}
+            indexBy="month"
+            margin={{ top: 50, right: 130, bottom: 50, left: 80 }}
+            padding={0.3}
+            groupMode="grouped"
+            colors={["#10b981", "#ef4444", "#3b82f6"]}
+            borderRadius={4}
+            axisBottom={{
+              tickSize: 5,
+              tickPadding: 5,
+              tickRotation: -45,
+            }}
+            axisLeft={{
+              tickSize: 5,
+              tickPadding: 5,
+              tickRotation: 0,
+              format: (value) => `R ${value}`,
+            }}
+            labelSkipWidth={12}
+            labelSkipHeight={12}
+            theme={{
+              axis: {
+                ticks: { text: { fill: isDark ? "#d1d5db" : "#374151" } },
+                legend: { text: { fill: isDark ? "#d1d5db" : "#374151" } }
+              },
+              legends: {
+                text: { fill: isDark ? "#d1d5db" : "#374151" }
+              }
+            }}
+            legends={[
+              {
+                dataFrom: "keys",
+                anchor: "bottom-right",
+                direction: "column",
+                justify: false,
+                translateX: 120,
+                translateY: 0,
+                itemsSpacing: 2,
+                itemWidth: 100,
+                itemHeight: 20,
+                itemDirection: "left-to-right",
+                itemOpacity: 0.85,
+                symbolSize: 20,
+                itemTextColor: isDark ? "#d1d5db" : "#374151",
+              },
+            ]}
+            tooltip={({ id, value, indexValue }) => (
+              <div className="bg-white dark:bg-gray-800 p-3 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="font-semibold">{indexValue}</div>
+                <div className="text-sm">{id}: R {value.toFixed(0)}</div>
+              </div>
+            )}
+          />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Contribution Trends</h3>
-          <div className="overflow-x-auto">
-            <div
-              className="h-[400px]"
-              style={{ minWidth: `${minChartWidth}px` }}
-            >
-              <ResponsiveLine
-                data={[{ id: "Contributions", data: contributionTrends }]}
-                margin={{ top: 50, right: 110, bottom: 50, left: 80 }}
-                xScale={{ type: "point" }}
-                yScale={{
-                  type: "linear",
-                  min: "auto",
-                  max: "auto",
-                  stacked: false,
-                }}
-                curve="monotoneX"
-                axisTop={null}
-                axisRight={null}
-                axisBottom={{
-                  tickSize: 5,
-                  tickPadding: 5,
-                  tickRotation: -45,
-                  tickValues: contributionTrends.map((d) => d.x),
-                }}
-                axisLeft={{
-                  tickSize: 5,
-                  tickPadding: 5,
-                  tickRotation: 0,
-                  format: (value) => `R ${value}`,
-                }}
-                pointSize={10}
-                pointColor={{ theme: "background" }}
-                pointBorderWidth={2}
-                pointBorderColor={{ from: "serieColor" }}
-                enableArea={true}
-                areaOpacity={0.15}
-                useMesh={true}
-                theme={{
-                  axis: { domain: { line: { stroke: "#64748b" } } },
-                  grid: { line: { stroke: "#cbd5e1", strokeWidth: 1 } },
-                  crosshair: {
-                    line: {
-                      stroke: "#64748b",
-                      strokeWidth: 1,
-                      strokeOpacity: 0.35,
-                    },
-                  },
-                }}
-                tooltip={({ point }) => {
-                  const { x, y } = point.data;
-                  return (
-                    <div className="bg-white dark:bg-gray-800 p-2 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-                      <div className="font-semibold">{String(x)}</div>
-                      <div className="text-sm">R {Number(y).toFixed(2)}</div>
-                    </div>
-                  );
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Member Growth</h3>
-          <div className="overflow-x-auto">
-            <div
-              className="h-[400px]"
-              style={{ minWidth: `${minChartWidth}px` }}
-            >
-              <ResponsiveBar
-                data={memberGrowth}
-                keys={["New Members", "Total Members"]}
-                indexBy="month"
-                margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
-                padding={0.3}
-                groupMode="grouped"
-                colors={["#8b5cf6", "#6366f1"]}
-                borderRadius={4}
-                axisBottom={{
-                  tickSize: 5,
-                  tickPadding: 5,
-                  tickRotation: -45,
-                  tickValues: memberGrowth.map((d) => d.month),
-                }}
-                axisLeft={{
-                  tickSize: 5,
-                  tickPadding: 5,
-                  tickRotation: 0,
-                }}
-                labelSkipWidth={12}
-                labelSkipHeight={12}
+          <h3 className="text-lg font-semibold mb-4">Claims Status Overview</h3>
+          {claimsStatusData.length > 0 ? (
+            <div className="h-[300px]">
+              <ResponsivePie
+                data={claimsStatusData}
+                margin={{ top: 20, right: 80, bottom: 80, left: 80 }}
+                innerRadius={0.4}
+                padAngle={2}
+                cornerRadius={4}
+                activeOuterRadiusOffset={8}
+                colors={{ datum: 'data.color' }}
+                borderWidth={2}
+                borderColor={{ from: "color", modifiers: [["darker", 0.3]] }}
+                arcLinkLabelsSkipAngle={10}
+                arcLinkLabelsTextColor={isDark ? "#d1d5db" : "#64748b"}
+                arcLinkLabelsThickness={2}
+                arcLinkLabelsColor={{ from: "color" }}
+                arcLabelsSkipAngle={10}
+                arcLabelsTextColor="#ffffff"
                 legends={[
                   {
-                    dataFrom: "keys",
-                    anchor: "bottom-right",
-                    direction: "column",
+                    anchor: "bottom",
+                    direction: "row",
                     justify: false,
-                    translateX: 120,
-                    translateY: 0,
-                    itemsSpacing: 2,
-                    itemWidth: 100,
-                    itemHeight: 20,
+                    translateX: 0,
+                    translateY: 56,
+                    itemsSpacing: 10,
+                    itemWidth: 80,
+                    itemHeight: 18,
+                    itemTextColor: isDark ? "#d1d5db" : "#64748b",
                     itemDirection: "left-to-right",
-                    itemOpacity: 0.85,
-                    symbolSize: 20,
+                    itemOpacity: 1,
+                    symbolSize: 18,
+                    symbolShape: "circle",
                   },
                 ]}
+                tooltip={({ datum }) => (
+                  <div className="bg-white dark:bg-gray-800 p-3 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="font-semibold">{datum.id}</div>
+                    <div className="text-sm">{datum.value} claims</div>
+                  </div>
+                )}
               />
+            </div>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-gray-500 dark:text-gray-400">
+              No claims data available for this period
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Member Status Breakdown</h3>
+          {memberStatusData.length > 0 ? (
+            <div className="h-[300px]">
+              <ResponsivePie
+                data={memberStatusData}
+                margin={{ top: 20, right: 80, bottom: 80, left: 80 }}
+                innerRadius={0.4}
+                padAngle={2}
+                cornerRadius={4}
+                activeOuterRadiusOffset={8}
+                colors={{ datum: 'data.color' }}
+                borderWidth={2}
+                borderColor={{ from: "color", modifiers: [["darker", 0.3]] }}
+                arcLinkLabelsSkipAngle={10}
+                arcLinkLabelsTextColor={isDark ? "#d1d5db" : "#64748b"}
+                arcLinkLabelsThickness={2}
+                arcLinkLabelsColor={{ from: "color" }}
+                arcLabelsSkipAngle={10}
+                arcLabelsTextColor="#ffffff"
+                legends={[
+                  {
+                    anchor: "bottom",
+                    direction: "row",
+                    justify: false,
+                    translateX: 0,
+                    translateY: 56,
+                    itemsSpacing: 20,
+                    itemWidth: 80,
+                    itemHeight: 18,
+                    itemTextColor: isDark ? "#d1d5db" : "#64748b",
+                    itemDirection: "left-to-right",
+                    itemOpacity: 1,
+                    symbolSize: 18,
+                    symbolShape: "circle",
+                  },
+                ]}
+                tooltip={({ datum }) => (
+                  <div className="bg-white dark:bg-gray-800 p-3 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="font-semibold">{datum.id}</div>
+                    <div className="text-sm">{datum.value} members ({((datum.value / metrics.totalMembers) * 100).toFixed(1)}%)</div>
+                  </div>
+                )}
+              />
+            </div>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-gray-500 dark:text-gray-400">
+              No member data available
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Premium vs Penalty Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Premium vs Penalty Breakdown</h3>
+          {penaltyBreakdownData.length > 0 ? (
+            <div className="h-[300px]">
+              <ResponsivePie
+                data={penaltyBreakdownData}
+                margin={{ top: 20, right: 80, bottom: 80, left: 80 }}
+                innerRadius={0.4}
+                padAngle={2}
+                cornerRadius={4}
+                activeOuterRadiusOffset={8}
+                colors={{ datum: 'data.color' }}
+                borderWidth={2}
+                borderColor={{ from: "color", modifiers: [["darker", 0.3]] }}
+                arcLinkLabelsSkipAngle={10}
+                arcLinkLabelsTextColor={isDark ? "#d1d5db" : "#64748b"}
+                arcLinkLabelsThickness={2}
+                arcLinkLabelsColor={{ from: "color" }}
+                arcLabelsSkipAngle={10}
+                arcLabelsTextColor="#ffffff"
+                legends={[
+                  {
+                    anchor: "bottom",
+                    direction: "row",
+                    justify: false,
+                    translateX: 0,
+                    translateY: 56,
+                    itemsSpacing: 20,
+                    itemWidth: 120,
+                    itemHeight: 18,
+                    itemTextColor: isDark ? "#d1d5db" : "#64748b",
+                    itemDirection: "left-to-right",
+                    itemOpacity: 1,
+                    symbolSize: 18,
+                    symbolShape: "circle",
+                  },
+                ]}
+                tooltip={({ datum }) => (
+                  <div className="bg-white dark:bg-gray-800 p-3 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="font-semibold">{datum.id}</div>
+                    <div className="text-sm">R {datum.value.toFixed(2)} ({((datum.value / (penaltyAnalysis.totalPremiums + penaltyAnalysis.totalPenalties)) * 100).toFixed(1)}%)</div>
+                  </div>
+                )}
+              />
+            </div>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-gray-500 dark:text-gray-400">
+              No premium/penalty data available for this period
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Monthly Premium vs Penalty Trends</h3>
+          <div className="h-[300px]">
+            <ResponsiveBar
+              data={penaltyAnalysis.monthlyBreakdown}
+              keys={["premiums", "penalties"]}
+              indexBy="month"
+              margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+              padding={0.3}
+              groupMode="grouped"
+              colors={["#10b981", "#ef4444"]}
+              borderRadius={4}
+              axisBottom={{
+                tickSize: 5,
+                tickPadding: 5,
+                tickRotation: -45,
+              }}
+              axisLeft={{
+                tickSize: 5,
+                tickPadding: 5,
+                tickRotation: 0,
+                format: (value) => `R ${value}`,
+              }}
+              labelSkipWidth={12}
+              labelSkipHeight={12}
+              theme={{
+                axis: {
+                  ticks: { text: { fill: isDark ? "#d1d5db" : "#374151" } },
+                  legend: { text: { fill: isDark ? "#d1d5db" : "#374151" } }
+                },
+                legends: {
+                  text: { fill: isDark ? "#d1d5db" : "#374151" }
+                }
+              }}
+              legends={[
+                {
+                  dataFrom: "keys",
+                  anchor: "bottom-right",
+                  direction: "column",
+                  justify: false,
+                  translateX: 120,
+                  translateY: 0,
+                  itemsSpacing: 2,
+                  itemWidth: 100,
+                  itemHeight: 20,
+                  itemDirection: "left-to-right",
+                  itemOpacity: 0.85,
+                  symbolSize: 20,
+                  itemTextColor: isDark ? "#d1d5db" : "#374151",
+                },
+              ]}
+              tooltip={({ id, value, indexValue }) => (
+                <div className="bg-white dark:bg-gray-800 p-3 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="font-semibold">{indexValue}</div>
+                  <div className="text-sm">{id === 'premiums' ? 'Regular Premiums' : 'Penalty Fees'}: R {value.toFixed(0)}</div>
+                </div>
+              )}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Contribution Frequency</span>
+              <span className="font-semibold">{(data.contributions.length / Math.max(metrics.activeMembers, 1)).toFixed(1)} per member</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Claims Rate</span>
+              <span className="font-semibold">{((data.claims.length / Math.max(metrics.totalMembers, 1)) * 100).toFixed(1)}%</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Penalty Income</span>
+              <span className="font-semibold text-red-600">R {penaltyAnalysis.totalPenalties.toFixed(0)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Fund Health Score</span>
+              <span className={`font-semibold ${
+                fundBalance > metrics.totalContributions * 0.3 ? "text-green-600" :
+                fundBalance > 0 ? "text-yellow-600" : "text-red-600"
+              }`}>
+                {fundBalance > metrics.totalContributions * 0.3 ? "Excellent" :
+                 fundBalance > 0 ? "Good" : "Critical"}
+              </span>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">
-            Contribution Distribution
-          </h3>
-          <div className="h-[400px]">
-            <ResponsivePie
-              data={contributionPieData}
-              margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
-              innerRadius={0.5}
-              padAngle={0.7}
-              cornerRadius={3}
-              activeOuterRadiusOffset={8}
-              colors={{ scheme: "purple_blue" }}
-              borderWidth={1}
-              borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
-              arcLinkLabelsSkipAngle={10}
-              arcLinkLabelsTextColor="#64748b"
-              arcLinkLabelsThickness={2}
-              arcLinkLabelsColor={{ from: "color" }}
-              arcLabelsSkipAngle={10}
-              arcLabelsTextColor="#ffffff"
-              legends={[
-                {
-                  anchor: "bottom",
-                  direction: "row",
-                  justify: false,
-                  translateX: 0,
-                  translateY: 56,
-                  itemsSpacing: 0,
-                  itemWidth: 100,
-                  itemHeight: 18,
-                  itemTextColor: "#64748b",
-                  itemDirection: "left-to-right",
-                  itemOpacity: 1,
-                  symbolSize: 18,
-                  symbolShape: "circle",
-                },
-              ]}
-            />
+          <h3 className="text-lg font-semibold mb-4">Pending Actions</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+              <div>
+                <p className="font-medium text-yellow-800 dark:text-yellow-200">Claims to Review</p>
+                <p className="text-sm text-yellow-600 dark:text-yellow-400">{metrics.pendingClaims} pending</p>
+              </div>
+              <div className="text-2xl font-bold text-yellow-600">{metrics.pendingClaims}</div>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div>
+                <p className="font-medium text-blue-800 dark:text-blue-200">Expenses to Approve</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">{metrics.pendingExpenses} pending</p>
+              </div>
+              <div className="text-2xl font-bold text-blue-600">{metrics.pendingExpenses}</div>
+            </div>
           </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Claims Distribution</h3>
-          <div className="h-[400px]">
-            <ResponsivePie
-              data={claimsPieData}
-              margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
-              innerRadius={0.5}
-              padAngle={0.7}
-              cornerRadius={3}
-              activeOuterRadiusOffset={8}
-              colors={{ scheme: "red_purple" }}
-              borderWidth={1}
-              borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
-              arcLinkLabelsSkipAngle={10}
-              arcLinkLabelsTextColor="#64748b"
-              arcLinkLabelsThickness={2}
-              arcLinkLabelsColor={{ from: "color" }}
-              arcLabelsSkipAngle={10}
-              arcLabelsTextColor="#ffffff"
-              legends={[
-                {
-                  anchor: "bottom",
-                  direction: "row",
-                  justify: false,
-                  translateX: 0,
-                  translateY: 56,
-                  itemsSpacing: 0,
-                  itemWidth: 100,
-                  itemHeight: 18,
-                  itemTextColor: "#64748b",
-                  itemDirection: "left-to-right",
-                  itemOpacity: 1,
-                  symbolSize: 18,
-                  symbolShape: "circle",
-                },
-              ]}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">
-            Financial Health Metrics
-          </h3>
-          <div className="h-[400px]">
-            <ResponsiveRadar
-              data={financialMetrics}
-              keys={["value"]}
-              indexBy="metric"
-              maxValue={100}
-              margin={{ top: 70, right: 80, bottom: 40, left: 80 }}
-              curve="linearClosed"
-              borderWidth={2}
-              borderColor={{ from: "color" }}
-              gridLabelOffset={36}
-              dotSize={10}
-              dotColor={{ theme: "background" }}
-              dotBorderWidth={2}
-              colors={{ scheme: "category10" }}
-              fillOpacity={0.25}
-              blendMode="multiply"
-              legends={[
-                {
-                  anchor: "top-left",
-                  direction: "column",
-                  translateX: -50,
-                  translateY: -40,
-                  itemWidth: 80,
-                  itemHeight: 20,
-                  itemTextColor: "#64748b",
-                  symbolSize: 12,
-                  symbolShape: "circle",
-                },
-              ]}
-            />
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Activity Calendar</h3>
-          <div className="h-[400px]">
-            <ResponsiveCalendar
-              data={data.contributions.map((c) => ({
-                day: format(c.date.toDate(), "yyyy-MM-dd"),
-                value: c.amount,
-              }))}
-              from={subMonths(
-                new Date(),
-                period === "3m" ? 3 : period === "6m" ? 6 : 12
-              )}
-              to={new Date()}
-              emptyColor="#f3f4f6"
-              colors={["#c7d2fe", "#a5b4fc", "#818cf8", "#6366f1", "#4f46e5"]}
-              margin={{ top: 40, right: 40, bottom: 40, left: 40 }}
-              yearSpacing={40}
-              monthBorderColor="#ffffff"
-              dayBorderWidth={2}
-              dayBorderColor="#ffffff"
-            />
+          <h3 className="text-lg font-semibold mb-4">Period Summary</h3>
+          <div className="space-y-3">
+            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                +R {metrics.totalContributions.toFixed(0)}
+              </p>
+              <p className="text-sm text-green-600 dark:text-green-400">Total Income</p>
+            </div>
+            <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                -R {(metrics.totalPayouts + metrics.totalExpenses).toFixed(0)}
+              </p>
+              <p className="text-sm text-red-600 dark:text-red-400">Total Outflow</p>
+            </div>
           </div>
         </div>
       </div>

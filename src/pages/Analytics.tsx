@@ -418,7 +418,7 @@ const Analytics: React.FC = () => {
             Total Members
           </h3>
           <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
-            {metrics.totalMembers}
+            {metrics.approvedMembers}
           </p>
           <p className="mt-1 text-sm text-green-600 dark:text-green-400">
             {metrics.activeMembers} active

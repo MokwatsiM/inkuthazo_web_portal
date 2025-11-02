@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Filter, X, ChevronDown } from "lucide-react";
 import { StatusPill } from "../ui/Badge";
 import Button from "../ui/Button";
-import type { Member } from "../../types";
 
 export interface FilterOptions {
   status: string[];
@@ -10,7 +9,7 @@ export interface FilterOptions {
     start: string;
     end: string;
   };
-  quickFilter: 'all' | 'recent' | 'pending' | 'active';
+  quickFilter: 'all' | 'recent' | 'pending' | 'active' | 'approved';
 }
 
 interface MemberFiltersProps {

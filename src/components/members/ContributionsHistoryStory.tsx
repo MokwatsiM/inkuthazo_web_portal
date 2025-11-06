@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Table from "../ui/Table";
 import { formatDate } from "../../utils/dateUtils";
 import type {
@@ -14,6 +14,7 @@ import EditContributionModal from "../contributions/EditContributionModal";
 import { useContributions } from "../../hooks/useContributions";
 import { useNotifications } from "../../hooks/useNotifications";
 import { FirebaseError } from "firebase/app";
+import Pagination from "../ui/Pagination";
 
 interface ContributionsHistoryProps {
   contributions?: Contribution[];
@@ -31,6 +32,27 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
   const { showError, showSuccess } = useNotifications();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Sort contributions by date (latest first) and calculate pagination
+  const sortedContributions = useMemo(() => {
+    return [...contributions].sort((a, b) => {
+      return b.date.toDate().getTime() - a.date.toDate().getTime();
+    });
+  }, [contributions]);
+
+  const totalPages = Math.ceil(sortedContributions.length / itemsPerPage);
+  const paginatedContributions = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedContributions.slice(startIndex, endIndex);
+  }, [sortedContributions, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when contributions change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [contributions.length]);
 
   const handleDeleteContribution = async () => {
     if (selectedContribution) {
@@ -94,7 +116,7 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
   };
   return (
     <div>
-      <h4 className="text-lg font-semibold mb-4">Contributions History</h4>
+      <h4 className="text-lg tracking-tight font-semibold text-text-primary dark:text-text-primary-dark mb-4">Contributions History</h4>
       <Table
         headers={[
           "Date",
@@ -105,7 +127,7 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
           ...(isAdmin ? ["Actions"] : []),
         ]}
       >
-        {contributions.map((contribution) => (
+        {paginatedContributions.map((contribution) => (
           <tr key={contribution.id}>
             <td className="px-6 py-4 whitespace-nowrap">
               {formatDate(contribution.date)}
@@ -175,12 +197,22 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
         ))}
         {contributions.length === 0 && (
           <tr>
-            <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+            <td colSpan={isAdmin ? 6 : 5} className="px-6 py-4 text-center text-text-secondary dark:text-text-secondary-dark">
               No contributions found
             </td>
           </tr>
         )}
       </Table>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+
       {selectedContribution && (
         <>
           <EditContributionModal

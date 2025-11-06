@@ -14,11 +14,44 @@ const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-  const showPages = pages.slice(
-    Math.max(0, currentPage - 2),
-    Math.min(totalPages, currentPage + 3)
-  );
+  // Generate page numbers with ellipsis
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 7; // Maximum visible page numbers
+
+    if (totalPages <= maxVisible) {
+      // Show all pages if total is less than max visible
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (currentPage > 3) {
+        pages.push('ellipsis-start');
+      }
+
+      // Show pages around current page
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push('ellipsis-end');
+      }
+
+      // Always show last page
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  const pageNumbers = getPageNumbers();
 
   return (
     <div className="flex items-center justify-between px-4 py-3 sm:px-6">
@@ -30,6 +63,9 @@ const Pagination: React.FC<PaginationProps> = ({
         >
           Previous
         </Button>
+        <span className="text-sm text-text-secondary dark:text-text-secondary-dark">
+          Page {currentPage} of {totalPages}
+        </span>
         <Button
           variant="secondary"
           onClick={() => onPageChange(currentPage + 1)}
@@ -40,7 +76,7 @@ const Pagination: React.FC<PaginationProps> = ({
       </div>
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
             Showing page <span className="font-medium">{currentPage}</span> of{" "}
             <span className="font-medium">{totalPages}</span>
           </p>
@@ -56,19 +92,32 @@ const Pagination: React.FC<PaginationProps> = ({
             >
               <span className="sr-only">Previous</span>
             </Button>
-            {showPages.map((page) => (
-              <button
-                key={page}
-                onClick={() => onPageChange(page)}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                  page === currentPage
-                    ? "z-10 bg-indigo-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+            {pageNumbers.map((page, index) => {
+              if (typeof page === 'string') {
+                // Render ellipsis
+                return (
+                  <span
+                    key={page}
+                    className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-tertiary dark:text-text-tertiary-dark ring-1 ring-inset ring-line dark:ring-line-dark bg-surface dark:bg-surface-dark"
+                  >
+                    ...
+                  </span>
+                );
+              }
+              return (
+                <button
+                  key={page}
+                  onClick={() => onPageChange(page)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                    page === currentPage
+                      ? "z-10 bg-primary-600 dark:bg-primary-600 text-white dark:text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                      : "text-text-primary dark:text-text-primary-dark ring-1 ring-inset ring-line dark:ring-line-dark hover:bg-surface-hover dark:hover:bg-surface-dark focus:z-20 focus:outline-offset-0 bg-surface dark:bg-surface-dark"
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
             <Button
               variant="secondary"
               className="rounded-r-md"

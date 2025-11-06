@@ -6,6 +6,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import NotificationContainer from "./components/notifications/NotificationContainer";
 import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
 import ConnectionStatus from "./components/ui/ConnectionStatus";
+import ErrorBoundary from "./components/error/ErrorBoundary";
 import { initializeConnectionHandler } from "./utils/firebaseConnection";
 import Layout from "./components/Layout";
 import AuthLayout from "./components/auth/AuthLayout";
@@ -212,21 +213,23 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <ThemeProvider>
-      <NotificationProvider>
-        <AuthProvider>
-          <AnalyticsProvider>
-            <BrowserRouter>
-              <SessionProvider>
-                <NotificationContainer />
-                <ConnectionStatus />
-                <AppRoutes />
-              </SessionProvider>
-            </BrowserRouter>
-          </AnalyticsProvider>
-        </AuthProvider>
-      </NotificationProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <AnalyticsProvider>
+              <BrowserRouter>
+                <SessionProvider>
+                  <NotificationContainer />
+                  <ConnectionStatus />
+                  <AppRoutes />
+                </SessionProvider>
+              </BrowserRouter>
+            </AnalyticsProvider>
+          </AuthProvider>
+        </NotificationProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

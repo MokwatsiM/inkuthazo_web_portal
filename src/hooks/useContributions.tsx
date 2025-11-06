@@ -16,7 +16,7 @@ import {
   deleteContribution as deleteContributionService,
   reviewContribution as reviewContributionService,
 } from "../services/contributionService";
-import { fetchMemberDetails } from "../services/memberService";
+import { batchFetchMembers } from "../services/memberService";
 import type { Contribution, ContributionStatus } from "../types/contribution";
 import { toFirestoreTimestamp } from "../utils/dateUtils";
 
@@ -87,20 +87,21 @@ export const useContributions = (): UseContributionsReturn => {
       setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
       setHasMore(querySnapshot.docs.length === ITEMS_PER_PAGE);
 
-      const contributionsData = await Promise.all(
-        querySnapshot.docs.map(async (doc) => {
-          const data = doc.data();
-          const memberDetails = await fetchMemberDetails(data.member_id);
+      // Batch fetch member details to avoid N+1 query problem
+      const contributionsWithData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
 
-          return {
-            id: doc.id,
-            ...data,
-            members: {
-              full_name: memberDetails?.full_name || "Unknown Member",
-            },
-          } as Contribution;
-        })
-      );
+      const memberIds = [...new Set(contributionsWithData.map((c: any) => c.member_id))];
+      const membersMap = await batchFetchMembers(memberIds);
+
+      const contributionsData = contributionsWithData.map((contrib: any) => ({
+        ...contrib,
+        members: {
+          full_name: membersMap.get(contrib.member_id)?.full_name || "Unknown Member",
+        },
+      })) as Contribution[];
 
       setContributions(contributionsData);
       setCurrentPage(page);

@@ -1,17 +1,18 @@
 // src/hooks/usePayouts.tsx
 import { useState, useEffect } from 'react';
-import { 
-  collection, 
-  query, 
-  orderBy, 
-  getDocs, 
-  addDoc, 
+import {
+  collection,
+  query,
+  orderBy,
+  getDocs,
+  addDoc,
   deleteDoc,
   updateDoc,
   doc,
-  Timestamp 
+  Timestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { batchFetchMembers } from '../services/memberService';
 import type { Payout } from '../types';
 
 interface UsePayoutsReturn {
@@ -35,24 +36,24 @@ export const usePayouts = (): UsePayoutsReturn => {
       const payoutsRef = collection(db, 'payouts');
       const q = query(payoutsRef, orderBy('date', 'desc'));
       const querySnapshot = await getDocs(q);
-      
-      const payoutsData = await Promise.all(
-        querySnapshot.docs.map(async doc => {
-          const data = doc.data();
-          const memberDoc = await getDocs(collection(db, 'members'));
-          const member = memberDoc.docs.find(m => m.id === data.member_id);
-          
-          return {
-            id: doc.id,
-            ...data,
-            date: data.date,
-            members: {
-              full_name: member?.data()?.full_name || 'Unknown Member'
-            }
-          } as Payout;
-        })
-      );
-      
+
+      // Batch fetch member details to avoid N+1 query problem
+      const payoutsWithData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      const memberIds = [...new Set(payoutsWithData.map((p: any) => p.member_id))];
+      const membersMap = await batchFetchMembers(memberIds);
+
+      const payoutsData = payoutsWithData.map((payout: any) => ({
+        ...payout,
+        date: payout.date,
+        members: {
+          full_name: membersMap.get(payout.member_id)?.full_name || 'Unknown Member'
+        }
+      })) as Payout[];
+
       setPayouts(payoutsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

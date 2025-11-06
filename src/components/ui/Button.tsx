@@ -10,7 +10,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
-const Button: React.FC<ButtonProps> = ({
+const Button = React.memo<ButtonProps>(({
   variant = "primary",
   size = "medium",
   icon: Icon,
@@ -85,6 +85,8 @@ const Button: React.FC<ButtonProps> = ({
       <span className={loading ? "opacity-0" : ""}>{children}</span>
     </button>
   );
-};
+});
+
+Button.displayName = 'Button';
 
 export default Button;

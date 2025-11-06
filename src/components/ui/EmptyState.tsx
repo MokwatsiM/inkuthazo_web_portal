@@ -19,7 +19,7 @@ interface EmptyStateProps {
   className?: string;
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({
+const EmptyState = React.memo<EmptyStateProps>(({
   icon: Icon,
   title,
   description,
@@ -101,6 +101,8 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       )}
     </div>
   );
-};
+});
+
+EmptyState.displayName = 'EmptyState';
 
 export default EmptyState;

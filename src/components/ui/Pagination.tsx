@@ -9,7 +9,7 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-const Pagination: React.FC<PaginationProps> = ({
+const Pagination = React.memo<PaginationProps>(({
   currentPage,
   totalPages,
   onPageChange,
@@ -132,6 +132,8 @@ const Pagination: React.FC<PaginationProps> = ({
       </div>
     </div>
   );
-};
+});
+
+Pagination.displayName = 'Pagination';
 
 export default Pagination;

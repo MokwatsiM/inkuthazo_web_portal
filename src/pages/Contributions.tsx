@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   PlusCircle,
   ExternalLink,
@@ -58,25 +58,27 @@ const Contributions: React.FC = () => {
   // const [contributionsToDelete, setContributionToDelete] =
   //   useState<Contribution | null>(null);
 
-  const filteredContributions = contributions.filter((contribution) => {
-    const matchesSearch = contribution.members?.full_name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesDate =
-      dateRange.start && dateRange.end
-        ? contribution.date.toDate() >= dateRange.start &&
-          contribution.date.toDate() <= dateRange.end
-        : true;
-    if (isAdmin) {
-      return matchesSearch && matchesDate;
-    } else {
-      return (
-        matchesSearch &&
-        matchesDate &&
-        contribution.member_id === userDetails?.id
-      );
-    }
-  });
+  const filteredContributions = useMemo(() => {
+    return contributions.filter((contribution) => {
+      const matchesSearch = contribution.members?.full_name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesDate =
+        dateRange.start && dateRange.end
+          ? contribution.date.toDate() >= dateRange.start &&
+            contribution.date.toDate() <= dateRange.end
+          : true;
+      if (isAdmin) {
+        return matchesSearch && matchesDate;
+      } else {
+        return (
+          matchesSearch &&
+          matchesDate &&
+          contribution.member_id === userDetails?.id
+        );
+      }
+    });
+  }, [contributions, searchTerm, dateRange, isAdmin, userDetails?.id]);
 
   const handleAddContribution = async (
     data: Omit<Contribution, "id" | "members" | "status">,

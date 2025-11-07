@@ -17,6 +17,7 @@ import {
   Home,
   AlertTriangle,
   CalendarDays,
+  TrendingUp,
 } from "lucide-react";
 import { Settings } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -93,6 +94,12 @@ const Layout: React.FC = () => {
       icon: BarChart2,
       label: "Analytics",
       color: "text-indigo-500",
+    },
+    {
+      path: "/advanced-analytics",
+      icon: TrendingUp,
+      label: "Advanced Analytics",
+      color: "text-cyan-500",
     },
     {
       path: "/reports",

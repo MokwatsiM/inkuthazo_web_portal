@@ -21,6 +21,7 @@ import MyContributions from "./pages/MyContributions";
 import Reports from "./pages/Reports";
 import Payouts from "./pages/Payouts";
 import Analytics from "./pages/Analytics";
+import AdvancedAnalytics from "./pages/AdvancedAnalytics";
 import RoleBasedRoute from "./components/RoleBasedRoute";
 import DeletionRequests from "./pages/DeletionRequests";
 import Claims from "./pages/Claims";
@@ -141,6 +142,15 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleBasedRoute allowedRoles={["admin"]}>
               <Analytics />
+            </RoleBasedRoute>
+          }
+        />
+
+        <Route
+          path="advanced-analytics"
+          element={
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <AdvancedAnalytics />
             </RoleBasedRoute>
           }
         />

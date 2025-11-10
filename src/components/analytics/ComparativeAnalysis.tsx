@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ResponsiveBar } from '@nivo/bar';
 import { ComparativeAnalysis as ComparativeAnalysisType } from '../../types/predictiveAnalytics';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, subDays } from 'date-fns';
 
 interface ComparativeAnalysisProps {
   analysis: ComparativeAnalysisType | null;
@@ -9,10 +9,97 @@ interface ComparativeAnalysisProps {
   onPeriodChange?: (period1Start: Date, period1End: Date, period2Start: Date, period2End: Date) => void;
 }
 
+interface PeriodOption {
+  id: string;
+  label: string;
+  period1Start: Date;
+  period1End: Date;
+  period2Start: Date;
+  period2End: Date;
+}
+
 const ComparativeAnalysis = React.memo<ComparativeAnalysisProps>(({
   analysis,
   isLoading = false,
+  onPeriodChange,
 }) => {
+  // Generate period options (all 3-month periods)
+  const periodOptions = useMemo<PeriodOption[]>(() => {
+    const now = new Date();
+    const options: PeriodOption[] = [];
+
+    // Option 1: Last 3 months vs Previous 3 months
+    const period2End = endOfMonth(now);
+    const period2Start = startOfMonth(subMonths(now, 2));
+    const period1End = endOfMonth(subMonths(period2Start, 1));
+    const period1Start = startOfMonth(subMonths(period1End, 2));
+
+    options.push({
+      id: 'recent-vs-previous',
+      label: 'Recent 3 Months vs Previous 3 Months',
+      period1Start,
+      period1End,
+      period2Start,
+      period2End,
+    });
+
+    // Option 2: This quarter vs Last quarter
+    const currentQuarter = Math.floor(now.getMonth() / 3);
+    const thisQuarterStart = startOfMonth(new Date(now.getFullYear(), currentQuarter * 3, 1));
+    const thisQuarterEnd = endOfMonth(new Date(now.getFullYear(), currentQuarter * 3 + 2, 1));
+    const lastQuarterStart = startOfMonth(subMonths(thisQuarterStart, 3));
+    const lastQuarterEnd = endOfMonth(subMonths(thisQuarterStart, 1));
+
+    options.push({
+      id: 'this-quarter-vs-last',
+      label: 'This Quarter vs Last Quarter',
+      period1Start: lastQuarterStart,
+      period1End: lastQuarterEnd,
+      period2Start: thisQuarterStart,
+      period2End: thisQuarterEnd,
+    });
+
+    // Option 3: Last 90 days vs Previous 90 days
+    const last90DaysEnd = now;
+    const last90DaysStart = subDays(now, 89);
+    const prev90DaysEnd = subDays(last90DaysStart, 1);
+    const prev90DaysStart = subDays(prev90DaysEnd, 89);
+
+    options.push({
+      id: 'last-90-vs-prev-90',
+      label: 'Last 90 Days vs Previous 90 Days',
+      period1Start: prev90DaysStart,
+      period1End: prev90DaysEnd,
+      period2Start: last90DaysStart,
+      period2End: last90DaysEnd,
+    });
+
+    // Option 4: Same period last year (3 months)
+    const sameQuarterLastYearStart = startOfMonth(subMonths(period2Start, 12));
+    const sameQuarterLastYearEnd = endOfMonth(subMonths(period2End, 12));
+
+    options.push({
+      id: 'this-year-vs-last-year',
+      label: 'Recent 3 Months vs Same Period Last Year',
+      period1Start: sameQuarterLastYearStart,
+      period1End: sameQuarterLastYearEnd,
+      period2Start,
+      period2End,
+    });
+
+    return options;
+  }, []);
+
+  const [selectedOptionId, setSelectedOptionId] = useState<string>(periodOptions[0].id);
+
+  const handlePeriodChange = (optionId: string) => {
+    setSelectedOptionId(optionId);
+    const option = periodOptions.find(opt => opt.id === optionId);
+    if (option && onPeriodChange) {
+      onPeriodChange(option.period1Start, option.period1End, option.period2Start, option.period2End);
+    }
+  };
+
   const comparisonData = useMemo(() => {
     if (!analysis) return [];
 
@@ -62,6 +149,27 @@ const ComparativeAnalysis = React.memo<ComparativeAnalysisProps>(({
 
   return (
     <div className="space-y-6">
+      {/* Period Selector */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          Select Comparison Periods
+        </label>
+        <select
+          value={selectedOptionId}
+          onChange={(e) => handlePeriodChange(e.target.value)}
+          className="w-full md:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          {periodOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          All periods are approximately 3 months (90 days) for accurate comparison
+        </p>
+      </div>
+
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">

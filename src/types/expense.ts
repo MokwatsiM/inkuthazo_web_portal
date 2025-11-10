@@ -3,6 +3,7 @@ import { Timestamp } from "firebase/firestore";
 export type ExpenseType = "one-off" | "recurring";
 export type ExpenseStatus = "pending" | "paid" | "cancelled";
 export type ExpenseRecurrence = "monthly";
+export type ExpenseCategory = "bank-charges" | "administration" | "social" | "others";
 
 export interface Expense {
   id: string;
@@ -10,6 +11,7 @@ export interface Expense {
   description: string;
   amount: number;
   type: ExpenseType;
+  category: ExpenseCategory;
   status: ExpenseStatus;
   date: Timestamp;
   created_by: string;

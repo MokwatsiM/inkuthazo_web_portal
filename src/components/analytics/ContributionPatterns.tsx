@@ -16,7 +16,7 @@ const ContributionPatterns = React.memo<ContributionPatternsProps>(({ patterns, 
     return patterns.seasonalTrends.map((trend) => ({
       month: trend.month,
       count: trend.count,
-      amount: trend.averageAmount,
+      amount: Math.round(trend.averageAmount),
     }));
   }, [patterns]);
 
@@ -170,10 +170,38 @@ const ContributionPatterns = React.memo<ContributionPatternsProps>(({ patterns, 
                 legend: 'Value',
                 legendPosition: 'middle',
                 legendOffset: -60,
+                format: (value) => Math.round(value).toString(),
               }}
               labelSkipWidth={12}
               labelSkipHeight={12}
               labelTextColor="#ffffff"
+              valueFormat={(value) => Math.round(value).toString()}
+              tooltip={({ id, value, color, indexValue }) => (
+                <div
+                  style={{
+                    padding: '9px 12px',
+                    background: 'white',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                    <div
+                      style={{
+                        width: '12px',
+                        height: '12px',
+                        backgroundColor: color,
+                        marginRight: '8px',
+                      }}
+                    />
+                    <strong>{indexValue}</strong>
+                  </div>
+                  <div style={{ fontSize: '14px' }}>
+                    <strong>{id === 'count' ? 'Count' : 'Amount'}:</strong>{' '}
+                    {id === 'amount' ? `R${Math.round(value)}` : Math.round(value)}
+                  </div>
+                </div>
+              )}
               legends={[
                 {
                   dataFrom: 'keys',

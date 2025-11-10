@@ -14,6 +14,7 @@ export interface Contribution {
   review_notes?: string;
   reviewed_by?: string;
   reviewed_at?: Timestamp;
+  payment_method?: string;
   members?: {
     full_name: string;
   };

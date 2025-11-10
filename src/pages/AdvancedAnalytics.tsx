@@ -7,6 +7,7 @@ import ContributionPatterns from '../components/analytics/ContributionPatterns';
 import ComparativeAnalysis from '../components/analytics/ComparativeAnalysis';
 import CustomReportBuilder from '../components/analytics/CustomReportBuilder';
 import { useNavigate } from 'react-router-dom';
+import { generateReport, ReportParams, collectArrearsData } from '../services/reportGenerationService';
 
 type TabId = 'overview' | 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'reports';
 
@@ -38,6 +39,8 @@ const AdvancedAnalytics = React.memo(() => {
     financialHealth,
     contributionPatterns,
     comparativeAnalysis,
+    members,
+    contributions,
     isLoadingCashFlow,
     isLoadingChurn,
     isLoadingHealth,
@@ -68,15 +71,62 @@ const AdvancedAnalytics = React.memo(() => {
     [navigate]
   );
 
-  const handleGenerateReport = useCallback(async (params: any) => {
+  const handleGenerateReport = useCallback(async (params: ReportParams) => {
     setIsGeneratingReport(true);
-    console.log('Generating report with params:', params);
-    // TODO: Implement actual report generation
-    setTimeout(() => {
+
+    try {
+      // Prepare report data based on report type
+      const reportData: any = {};
+
+      switch (params.reportType) {
+        case 'cash-flow':
+          if (!cashFlowForecast) {
+            throw new Error('Cash flow forecast data is not available. Please wait for data to load.');
+          }
+          reportData.cashFlowForecast = cashFlowForecast;
+          break;
+
+        case 'patterns':
+          if (!contributionPatterns) {
+            throw new Error('Contribution patterns data is not available. Please wait for data to load.');
+          }
+          reportData.contributionPatterns = contributionPatterns;
+          break;
+
+        case 'health':
+          if (!financialHealth) {
+            throw new Error('Financial health data is not available. Please wait for data to load.');
+          }
+          reportData.financialHealth = financialHealth;
+          break;
+
+        case 'arrears':
+          if (members.length === 0 || contributions.length === 0) {
+            throw new Error('Member and contribution data is not available. Please wait for data to load.');
+          }
+          // Collect arrears data on demand
+          reportData.arrears = await collectArrearsData(members, contributions);
+          break;
+
+        case 'churn':
+        case 'comparative':
+        case 'custom':
+          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, Financial Health, and Arrears reports are available.`);
+
+        default:
+          throw new Error(`Unknown report type: ${params.reportType}`);
+      }
+
+      // Generate the report
+      await generateReport(params, reportData);
+
+    } catch (error) {
+      console.error('Error generating report:', error);
+      alert(error instanceof Error ? error.message : 'Failed to generate report. Please try again.');
+    } finally {
       setIsGeneratingReport(false);
-      alert('Report generation is not yet implemented. This will be added in a future update.');
-    }, 2000);
-  }, []);
+    }
+  }, [cashFlowForecast, contributionPatterns, financialHealth, members, contributions]);
 
   const renderTabContent = () => {
     switch (activeTab) {

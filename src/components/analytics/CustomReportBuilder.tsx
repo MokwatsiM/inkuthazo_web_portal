@@ -124,6 +124,22 @@ const REPORT_TEMPLATES: ReportTemplate[] = [
       format: 'pdf',
     },
   },
+  {
+    id: 'members-arrears',
+    name: 'Members in Arrears',
+    description: 'List all members with outstanding payments',
+    defaultParams: {
+      reportType: 'arrears',
+      dateRange: {
+        start: new Date(new Date().getFullYear(), 0, 1), // Start of year
+        end: new Date(),
+      },
+      includeCharts: false,
+      includeMetrics: true,
+      includeRecommendations: false,
+      format: 'pdf',
+    },
+  },
 ];
 
 const CustomReportBuilder = React.memo<CustomReportBuilderProps>(({
@@ -244,6 +260,7 @@ const CustomReportBuilder = React.memo<CustomReportBuilderProps>(({
               <option value="health">Financial Health</option>
               <option value="patterns">Contribution Patterns</option>
               <option value="comparative">Comparative Analysis</option>
+              <option value="arrears">Members in Arrears</option>
             </select>
           </div>
 

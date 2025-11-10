@@ -7,7 +7,7 @@ import ContributionPatterns from '../components/analytics/ContributionPatterns';
 import ComparativeAnalysis from '../components/analytics/ComparativeAnalysis';
 import CustomReportBuilder from '../components/analytics/CustomReportBuilder';
 import { useNavigate } from 'react-router-dom';
-import { generateReport, ReportParams } from '../services/reportGenerationService';
+import { generateReport, ReportParams, collectArrearsData } from '../services/reportGenerationService';
 
 type TabId = 'overview' | 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'reports';
 
@@ -39,6 +39,8 @@ const AdvancedAnalytics = React.memo(() => {
     financialHealth,
     contributionPatterns,
     comparativeAnalysis,
+    members,
+    contributions,
     isLoadingCashFlow,
     isLoadingChurn,
     isLoadingHealth,
@@ -98,10 +100,18 @@ const AdvancedAnalytics = React.memo(() => {
           reportData.financialHealth = financialHealth;
           break;
 
+        case 'arrears':
+          if (members.length === 0 || contributions.length === 0) {
+            throw new Error('Member and contribution data is not available. Please wait for data to load.');
+          }
+          // Collect arrears data on demand
+          reportData.arrears = await collectArrearsData(members, contributions);
+          break;
+
         case 'churn':
         case 'comparative':
         case 'custom':
-          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, and Financial Health reports are available.`);
+          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, Financial Health, and Arrears reports are available.`);
 
         default:
           throw new Error(`Unknown report type: ${params.reportType}`);
@@ -116,7 +126,7 @@ const AdvancedAnalytics = React.memo(() => {
     } finally {
       setIsGeneratingReport(false);
     }
-  }, [cashFlowForecast, contributionPatterns, financialHealth]);
+  }, [cashFlowForecast, contributionPatterns, financialHealth, members, contributions]);
 
   const renderTabContent = () => {
     switch (activeTab) {

@@ -7,28 +7,35 @@ import type {
 } from "../../types/contribution";
 import Badge from "../ui/Badge";
 import { useAuth } from "../../hooks/useAuth";
-import { CheckCircle, Edit2, Trash2 } from "lucide-react";
+import { CheckCircle, Edit2, Trash2, PlusCircle } from "lucide-react";
 import ReviewContributionModal from "../contributions/ReviewContributionModal";
 import DeleteContributionModal from "../contributions/DeleteContributionModal";
 import EditContributionModal from "../contributions/EditContributionModal";
+import AddContributionModal from "../contributions/AddContributionModal";
 import { useContributions } from "../../hooks/useContributions";
 import { useNotifications } from "../../hooks/useNotifications";
 import { FirebaseError } from "firebase/app";
 import Pagination from "../ui/Pagination";
+import Button from "../ui/Button";
 
 interface ContributionsHistoryProps {
   contributions?: Contribution[];
+  memberId?: string;
+  onContributionAdded?: () => void;
 }
 
 const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
   contributions = [],
+  memberId,
+  onContributionAdded,
 }) => {
-  const { reviewContribution, deleteContribution, updateContribution } =
+  const { reviewContribution, deleteContribution, updateContribution, addContribution } =
     useContributions();
   const { userDetails, isAdmin } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
   const { showError, showSuccess } = useNotifications();
@@ -68,6 +75,11 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
             selectedContribution.members?.full_name +
             " contribution"
         );
+
+        // Trigger refresh of member data
+        if (onContributionAdded) {
+          onContributionAdded();
+        }
       } catch (error) {
         console.error("Error deleting contribution:", error);
       }
@@ -84,6 +96,11 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
       setIsEditModalOpen(false);
       setSelectedContribution(null);
       showSuccess("Successfully updated your: " + data.type + " contribution");
+
+      // Trigger refresh of member data
+      if (onContributionAdded) {
+        onContributionAdded();
+      }
     } catch (error) {
       console.error("Error updating contribution:", error);
       if (error instanceof FirebaseError) {
@@ -104,6 +121,11 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
       setIsReviewModalOpen(false);
       setSelectedContribution(null);
       showSuccess("Your review was successful");
+
+      // Trigger refresh of member data
+      if (onContributionAdded) {
+        onContributionAdded();
+      }
     } catch (error) {
       console.error("Error reviewing contribution:", error);
       if (error instanceof FirebaseError) {
@@ -114,9 +136,46 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
       showError("An error occured while reviewing contribution");
     }
   };
+
+  const handleAddContribution = async (
+    data: Omit<Contribution, "id" | "members" | "status">,
+    file?: File
+  ) => {
+    try {
+      if (memberId) {
+        data.member_id = memberId;
+      }
+      await addContribution(data, file);
+      setIsAddModalOpen(false);
+      showSuccess("Successfully recorded contribution for member");
+
+      // Trigger refresh of member data
+      if (onContributionAdded) {
+        onContributionAdded();
+      }
+    } catch (error) {
+      console.error("Error adding contribution:", error);
+      if (error instanceof FirebaseError) {
+        showError(error.message || "Error adding contribution");
+      }
+      showError("An error occurred while adding contribution");
+    }
+  };
+
   return (
     <div>
-      <h4 className="text-lg tracking-tight font-semibold text-text-primary dark:text-text-primary-dark mb-4">Contributions History</h4>
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="text-lg tracking-tight font-semibold text-text-primary dark:text-text-primary-dark">Contributions History</h4>
+        {isAdmin && memberId && (
+          <Button
+            icon={PlusCircle}
+            onClick={() => setIsAddModalOpen(true)}
+            size="small"
+          >
+            Add Contribution
+          </Button>
+        )}
+      </div>
       <Table
         headers={[
           "Date",
@@ -210,6 +269,16 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
+        />
+      )}
+
+      {/* Add Contribution Modal */}
+      {isAdmin && memberId && (
+        <AddContributionModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleAddContribution}
+          isAdmin={true}
         />
       )}
 

@@ -284,7 +284,11 @@ const MemberDetail: React.FC = () => {
 
           {/* Contributions */}
           <section id="contributions" className="pt-10">
-            <ContributionsHistory contributions={member.contributions} />
+            <ContributionsHistory
+              contributions={member.contributions}
+              memberId={member.id}
+              onContributionAdded={fetchMemberData}
+            />
           </section>
 
           {/* Payouts */}

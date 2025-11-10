@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { PlusCircle, ExternalLink, FileX } from "lucide-react";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../config/firebase";
@@ -18,6 +18,7 @@ import Badge from "../components/ui/Badge";
 import { useContributions } from "../hooks/useContributions";
 import { useNotifications } from "../hooks/useNotifications";
 import { FirebaseError } from "firebase/app";
+import Pagination from "../components/ui/Pagination";
 
 const MyContributions: React.FC = () => {
   const { userDetails, isApproved } = useAuth();
@@ -26,6 +27,8 @@ const MyContributions: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Number of items per page
   const { showError, showSuccess } = useNotifications();
 
   useEffect(() => {
@@ -63,21 +66,39 @@ const MyContributions: React.FC = () => {
     fetchMyContributions();
   }, [userDetails?.id, userDetails?.full_name]);
 
-  const filteredContributions = contributions.filter((contribution) =>
-    contribution.type.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredContributions = useMemo(() =>
+    contributions.filter((contribution) =>
+      contribution.type.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+    [contributions, searchTerm]
   );
 
   // Calculate stats
-  const stats = {
+  const stats = useMemo(() => ({
     approved: filteredContributions.filter((c) => c.status === "approved"),
     pending: filteredContributions.filter((c) => c.status === "pending"),
     rejected: filteredContributions.filter((c) => c.status === "rejected"),
-  };
+  }), [filteredContributions]);
 
-  const totalApprovedAmount = stats.approved.reduce(
-    (sum, c) => sum + c.amount,
-    0
+  const totalApprovedAmount = useMemo(() =>
+    stats.approved.reduce((sum, c) => sum + c.amount, 0),
+    [stats.approved]
   );
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredContributions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedContributions = filteredContributions.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleAddContribution = async (
     data: Omit<Contribution, "id" | "members" | "status">,
@@ -153,83 +174,92 @@ const MyContributions: React.FC = () => {
             {loading ? (
               <LoadingSpinner />
             ) : (
-              <Table
-                headers={[
-                  "Date",
-                  "Type",
-                  "Amount",
-                  "Status",
-                  "Notes",
-                  "Proof of Payment",
-                ]}
-              >
-                {filteredContributions.length === 0 ? (
-                  <div className="text-center">
-                    <EmptyState
-                      icon={FileX}
-                      title="No contributions found"
-                      description="Start by adding your first contribution"
-                    />
-                  </div>
-                ) : (
-                  filteredContributions.map((contribution) => (
-                    <tr key={contribution.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {formatDate(contribution.date)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap capitalize">
-                        {contribution.type}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        R {contribution.amount.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge
-                          variant={
-                            contribution.status === "approved"
-                              ? "success"
+              <>
+                <Table
+                  headers={[
+                    "Date",
+                    "Type",
+                    "Amount",
+                    "Status",
+                    "Notes",
+                    "Proof of Payment",
+                  ]}
+                >
+                  {filteredContributions.length === 0 ? (
+                    <div className="text-center">
+                      <EmptyState
+                        icon={FileX}
+                        title="No contributions found"
+                        description="Start by adding your first contribution"
+                      />
+                    </div>
+                  ) : (
+                    paginatedContributions.map((contribution) => (
+                      <tr key={contribution.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {formatDate(contribution.date)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap capitalize">
+                          {contribution.type}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          R {contribution.amount.toFixed(2)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge
+                            variant={
+                              contribution.status === "approved"
+                                ? "success"
+                                : contribution.status === "rejected"
+                                ? "error"
+                                : "warning"
+                            }
+                          >
+                            {contribution.status}
+                          </Badge>
+                          {/* <span
+                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                             contribution.status === "approved"
+                              ? "bg-green-100 text-green-800"
                               : contribution.status === "rejected"
-                              ? "error"
-                              : "warning"
-                          }
+                              ? "bg-red-100 text-red-800"
+                              : "bg-yellow-100 text-yellow-800"
+                          }`}
                         >
                           {contribution.status}
-                        </Badge>
-                        {/* <span
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                           contribution.status === "approved"
-                            ? "bg-green-100 text-green-800"
-                            : contribution.status === "rejected"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {contribution.status}
-                      </span> */}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {contribution.review_notes || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {contribution.proof_of_payment ? (
-                          <a
-                            href={contribution.proof_of_payment}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-indigo-600 hover:text-indigo-900 flex items-center"
-                          >
-                            View <ExternalLink className="ml-1 w-4 w-4" />
-                          </a>
-                        ) : (
-                          <span className="text-gray-400">
-                            No proof attached
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
+                        </span> */}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {contribution.review_notes || "-"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {contribution.proof_of_payment ? (
+                            <a
+                              href={contribution.proof_of_payment}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-indigo-600 hover:text-indigo-900 flex items-center"
+                            >
+                              View <ExternalLink className="ml-1 w-4 w-4" />
+                            </a>
+                          ) : (
+                            <span className="text-gray-400">
+                              No proof attached
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </Table>
+                {filteredContributions.length > 0 && totalPages > 1 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
                 )}
-              </Table>
+              </>
             )}
           </CardBody>
         </Card>

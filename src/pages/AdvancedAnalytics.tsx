@@ -53,6 +53,7 @@ const AdvancedAnalytics = React.memo(() => {
     patternsError,
     comparativeError,
     refreshCashFlowForecast,
+    refreshComparativeAnalysis,
     refreshAll,
   } = usePredictiveAnalytics();
 
@@ -108,10 +109,25 @@ const AdvancedAnalytics = React.memo(() => {
           reportData.arrears = await collectArrearsData(members, contributions);
           break;
 
-        case 'churn':
         case 'comparative':
+          // If custom periods are provided, fetch fresh comparative data
+          if (params.comparisonPeriods) {
+            const { period1Start, period1End, period2Start, period2End } = params.comparisonPeriods;
+            // Trigger fresh analysis with selected periods
+            await refreshComparativeAnalysis(period1Start, period1End, period2Start, period2End);
+            // Wait a moment for the state to update
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+
+          if (!comparativeAnalysis) {
+            throw new Error('Comparative analysis data is not available. Please wait for data to load or select comparison periods.');
+          }
+          reportData.comparativeAnalysis = comparativeAnalysis;
+          break;
+
+        case 'churn':
         case 'custom':
-          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, Financial Health, and Arrears reports are available.`);
+          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, Financial Health, Arrears, and Comparative reports are available.`);
 
         default:
           throw new Error(`Unknown report type: ${params.reportType}`);
@@ -126,7 +142,7 @@ const AdvancedAnalytics = React.memo(() => {
     } finally {
       setIsGeneratingReport(false);
     }
-  }, [cashFlowForecast, contributionPatterns, financialHealth, members, contributions]);
+  }, [cashFlowForecast, contributionPatterns, financialHealth, comparativeAnalysis, members, contributions]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -331,6 +347,7 @@ const AdvancedAnalytics = React.memo(() => {
           <ComparativeAnalysis
             analysis={comparativeAnalysis!}
             isLoading={isLoadingComparative}
+            onPeriodChange={refreshComparativeAnalysis}
           />
         );
 

@@ -21,6 +21,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     description: "",
     amount: "",
     type: "one-off" as Expense["type"],
+    category: "others" as Expense["category"],
     date: new Date().toISOString().split("T")[0],
     isRecurring: false,
     dayOfMonth: "1",
@@ -37,6 +38,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           description: formData.description,
           amount: parseFloat(formData.amount),
           type: formData.isRecurring ? "recurring" : "one-off",
+          category: formData.category,
           date: toFirestoreTimestamp(formData.date),
           created_by: "user_id", // Replace with actual user ID
         };
@@ -91,6 +93,28 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 }))
               }
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Category
+            </label>
+            <select
+              required
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
+              value={formData.category}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  category: e.target.value as Expense["category"],
+                }))
+              }
+            >
+              <option value="bank-charges">Bank Charges</option>
+              <option value="administration">Administration</option>
+              <option value="social">Social</option>
+              <option value="others">Others</option>
+            </select>
           </div>
 
           <div>

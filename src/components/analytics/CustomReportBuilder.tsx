@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, subDays } from 'date-fns';
 
 interface ReportTemplate {
   id: string;
@@ -9,7 +9,7 @@ interface ReportTemplate {
 }
 
 interface ReportParams {
-  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'custom';
+  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'arrears' | 'custom';
   dateRange: {
     start: Date;
     end: Date;
@@ -19,6 +19,22 @@ interface ReportParams {
   includeRecommendations: boolean;
   format: 'pdf' | 'excel' | 'csv';
   customMetrics?: string[];
+  // For comparative reports
+  comparisonPeriods?: {
+    period1Start: Date;
+    period1End: Date;
+    period2Start: Date;
+    period2End: Date;
+  };
+}
+
+interface PeriodOption {
+  id: string;
+  label: string;
+  period1Start: Date;
+  period1End: Date;
+  period2Start: Date;
+  period2End: Date;
 }
 
 interface CustomReportBuilderProps {
@@ -159,6 +175,75 @@ const CustomReportBuilder = React.memo<CustomReportBuilderProps>(({
     format: 'pdf',
   });
 
+  // Generate period options for comparative reports
+  const periodOptions = useMemo<PeriodOption[]>(() => {
+    const now = new Date();
+    const options: PeriodOption[] = [];
+
+    // Option 1: Recent 3 months vs Previous 3 months
+    const period2End = endOfMonth(now);
+    const period2Start = startOfMonth(subMonths(now, 2));
+    const period1End = endOfMonth(subMonths(period2Start, 1));
+    const period1Start = startOfMonth(subMonths(period1End, 2));
+
+    options.push({
+      id: 'recent-vs-previous',
+      label: 'Recent 3 Months vs Previous 3 Months',
+      period1Start,
+      period1End,
+      period2Start,
+      period2End,
+    });
+
+    // Option 2: This quarter vs Last quarter
+    const currentQuarter = Math.floor(now.getMonth() / 3);
+    const thisQuarterStart = startOfMonth(new Date(now.getFullYear(), currentQuarter * 3, 1));
+    const thisQuarterEnd = endOfMonth(new Date(now.getFullYear(), currentQuarter * 3 + 2, 1));
+    const lastQuarterStart = startOfMonth(subMonths(thisQuarterStart, 3));
+    const lastQuarterEnd = endOfMonth(subMonths(thisQuarterStart, 1));
+
+    options.push({
+      id: 'this-quarter-vs-last',
+      label: 'This Quarter vs Last Quarter',
+      period1Start: lastQuarterStart,
+      period1End: lastQuarterEnd,
+      period2Start: thisQuarterStart,
+      period2End: thisQuarterEnd,
+    });
+
+    // Option 3: Last 90 days vs Previous 90 days
+    const last90DaysEnd = now;
+    const last90DaysStart = subDays(now, 89);
+    const prev90DaysEnd = subDays(last90DaysStart, 1);
+    const prev90DaysStart = subDays(prev90DaysEnd, 89);
+
+    options.push({
+      id: 'last-90-vs-prev-90',
+      label: 'Last 90 Days vs Previous 90 Days',
+      period1Start: prev90DaysStart,
+      period1End: prev90DaysEnd,
+      period2Start: last90DaysStart,
+      period2End: last90DaysEnd,
+    });
+
+    // Option 4: Same period last year
+    const sameQuarterLastYearStart = startOfMonth(subMonths(period2Start, 12));
+    const sameQuarterLastYearEnd = endOfMonth(subMonths(period2End, 12));
+
+    options.push({
+      id: 'this-year-vs-last-year',
+      label: 'Recent 3 Months vs Same Period Last Year',
+      period1Start: sameQuarterLastYearStart,
+      period1End: sameQuarterLastYearEnd,
+      period2Start,
+      period2End,
+    });
+
+    return options;
+  }, []);
+
+  const [selectedPeriodOption, setSelectedPeriodOption] = useState<string>(periodOptions[0].id);
+
   const selectedTemplateData = useMemo(() => {
     if (!selectedTemplate) return null;
     return REPORT_TEMPLATES.find((t) => t.id === selectedTemplate);
@@ -263,6 +348,44 @@ const CustomReportBuilder = React.memo<CustomReportBuilderProps>(({
               <option value="arrears">Members in Arrears</option>
             </select>
           </div>
+
+          {/* Period Selector for Comparative Reports */}
+          {reportParams.reportType === 'comparative' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Select Comparison Periods
+              </label>
+              <select
+                value={selectedPeriodOption}
+                onChange={(e) => {
+                  const optionId = e.target.value;
+                  setSelectedPeriodOption(optionId);
+                  const option = periodOptions.find(opt => opt.id === optionId);
+                  if (option) {
+                    setReportParams((prev) => ({
+                      ...prev,
+                      comparisonPeriods: {
+                        period1Start: option.period1Start,
+                        period1End: option.period1End,
+                        period2Start: option.period2Start,
+                        period2End: option.period2End,
+                      },
+                    }));
+                  }
+                }}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {periodOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                All periods are approximately 3 months (90 days) for accurate comparison
+              </p>
+            </div>
+          )}
 
           {/* Date Range */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

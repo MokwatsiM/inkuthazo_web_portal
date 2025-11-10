@@ -21,6 +21,7 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
     description: expense.description,
     amount: expense.amount.toString(),
     type: expense.type,
+    category: expense.category || "others",
     date: expense.date.toDate().toISOString().split("T")[0],
     isRecurring: expense.type === "recurring",
     dayOfMonth: expense.recurrence?.day_of_month.toString() || "1",
@@ -32,6 +33,7 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       description: expense.description,
       amount: expense.amount.toString(),
       type: expense.type,
+      category: expense.category || "others",
       date: expense.date.toDate().toISOString().split("T")[0],
       isRecurring: expense.type === "recurring",
       dayOfMonth: expense.recurrence?.day_of_month.toString() || "1",
@@ -48,7 +50,8 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
         description: formData.description,
         amount: parseFloat(formData.amount),
         type: formData.isRecurring ? "recurring" : "one-off",
-         date: toFirestoreTimestamp(formData.date),
+        category: formData.category as Expense["category"],
+        date: toFirestoreTimestamp(formData.date),
       };
 
       if (formData.isRecurring) {
@@ -101,6 +104,28 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 }))
               }
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
+              Category
+            </label>
+            <select
+              required
+              className="mt-1 block w-full rounded-input border border-line dark:border-line-dark shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
+              value={formData.category}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  category: e.target.value as Expense["category"],
+                }))
+              }
+            >
+              <option value="bank-charges">Bank Charges</option>
+              <option value="administration">Administration</option>
+              <option value="social">Social</option>
+              <option value="others">Others</option>
+            </select>
           </div>
 
           <div>

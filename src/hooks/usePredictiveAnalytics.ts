@@ -279,17 +279,27 @@ export function usePredictiveAnalytics(): UsePredictiveAnalyticsResult {
 
   // Refresh all analytics
   const refreshAll = useCallback(async () => {
+    // Calculate default date ranges for comparative analysis
+    // Compare last 3 months vs previous 3 months
+    const now = new Date();
+    const period2End = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
+    const period2Start = new Date(now.getFullYear(), now.getMonth() - 2, 1); // 3 months ago
+    const period1End = new Date(period2Start.getTime() - 24 * 60 * 60 * 1000); // Day before period2Start
+    const period1Start = new Date(period1End.getFullYear(), period1End.getMonth() - 2, 1); // 3 months before that
+
     await Promise.all([
       refreshCashFlowForecast(6),
       refreshChurnAnalysis(),
       refreshFinancialHealth(),
       refreshContributionPatterns(),
+      refreshComparativeAnalysis(period1Start, period1End, period2Start, period2End),
     ]);
   }, [
     refreshCashFlowForecast,
     refreshChurnAnalysis,
     refreshFinancialHealth,
     refreshContributionPatterns,
+    refreshComparativeAnalysis,
   ]);
 
   // Load base data on mount

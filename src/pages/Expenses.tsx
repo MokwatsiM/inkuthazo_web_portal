@@ -164,17 +164,17 @@ const Expenses: React.FC = () => {
         </div>
 
         <Table
-          headers={["Date", "Title", "Type", "Amount", "Status", "Actions"]}
+          headers={["Date", "Title", "Category", "Type", "Amount", "Status", "Actions"]}
         >
           {loading ? (
             <tr>
-              <td colSpan={6} className="px-6 py-4 text-center">
+              <td colSpan={7} className="px-6 py-4 text-center">
                 Loading...
               </td>
             </tr>
           ) : filteredExpenses.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+              <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                 No expenses found
               </td>
             </tr>
@@ -193,6 +193,11 @@ const Expenses: React.FC = () => {
                       {expense.description}
                     </div>
                   </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap capitalize">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                    {expense.category ? expense.category.replace('-', ' ') : 'Others'}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap capitalize">
                   <span

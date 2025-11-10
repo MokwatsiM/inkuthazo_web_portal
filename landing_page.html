@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full antialiased">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Portal Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900" style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';">
+    <!-- Page -->
+    <div class="min-h-screen">
+      <!-- Top Nav -->
+      <header class="sticky top-0 z-30 bg-white/70 backdrop-blur border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500"></div>
+            <span class="text-lg md:text-xl font-semibold tracking-tight">Portal</span>
+          </div>
+          <div class="flex items-center gap-3 w-full sm:w-auto sm:min-w-[420px]">
+            <div class="relative flex-1 sm:flex-none sm:w-[420px]">
+              <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
+              <input
+                type="text"
+                placeholder="Search members, claims, reports…"
+                class="w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+              />
+            </div>
+            <button class="hidden sm:flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50 transition">
+              <i data-lucide="sparkles" class="h-4 w-4 text-indigo-500"></i>
+              <span class="text-slate-700">Quick Actions</span>
+            </button>
+            <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=256&auto=format&fit=crop" alt="Avatar" class="h-8 w-8 rounded-full ring-2 ring-white object-cover" />
+          </div>
+        </div>
+      </header>
+
+      <!-- Hero -->
+      <section class="relative overflow-hidden">
+        <div class="absolute inset-0 -z-10">
+          <img
+            src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop"
+            alt="Mountains"
+            class="w-full h-full object-cover opacity-30"
+          />
+          <div class="absolute inset-0 bg-gradient-to-b from-white via-white/80 to-white"></div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div>
+              <h1 class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900">Home</h1>
+              <p class="mt-2 text-slate-600">Navigate the portal with quick-access tiles. Everything you need, organized in a responsive grid.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="hidden sm:flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
+                <i data-lucide="bell" class="h-4 w-4 text-slate-400"></i>
+                <span class="text-sm text-slate-700">3 notifications</span>
+              </div>
+              <a href="#" class="inline-flex items-center gap-2 rounded-lg bg-slate-900 text-white px-4 py-2 text-sm hover:bg-slate-800 transition">
+                <i data-lucide="plus" class="h-4 w-4"></i>
+                New item
+              </a>
+            </div>
+          </div>
+          <!-- Removed KPI cards per request -->
+        </div>
+      </section>
+
+      <!-- Grid Navigation -->
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div class="mt-2 mb-4 flex items-center justify-between">
+          <h2 class="text-xl md:text-2xl font-semibold tracking-tight">Quick Access</h2>
+          <div class="text-sm text-slate-500">Drag to reorder soon</div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <!-- Home -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                  <i data-lucide="home" class="h-5 w-5 text-slate-700"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Home</div>
+                  <p class="text-sm text-slate-500">Overview and quick insights</p>
+                </div>
+              </div>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-300 group-hover:text-slate-400"></i>
+            </div>
+          </a>
+
+          <!-- Members -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                  <i data-lucide="users" class="h-5 w-5 text-indigo-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Members</div>
+                  <p class="text-sm text-slate-500">Manage member records</p>
+                </div>
+              </div>
+              <span class="rounded-full bg-indigo-50 text-indigo-600 text-xs px-2 py-0.5">1,284</span>
+            </div>
+          </a>
+
+          <!-- Contributions -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                  <i data-lucide="credit-card" class="h-5 w-5 text-emerald-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Contributions</div>
+                  <p class="text-sm text-slate-500">Payments and invoices</p>
+                </div>
+              </div>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-300 group-hover:text-slate-400"></i>
+            </div>
+          </a>
+
+          <!-- Payouts -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-green-50 flex items-center justify-center">
+                  <i data-lucide="banknote" class="h-5 w-5 text-green-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Payouts</div>
+                  <p class="text-sm text-slate-500">Disbursements and status</p>
+                </div>
+              </div>
+              <span class="rounded-full bg-green-50 text-green-600 text-xs px-2 py-0.5">$24.8k</span>
+            </div>
+          </a>
+
+          <!-- Claims -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                  <i data-lucide="shield-check" class="h-5 w-5 text-amber-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Claims</div>
+                  <p class="text-sm text-slate-500">Approvals, reviews, audits</p>
+                </div>
+              </div>
+              <span class="rounded-full bg-amber-50 text-amber-700 text-xs px-2 py-0.5">19 open</span>
+            </div>
+          </a>
+
+          <!-- Expenses -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center">
+                  <i data-lucide="receipt" class="h-5 w-5 text-rose-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Expenses</div>
+                  <p class="text-sm text-slate-500">Track and reconcile</p>
+                </div>
+              </div>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-300 group-hover:text-slate-400"></i>
+            </div>
+          </a>
+
+          <!-- Disciplinary -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-orange-50 flex items-center justify-center">
+                  <i data-lucide="alert-triangle" class="h-5 w-5 text-orange-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Disciplinary</div>
+                  <p class="text-sm text-slate-500">Cases and resolutions</p>
+                </div>
+              </div>
+              <span class="rounded-full bg-orange-50 text-orange-700 text-xs px-2 py-0.5">2 new</span>
+            </div>
+          </a>
+
+          <!-- Calendar -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-sky-50 flex items-center justify-center">
+                  <i data-lucide="calendar" class="h-5 w-5 text-sky-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Calendar</div>
+                  <p class="text-sm text-slate-500">Events and deadlines</p>
+                </div>
+              </div>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-300 group-hover:text-slate-400"></i>
+            </div>
+          </a>
+
+          <!-- Host Assignments -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-cyan-50 flex items-center justify-center">
+                  <i data-lucide="calendar-clock" class="h-5 w-5 text-cyan-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Host Assignments</div>
+                  <p class="text-sm text-slate-500">Scheduling & shifts</p>
+                </div>
+              </div>
+              <span class="rounded-full bg-cyan-50 text-cyan-700 text-xs px-2 py-0.5">This week</span>
+            </div>
+          </a>
+
+          <!-- Analytics -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-violet-50 flex items-center justify-center">
+                  <i data-lucide="bar-chart-3" class="h-5 w-5 text-violet-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Analytics</div>
+                  <p class="text-sm text-slate-500">Performance overview</p>
+                </div>
+              </div>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-300 group-hover:text-slate-400"></i>
+            </div>
+          </a>
+
+          <!-- Advanced Analytics (header only, mini chart removed) -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center">
+                  <i data-lucide="trending-up" class="h-5 w-5 text-purple-600"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <div class="text-base font-medium text-slate-900">Advanced Analytics</div>
+                    <span class="inline-flex items-center rounded-full bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5">Beta</span>
+                  </div>
+                  <p class="text-sm text-slate-500">Cohorts, funnels, forecasts</p>
+                </div>
+              </div>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-300 group-hover:text-slate-400"></i>
+            </div>
+          </a>
+
+          <!-- Reports -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <i data-lucide="file-text" class="h-5 w-5 text-slate-700"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Reports</div>
+                  <p class="text-sm text-slate-500">Exports and summaries</p>
+                </div>
+              </div>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-300 group-hover:text-slate-400"></i>
+            </div>
+          </a>
+
+          <!-- Deletion Requests -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-pink-50 flex items-center justify-center">
+                  <i data-lucide="user-x" class="h-5 w-5 text-pink-600"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Deletion Requests</div>
+                  <p class="text-sm text-slate-500">Privacy and compliance</p>
+                </div>
+              </div>
+              <span class="rounded-full bg-pink-50 text-pink-700 text-xs px-2 py-0.5">5 pending</span>
+            </div>
+          </a>
+
+          <!-- Configuration -->
+          <a href="#" class="group relative rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                  <i data-lucide="settings" class="h-5 w-5 text-slate-700"></i>
+                </div>
+                <div>
+                  <div class="text-base font-medium text-slate-900">Configuration</div>
+                  <p class="text-sm text-slate-500">Preferences and setup</p>
+                </div>
+              </div>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-slate-300 group-hover:text-slate-400"></i>
+            </div>
+          </a>
+        </div>
+
+        <!-- Visual Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+          <div class="rounded-2xl overflow-hidden border border-slate-200">
+            <img src="https://images.unsplash.com/photo-1496337589254-7e19d01cec44?q=80&w=1200&auto=format&fit=crop" alt="Minimal render" class="w-full h-40 object-cover" />
+          </div>
+          <div class="rounded-2xl overflow-hidden border border-slate-200">
+            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop" alt="3D abstract" class="w-full h-40 object-cover" />
+          </div>
+          <div class="rounded-2xl overflow-hidden border border-slate-200">
+            <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1200&auto=format&fit=crop" alt="Mountains" class="w-full h-40 object-cover" />
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // Render lucide icons with consistent stroke width
+        lucide.createIcons({ attrs: { 'stroke-width': 1.5 } });
+
+        // Mini chart removed; keep guard
+        const ctx = document.getElementById('aaChart');
+        if (ctx) {
+          const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 80);
+          gradient.addColorStop(0, 'rgba(124, 58, 237, 0.35)');
+          gradient.addColorStop(1, 'rgba(124, 58, 237, 0.02)');
+
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: Array.from({ length: 20 }, (_, i) => i + 1),
+              datasets: [
+                {
+                  data: [8,7,9,10,9,11,12,10,13,15,13,16,18,17,20,21,19,23,24,26],
+                  borderColor: 'rgb(124, 58, 237)',
+                  backgroundColor: gradient,
+                  fill: true,
+                  tension: 0.4,
+                  pointRadius: 0
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false }, tooltip: { enabled: false } },
+              scales: { x: { display: false }, y: { display: false } },
+              elements: { line: { borderWidth: 2 } }
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

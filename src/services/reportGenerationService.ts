@@ -22,6 +22,7 @@ export interface ReportParams {
   includeRecommendations: boolean;
   format: 'pdf' | 'excel' | 'csv';
   customMetrics?: string[];
+  periodDescription?: string; // For comparative reports: e.g., "This Quarter vs Last Quarter"
 }
 
 export interface MemberArrears {
@@ -1652,11 +1653,11 @@ export async function generateReport(
         throw new Error('Comparative analysis data is required for this report type');
       }
       if (params.format === 'pdf') {
-        generateComparativeAnalysisPDF(data.comparativeAnalysis);
+        generateComparativeAnalysisPDF(data.comparativeAnalysis, params.periodDescription);
       } else if (params.format === 'excel') {
-        generateComparativeAnalysisExcel(data.comparativeAnalysis);
+        generateComparativeAnalysisExcel(data.comparativeAnalysis, params.periodDescription);
       } else if (params.format === 'csv') {
-        generateComparativeAnalysisCSV(data.comparativeAnalysis);
+        generateComparativeAnalysisCSV(data.comparativeAnalysis, params.periodDescription);
       }
       break;
 
@@ -1671,15 +1672,19 @@ export async function generateReport(
 
 // ==================== COMPARATIVE ANALYSIS REPORT GENERATION ====================
 
-function generateComparativeAnalysisPDF(data: ComparativeAnalysis): void {
+function generateComparativeAnalysisPDF(data: ComparativeAnalysis, periodDescription?: string): void {
   const doc = new jsPDF();
   let yPos = 20;
 
   // Header
+  const subtitle = periodDescription
+    ? `${periodDescription} - Generated on ${format(new Date(), 'dd MMM yyyy HH:mm')}`
+    : `Generated on ${format(new Date(), 'dd MMM yyyy HH:mm')}`;
+
   addPdfHeader(
     doc,
     'Period Comparison Report',
-    `Generated on ${format(new Date(), 'dd MMM yyyy HH:mm')}`
+    subtitle
   );
   yPos = 35;
 
@@ -1732,12 +1737,7 @@ function generateComparativeAnalysisPDF(data: ComparativeAnalysis): void {
       4: {
         cellWidth: 25,
         halign: 'center',
-        textColor: (rowIndex: number) => {
-          const trend = data.comparisons[rowIndex]?.trend;
-          if (trend === 'increasing') return [16, 185, 129]; // green
-          if (trend === 'decreasing') return [239, 68, 68]; // red
-          return [107, 114, 128]; // gray
-        },
+        textColor: [107, 114, 128], // gray
       },
     },
   });
@@ -1822,12 +1822,13 @@ function generateComparativeAnalysisPDF(data: ComparativeAnalysis): void {
   doc.save(`comparative-analysis-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
 }
 
-function generateComparativeAnalysisExcel(data: ComparativeAnalysis): void {
+function generateComparativeAnalysisExcel(data: ComparativeAnalysis, periodDescription?: string): void {
   const workbook = XLSX.utils.book_new();
 
   // Sheet 1: Summary
   const summaryData = [
     ['Period Comparison Report'],
+    ...(periodDescription ? [[periodDescription]] : []),
     [`Generated: ${format(new Date(), 'dd MMM yyyy HH:mm')}`],
     [],
     ['Period 1', `${format(data.period1.startDate, 'dd MMM yyyy')} - ${format(data.period1.endDate, 'dd MMM yyyy')}`],
@@ -1870,9 +1871,10 @@ function generateComparativeAnalysisExcel(data: ComparativeAnalysis): void {
   XLSX.writeFile(workbook, `comparative-analysis-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
 }
 
-function generateComparativeAnalysisCSV(data: ComparativeAnalysis): void {
+function generateComparativeAnalysisCSV(data: ComparativeAnalysis, periodDescription?: string): void {
   const csvData = [
     ['Period Comparison Report'],
+    ...(periodDescription ? [[periodDescription]] : []),
     [`Generated: ${format(new Date(), 'dd MMM yyyy HH:mm')}`],
     [],
     ['Period 1', `${format(data.period1.startDate, 'dd MMM yyyy')} - ${format(data.period1.endDate, 'dd MMM yyyy')}`],
@@ -1949,7 +1951,7 @@ export async function collectArrearsData(
           monthsOwed: unpaidMonths.length,
           totalAmountOwed: totalOwed,
           unpaidMonths: unpaidMonths.map((month) => ({
-            month: month.month,
+            month: format(month.month, 'MMM yyyy'),
             amount: month.amount,
           })),
         });

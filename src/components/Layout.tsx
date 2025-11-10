@@ -48,12 +48,6 @@ const Layout: React.FC = () => {
     { path: "/", icon: Home, label: "Home", color: "text-emerald-500" },
     { path: "/members", icon: Users, label: "Members", color: "text-blue-500" },
     {
-      path: "/contributions",
-      icon: CreditCard,
-      label: "Contributions",
-      color: "text-violet-500",
-    },
-    {
       path: "/payouts",
       icon: DollarSign,
       label: "Payouts",

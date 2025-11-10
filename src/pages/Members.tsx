@@ -37,7 +37,7 @@ const Members: React.FC = () => {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   // UI states
-  const [currentView, setCurrentView] = useState<ViewType>("list");
+  const [currentView, setCurrentView] = useState<ViewType>("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<Member[]>([]);
   const [filters, setFilters] = useState<FilterOptions>({

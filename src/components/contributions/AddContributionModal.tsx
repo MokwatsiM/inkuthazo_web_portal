@@ -76,7 +76,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
         <h2 className="text-xl font-bold mb-4 text-text-primary dark:text-text-primary-dark">Record New Contribution</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
-            {isAdmin && members!.length > 0 && (
+            {isAdmin && members && members.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                   Member
@@ -94,7 +94,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
                 >
                   <option value="">Select a member</option>
 
-                  {members!.map((member) => (
+                  {members.map((member) => (
                     <option key={member.id} value={member.id}>
                       {member.full_name}
                     </option>

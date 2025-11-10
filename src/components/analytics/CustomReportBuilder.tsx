@@ -370,6 +370,7 @@ const CustomReportBuilder = React.memo<CustomReportBuilderProps>(({
                         period2Start: option.period2Start,
                         period2End: option.period2End,
                       },
+                      periodDescription: option.label,
                     }));
                   }
                 }}

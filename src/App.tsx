@@ -9,14 +9,15 @@ import ConnectionStatus from "./components/ui/ConnectionStatus";
 import ErrorBoundary from "./components/error/ErrorBoundary";
 import { initializeConnectionHandler } from "./utils/firebaseConnection";
 import Layout from "./components/Layout";
+import FullScreenLayout from "./components/FullScreenLayout";
 import AuthLayout from "./components/auth/AuthLayout";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import ForgotPassword from "./components/auth/ForgotPassword";
+import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import Members from "./pages/Members";
 import MemberDetail from "./pages/MemberDetail";
-import Contributions from "./pages/Contributions";
 import MyContributions from "./pages/MyContributions";
 import Reports from "./pages/Reports";
 import Payouts from "./pages/Payouts";
@@ -63,145 +64,219 @@ const AppRoutes: React.FC = () => {
         <Route path="reset-password" element={<ResetPassword />} />
       </Route>
 
+      {/* Landing Page - Full Screen */}
       <Route
         path="/"
         element={
           <ProtectedRoute>
-            <Layout />
+            <LandingPage />
           </ProtectedRoute>
         }
-      >
-        <Route index element={<Dashboard />} />
+      />
 
-        <Route
-          path="members"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <Members />
-            </RoleBasedRoute>
-          }
-        />
+      {/* Home/Dashboard - Full Screen */}
+      <Route
+        path="/home"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <Dashboard />
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route path="members/:id" element={<MemberDetail />} />
+      {/* All other routes - Full Screen with TopNavBar */}
+      <Route
+        path="/members"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <Members />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="contributions"
-          element={
-            <RoleBasedRoute allowedRoles={["admin", ]}>
-              <Contributions />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/members/:id"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <MemberDetail />
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="my-contributions"
-          element={
-            <RoleBasedRoute allowedRoles={["member","dc_member"]}>
-              <MyContributions />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/my-contributions"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["member", "dc_member"]}>
+                <MyContributions />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="payouts"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <Payouts />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/payouts"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <Payouts />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="claims"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <Claims />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/claims"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <Claims />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="expenses"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <Expenses />
-            </RoleBasedRoute>
-          }
-        />
-        <Route
-          path="disciplinary"
-          element={
-            <RoleBasedRoute allowedRoles={["admin", "member", "dc_member"]}>
-              <Disciplinary />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/expenses"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <Expenses />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="analytics"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <Analytics />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/disciplinary"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin", "member", "dc_member"]}>
+                <Disciplinary />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="advanced-analytics"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <AdvancedAnalytics />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <Analytics />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route path="calendar" element={<Calendar />} />
+      <Route
+        path="/advanced-analytics"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <AdvancedAnalytics />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="reports"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <Reports />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <Calendar />
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="deletion-requests"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <DeletionRequests />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <Reports />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="configuration"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <Configuration />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/deletion-requests"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <DeletionRequests />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="host-assignments"
-          element={
-            <RoleBasedRoute allowedRoles={["admin"]}>
-              <HostAssignments />
-            </RoleBasedRoute>
-          }
-        />
+      <Route
+        path="/configuration"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <Configuration />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="my-hosting-schedule"
-          element={
-            <RoleBasedRoute allowedRoles={["member"]}>
-              <MemberHostView />
-            </RoleBasedRoute>
-          }
-        />
-      </Route>
+      <Route
+        path="/host-assignments"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <HostAssignments />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/my-hosting-schedule"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["member"]}>
+                <MemberHostView />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="*"

@@ -6,6 +6,7 @@
 import { format, subMonths, startOfMonth, endOfMonth, differenceInMonths, parseISO } from 'date-fns';
 import { cacheService, CacheKeys } from './cacheService';
 import { CACHE } from '../constants';
+import { calculateUnpaidMonths } from '../utils/invoice/calculator';
 import {
   mean,
   standardDeviation,
@@ -280,27 +281,45 @@ export async function forecastCashFlow(
 
 // ==================== MEMBER CHURN PREDICTION ====================
 
-function calculateMemberRiskFactors(
+async function calculateMemberRiskFactors(
   member: Member,
   memberContributions: Contribution[]
-): ChurnRiskFactor[] {
+): Promise<ChurnRiskFactor[]> {
   const now = new Date();
   const threeMonthsAgo = subMonths(now, 3);
   const recentContributions = memberContributions.filter(c => c.date.toDate() >= threeMonthsAgo);
 
   const riskFactors: ChurnRiskFactor[] = [];
 
-  // Factor 1: Missed Payments (40% weight)
-  const missedPayments = 3 - recentContributions.filter(c => c.status === 'approved').length;
-  const missedScore = normalize(missedPayments, 0, 3, 0, 100);
+  // Factor 1: Missed Payments (20% weight - using invoice calculation logic)
+  let missedPayments = 0;
+  let totalOwed = 0;
+
+  try {
+    // Use the same logic as invoice generation to calculate unpaid months
+    const unpaidMonths = await calculateUnpaidMonths(
+      memberContributions,
+      member.join_date.toDate()
+    );
+    missedPayments = unpaidMonths.length;
+    totalOwed = unpaidMonths.reduce((sum, month) => sum + month.amount, 0);
+  } catch (error) {
+    console.error('Error calculating unpaid months:', error);
+    // Fallback to simple calculation if invoice logic fails
+    missedPayments = 3 - recentContributions.length;
+  }
+
+  const missedScore = normalize(missedPayments, 0, 6, 0, 100);
   riskFactors.push({
     factor: 'Missed Payments',
     score: missedScore,
-    weight: 40,
-    description: `${missedPayments} missed payment(s) in last 3 months`
+    weight: 20,
+    description: totalOwed > 0
+      ? `${missedPayments} unpaid month(s) - R${totalOwed.toFixed(2)} owed`
+      : `${missedPayments} missed payment(s) in last 3 months`
   });
 
-  // Factor 2: Late Payments (30% weight)
+  // Factor 2: Late Payments (15% weight - reduced from 30%)
   const latePayments = recentContributions.filter(c => {
     const daysLate = Math.floor((c.date.toDate().getTime() - startOfMonth(c.date.toDate()).getTime()) / (1000 * 60 * 60 * 24));
     return daysLate > 7; // Consider late if paid after 7th of the month
@@ -309,11 +328,11 @@ function calculateMemberRiskFactors(
   riskFactors.push({
     factor: 'Late Payments',
     score: lateScore,
-    weight: 30,
+    weight: 15,
     description: `${latePayments} late payment(s) in last 3 months`
   });
 
-  // Factor 3: Contribution Amount Decline (20% weight)
+  // Factor 3: Contribution Amount Decline (10% weight - reduced from 20%)
   if (memberContributions.length >= 6) {
     const recentAmounts = memberContributions.slice(-3).map(c => c.amount);
     const olderAmounts = memberContributions.slice(-6, -3).map(c => c.amount);
@@ -325,19 +344,19 @@ function calculateMemberRiskFactors(
     riskFactors.push({
       factor: 'Contribution Decline',
       score: declineScore,
-      weight: 20,
+      weight: 10,
       description: decline > 0 ? `${decline.toFixed(1)}% decrease in contribution amount` : 'No decline detected'
     });
   } else {
     riskFactors.push({
       factor: 'Contribution Decline',
       score: 0,
-      weight: 20,
+      weight: 10,
       description: 'Insufficient history to measure'
     });
   }
 
-  // Factor 4: Engagement Decline (10% weight)
+  // Factor 4: Engagement Decline (5% weight - reduced from 10%)
   const allTimeContributions = memberContributions.length;
   const recentContributionCount = recentContributions.length;
   const expectedContributions = 3;
@@ -346,7 +365,7 @@ function calculateMemberRiskFactors(
   riskFactors.push({
     factor: 'Engagement Level',
     score: engagementScore,
-    weight: 10,
+    weight: 5,
     description: `${recentContributionCount} of ${expectedContributions} expected contributions`
   });
 
@@ -363,27 +382,65 @@ export async function predictMemberChurn(
   if (cached) return cached;
 
   const predictions: MemberChurnPrediction[] = [];
+  const now = new Date();
 
   for (const member of members) {
     if (member.status !== 'approved') continue;
 
     const memberContributions = contributions
-      .filter(c => c.member_id === member.id)
+      .filter(c => c.member_id === member.id && c.status === 'approved')
       .sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime());
-
-    const riskFactors = calculateMemberRiskFactors(member, memberContributions);
-
-    // Calculate weighted risk score
-    const riskScore = riskFactors.reduce((sum, factor) => {
-      return sum + (factor.score * factor.weight / 100);
-    }, 0);
-
-    // Determine risk level
-    const riskLevel = riskScore >= 70 ? 'high' : riskScore >= 40 ? 'medium' : 'low';
 
     // Get last contribution date
     const lastContribution = memberContributions[memberContributions.length - 1];
     const lastContributionDate = lastContribution ? lastContribution.date.toDate() : null;
+
+    // Calculate months since last contribution
+    let monthsSinceLastPayment = 0;
+    let riskLevel: 'low' | 'medium' | 'high' = 'low';
+    let riskScore = 0;
+
+    if (lastContributionDate) {
+      const daysSinceLastPayment = Math.floor((now.getTime() - lastContributionDate.getTime()) / (1000 * 60 * 60 * 24));
+      monthsSinceLastPayment = daysSinceLastPayment / 30; // Approximate months
+
+      // Determine risk level and score based on months without payment
+      // 1-3 months: Low risk (score: 0-33)
+      // 3-6 months: Medium risk (score: 34-66)
+      // 6+ months: High risk (score: 67-100)
+      if (monthsSinceLastPayment >= 6) {
+        riskLevel = 'high';
+        riskScore = Math.min(100, 67 + ((monthsSinceLastPayment - 6) / 6) * 33);
+      } else if (monthsSinceLastPayment >= 3) {
+        riskLevel = 'medium';
+        riskScore = 34 + ((monthsSinceLastPayment - 3) / 3) * 32;
+      } else if (monthsSinceLastPayment >= 1) {
+        riskLevel = 'low';
+        riskScore = (monthsSinceLastPayment / 3) * 33;
+      } else {
+        // Less than 1 month - no risk (member is active)
+        riskLevel = 'low';
+        riskScore = 0;
+      }
+    } else {
+      // No contributions at all - high risk
+      riskLevel = 'high';
+      riskScore = 100;
+      monthsSinceLastPayment = 999; // Indicate never paid
+    }
+
+    // Create risk factors based on the calculation
+    const riskFactors = await calculateMemberRiskFactors(member, memberContributions);
+
+    // Add time-based risk factor as primary indicator
+    riskFactors.unshift({
+      factor: 'Time Since Last Payment',
+      score: riskScore,
+      weight: 50, // Give this the highest weight
+      description: lastContributionDate
+        ? `${monthsSinceLastPayment.toFixed(1)} months since last payment`
+        : 'No payments recorded'
+    });
 
     // Count missed and late payments
     const threeMonthsAgo = subMonths(new Date(), 3);
@@ -404,19 +461,25 @@ export async function predictMemberChurn(
       contributionDecline = olderAvg > 0 ? ((olderAvg - recentAvg) / olderAvg) * 100 : 0;
     }
 
-    // Generate recommendations
+    // Generate recommendations based on time since last payment
     const recommendations: string[] = [];
-    if (riskScore >= 70) {
-      recommendations.push('Immediate contact recommended');
-      recommendations.push('Schedule one-on-one meeting');
-      recommendations.push('Review member circumstances and offer support');
-    } else if (riskScore >= 40) {
-      recommendations.push('Send payment reminder');
-      recommendations.push('Check if member needs assistance');
+
+    if (monthsSinceLastPayment >= 6) {
+      recommendations.push('URGENT: No payment for 6+ months - immediate contact required');
+      recommendations.push('Schedule one-on-one meeting to understand circumstances');
+      recommendations.push('Consider member status review');
+      recommendations.push('Offer payment plan if needed');
+    } else if (monthsSinceLastPayment >= 3) {
+      recommendations.push('No payment for 3+ months - send reminder and follow up');
+      recommendations.push('Check if member needs assistance or payment plan');
+      recommendations.push('Reach out via phone or SMS');
+    } else if (monthsSinceLastPayment >= 1) {
+      recommendations.push('Payment overdue - send friendly reminder');
+      recommendations.push('Check if member has any questions or concerns');
     }
 
     if (missedPayments >= 2) {
-      recommendations.push('Multiple missed payments - urgent follow-up needed');
+      recommendations.push('Multiple missed payments in recent months');
     }
 
     if (contributionDecline > 20) {
@@ -566,7 +629,10 @@ export async function calculateFinancialHealth(
   // 3. Member Growth Rate
   const activeMembers = members.filter(m => m.status === 'approved');
   const sixMonthsAgoMembers = members.filter(m =>
-    m.status === 'approved' && m.join_date && m.join_date.toDate() < sixMonthsAgo
+    m.status === 'approved'  ||  m.status === 'inactive'  && m.join_date && m.join_date.toDate() < sixMonthsAgo
+  );
+   const sixMonthsAgoMembersInactive = members.filter(m =>
+     m.status === 'inactive' && m.join_date && m.join_date.toDate() < sixMonthsAgo
   );
   const memberGrowthRate = sixMonthsAgoMembers.length > 0
     ? ((activeMembers.length - sixMonthsAgoMembers.length) / sixMonthsAgoMembers.length) * 100
@@ -901,8 +967,8 @@ export async function analyzeContributionPatterns(
     const stdDev = standardDeviation(amounts);
     const coefficientOfVariation = avgAmount > 0 ? (stdDev / avgAmount) * 100 : 100;
 
-    // Calculate consistency score (lower CV = higher consistency)
-    const consistencyScore = normalize(100 - coefficientOfVariation, 0, 100, 0, 100);
+    // Calculate base consistency score (lower CV = higher consistency)
+    let consistencyScore = normalize(100 - coefficientOfVariation, 0, 100, 0, 100);
 
     // Determine payment frequency
     const dates = memberContributions.map(c => c.date.toDate());
@@ -916,7 +982,7 @@ export async function analyzeContributionPatterns(
     const paymentFrequency = avgInterval < 35 ? 'regular' :
                              avgInterval < 50 ? 'irregular' : 'sporadic';
 
-    // Preferred day of month
+    // Preferred day of month and payment timing analysis
     const days = memberContributions.map(c => c.date.toDate().getDate());
     const dayFrequency: Record<number, number> = {};
     days.forEach(day => {
@@ -926,6 +992,46 @@ export async function analyzeContributionPatterns(
       count > max.count ? { day: parseInt(day), count } : max,
       { day: 0, count: 0 }
     ).day;
+
+    // Calculate early payment bonus (1st-7th of month)
+    const earlyPayments = days.filter(day => day >= 1 && day <= 7).length;
+    const latePayments = days.filter(day => day > 7).length;
+    const earlyPaymentRate = earlyPayments / days.length;
+    const latePaymentRate = latePayments / days.length;
+
+    // Apply payment timing adjustments (up to +15% for early, -15% for late)
+    if (earlyPaymentRate > 0.7) {
+      // 70%+ early payments: +15% bonus
+      consistencyScore = Math.min(100, consistencyScore * 1.15);
+    } else if (earlyPaymentRate > 0.5) {
+      // 50-70% early payments: +10% bonus
+      consistencyScore = Math.min(100, consistencyScore * 1.10);
+    } else if (latePaymentRate > 0.7) {
+      // 70%+ late payments: -15% penalty
+      consistencyScore = consistencyScore * 0.85;
+    } else if (latePaymentRate > 0.5) {
+      // 50-70% late payments: -10% penalty
+      consistencyScore = consistencyScore * 0.90;
+    }
+
+    // Check if member is in arrears using invoice calculation logic
+    let isInArrears = false;
+    try {
+      const unpaidMonths = await calculateUnpaidMonths(
+        memberContributions,
+        member.join_date.toDate()
+      );
+      isInArrears = unpaidMonths.length > 0;
+
+      // Apply arrears penalty (up to -25% based on months owed)
+      if (isInArrears) {
+        const arrearsPenalty = Math.min(0.25, unpaidMonths.length * 0.05); // 5% per month, max 25%
+        consistencyScore = consistencyScore * (1 - arrearsPenalty);
+      }
+    } catch (error) {
+      console.error('Error checking arrears for member:', member.id, error);
+      // Continue without arrears check if it fails
+    }
 
     // Preferred method
     const methods = memberContributions.map(c => c.payment_method || 'unknown');

@@ -7,6 +7,7 @@ import ContributionPatterns from '../components/analytics/ContributionPatterns';
 import ComparativeAnalysis from '../components/analytics/ComparativeAnalysis';
 import CustomReportBuilder from '../components/analytics/CustomReportBuilder';
 import { useNavigate } from 'react-router-dom';
+import { generateReport, ReportParams } from '../services/reportGenerationService';
 
 type TabId = 'overview' | 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'reports';
 
@@ -68,15 +69,54 @@ const AdvancedAnalytics = React.memo(() => {
     [navigate]
   );
 
-  const handleGenerateReport = useCallback(async (params: any) => {
+  const handleGenerateReport = useCallback(async (params: ReportParams) => {
     setIsGeneratingReport(true);
-    console.log('Generating report with params:', params);
-    // TODO: Implement actual report generation
-    setTimeout(() => {
+
+    try {
+      // Prepare report data based on report type
+      const reportData: any = {};
+
+      switch (params.reportType) {
+        case 'cash-flow':
+          if (!cashFlowForecast) {
+            throw new Error('Cash flow forecast data is not available. Please wait for data to load.');
+          }
+          reportData.cashFlowForecast = cashFlowForecast;
+          break;
+
+        case 'patterns':
+          if (!contributionPatterns) {
+            throw new Error('Contribution patterns data is not available. Please wait for data to load.');
+          }
+          reportData.contributionPatterns = contributionPatterns;
+          break;
+
+        case 'health':
+          if (!financialHealth) {
+            throw new Error('Financial health data is not available. Please wait for data to load.');
+          }
+          reportData.financialHealth = financialHealth;
+          break;
+
+        case 'churn':
+        case 'comparative':
+        case 'custom':
+          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, and Financial Health reports are available.`);
+
+        default:
+          throw new Error(`Unknown report type: ${params.reportType}`);
+      }
+
+      // Generate the report
+      await generateReport(params, reportData);
+
+    } catch (error) {
+      console.error('Error generating report:', error);
+      alert(error instanceof Error ? error.message : 'Failed to generate report. Please try again.');
+    } finally {
       setIsGeneratingReport(false);
-      alert('Report generation is not yet implemented. This will be added in a future update.');
-    }, 2000);
-  }, []);
+    }
+  }, [cashFlowForecast, contributionPatterns, financialHealth]);
 
   const renderTabContent = () => {
     switch (activeTab) {

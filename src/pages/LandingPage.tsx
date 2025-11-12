@@ -22,6 +22,7 @@ import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
 import Avatar from '../components/avatar/Avatar';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import WelcomeBanner from '../components/dashboard/WelcomeBanner';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -281,26 +282,26 @@ const LandingPage: React.FC = () => {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <img
-           src="/group_photo.jpg"
+            src="/group_photo.jpg"
             alt="Mountains"
             className="w-full h-full object-cover opacity-30 dark:opacity-20"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-white dark:from-gray-900 via-white/80 dark:via-gray-900/80 to-white dark:to-gray-900"></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">Welcome</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Navigate the portal with quick-access tiles. Everything you need, organized in a responsive grid.
-            </p>
-          </div>
+          {/* Welcome Banner */}
+          <WelcomeBanner
+            userName={userDetails?.full_name || "Admin"}
+            userRole={userDetails?.role || "admin"}
+            memberSince={userDetails?.join_date?.toDate()}
+          />
         </div>
       </section>
 
       {/* Grid Navigation */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="mt-2 mb-4 flex items-center justify-between">
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Quick Access</h2>
+          <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Quick Access Menu</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -342,21 +343,21 @@ const LandingPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
           <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-gray-700">
             <img
-           src="/group_photo.jpg"
+              src="/group_photo.jpg"
               alt="Minimal render"
               className="w-full h-40 object-cover dark:opacity-80"
             />
           </div>
           <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-gray-700">
             <img
-             src="/group_photo_2.jpg"
+              src="/group_photo_2.jpg"
               alt="3D abstract"
               className="w-full h-40 object-cover dark:opacity-80"
             />
           </div>
           <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-gray-700">
             <img
-             src="/group_3.jpeg"
+              src="/group_3.jpeg"
               alt="Mountains"
               className="w-full h-40 object-cover dark:opacity-80"
             />

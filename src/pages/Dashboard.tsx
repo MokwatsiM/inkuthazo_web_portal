@@ -288,12 +288,7 @@ const Dashboard: React.FC = () => {
 
   const renderAdminDashboard = () => (
     <div className="space-y-8">
-      {/* Welcome Banner */}
-      <WelcomeBanner
-        userName={userDetails?.full_name || "Admin"}
-        userRole={userDetails?.role || "admin"}
-        memberSince={userDetails?.join_date?.toDate()}
-      />
+      
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

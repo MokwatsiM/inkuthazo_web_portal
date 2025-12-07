@@ -5,7 +5,13 @@
       "Bash(xargs cat:*)",
       "Bash(cp:*)",
       "Bash(mv:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm view:*)",
+      "Bash(rm:*)",
+      "Bash(npm install:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm pack:*)",
+      "Bash(tar:*)"
     ],
     "deny": [],
     "ask": []

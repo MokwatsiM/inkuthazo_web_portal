@@ -52,3 +52,12 @@ export interface DisciplinaryRecord {
 export type { Contribution } from "./contribution";
 export type { Payout } from "./payout";
 export type { HostAssignment, HostSchedule, HostAssignmentFilters, GenerateHostScheduleParams } from "./hostAssignment";
+export type { 
+  AttendanceSession, 
+  AttendanceSessionInput, 
+  AttendanceRecord, 
+  AttendanceRecordInput, 
+  AttendanceSessionSummary, 
+  AttendanceSessionFilters, 
+  QRValidationResult 
+} from "./attendance";

@@ -311,22 +311,22 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <NotificationProvider>
-          <AuthProvider>
-            <AnalyticsProvider>
-              <BrowserRouter>
-                <SessionProvider>
-                  <NotificationContainer />
-                  <ConnectionStatus />
-                  <AppRoutes />
-                </SessionProvider>
-              </BrowserRouter>
-            </AnalyticsProvider>
-          </AuthProvider>
-        </NotificationProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <NotificationProvider>
+        <AuthProvider>
+          <AnalyticsProvider>
+            <BrowserRouter>
+              <SessionProvider>
+                <NotificationContainer />
+                <ConnectionStatus />
+                <AppRoutes />
+              </SessionProvider>
+            </BrowserRouter>
+          </AnalyticsProvider>
+        </AuthProvider>
+      </NotificationProvider>
+    </ThemeProvider>
+   </ErrorBoundary>
   );
 };
 

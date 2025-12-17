@@ -145,13 +145,9 @@ export const validateQRCode = async (
       return { valid: false, error: "You have already checked in to this meeting." };
     }
     
-    // Check capacity if set
-    if (session.max_attendees) {
-      const attendees = await getSessionAttendees(session.id);
-      if (attendees.length >= session.max_attendees) {
-        return { valid: false, error: "This meeting has reached maximum capacity." };
-      }
-    }
+    // Note: Capacity check is skipped here because members can only read their own
+    // attendance records (not all records for a session). Admin will see the count
+    // in their dashboard. If max_attendees is critical, consider using Cloud Functions.
     
     return { valid: true, session };
   } catch (error) {

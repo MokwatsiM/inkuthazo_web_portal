@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Camera, CameraOff, Keyboard, X, CheckCircle, AlertCircle } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
@@ -14,6 +14,9 @@ interface QRScannerProps {
     onCancel?: () => void;
 }
 
+// Generate a unique ID for each scanner instance to avoid DOM conflicts
+let scannerCounter = 0;
+
 const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
     const { user, userDetails } = useAuth();
     const { showSuccess, showError } = useNotifications();
@@ -22,6 +25,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
     const [showManualInput, setShowManualInput] = useState(false);
     const [manualCode, setManualCode] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [scannerReady, setScannerReady] = useState(false);
     const [result, setResult] = useState<{
         success: boolean;
         message: string;
@@ -29,19 +33,97 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
     } | null>(null);
 
     const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
-    const scannerContainerRef = useRef<HTMLDivElement>(null);
+    const scannerIdRef = useRef<string>(`qr-reader-${++scannerCounter}`);
+    const scannerContainerRef = useRef<HTMLDivElement | null>(null);
+    const isMountedRef = useRef(true);
+    const isStartingRef = useRef(false);
 
-    useEffect(() => {
+    // Cleanup function
+    const cleanupScanner = useCallback(async () => {
+        const scanner = html5QrCodeRef.current;
+        if (!scanner) return;
+
+        html5QrCodeRef.current = null;
+
+        try {
+            if (scanner.isScanning) {
+                await scanner.stop();
+            }
+        } catch (error: any) {
+            // Ignore all stop errors - these are common during unmount
+            if (error?.name !== 'NotFoundError' && error?.name !== 'AbortError') {
+                console.warn('Scanner stop error:', error);
+            }
+        }
+
+        // Small delay to allow stop to fully complete
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // Clear the scanner in a try-catch to handle any DOM conflicts
+        try {
+            scanner.clear();
+        } catch (error: any) {
+            // Silently ignore clear errors - DOM might already be cleaned up
+        }
+    }, []);
+
+    // Use layoutEffect to ensure cleanup happens before React tries to remove DOM nodes
+    useLayoutEffect(() => {
+        isMountedRef.current = true;
+        setScannerReady(true);
+
+        // Suppress AbortError from media elements (common when navigating away during camera init)
+        const handleGlobalError = (event: PromiseRejectionEvent) => {
+            if (event.reason?.name === 'AbortError' &&
+                event.reason?.message?.includes('play()')) {
+                event.preventDefault();
+            }
+        };
+        window.addEventListener('unhandledrejection', handleGlobalError);
+
         return () => {
-            stopScanning();
+            isMountedRef.current = false;
+            window.removeEventListener('unhandledrejection', handleGlobalError);
+
+            // Cleanup scanner synchronously before React removes DOM
+            const scanner = html5QrCodeRef.current;
+            if (scanner) {
+                html5QrCodeRef.current = null;
+                try {
+                    if (scanner.isScanning) {
+                        scanner.stop().catch(() => {});
+                    }
+                    // Clear scanner DOM immediately and synchronously
+                    scanner.clear();
+                } catch (e) {
+                    // Ignore errors during cleanup
+                }
+            }
         };
     }, []);
 
     const startScanning = async () => {
-        if (!scannerContainerRef.current) return;
+        if (isStartingRef.current || isScanning) return;
+        if (!scannerReady) return;
+
+        isStartingRef.current = true;
 
         try {
-            const html5QrCode = new Html5Qrcode("qr-reader");
+            // Clean up any existing scanner first
+            await cleanupScanner();
+
+            // Small delay to ensure DOM is ready
+            await new Promise((resolve) => setTimeout(resolve, 200));
+
+            if (!isMountedRef.current) return;
+
+            const scannerId = scannerIdRef.current;
+            const container = document.getElementById(scannerId);
+            if (!container) {
+                throw new Error("Scanner container not found");
+            }
+
+            const html5QrCode = new Html5Qrcode(scannerId);
             html5QrCodeRef.current = html5QrCode;
 
             await html5QrCode.start(
@@ -49,37 +131,44 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
                 {
                     fps: 10,
                     qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
                 },
                 handleQRCodeScanned,
-                (_errorMessage) => {
-                    // QR Code scanning error (ignore - this fires frequently when no QR in view)
+                () => {
+                    // Ignore scan errors - fires when no QR in view
                 }
             );
 
-            setIsScanning(true);
+            if (isMountedRef.current) {
+                setIsScanning(true);
+            }
         } catch (error: any) {
+            if (!isMountedRef.current) return;
+
+            // Don't show error for AbortError or NotFoundError (common during unmount)
+            if (error?.name === "AbortError" || error?.name === "NotFoundError") {
+                return;
+            }
+
             console.error("Failed to start scanner:", error);
             showError(
                 error.message || "Unable to access camera. Please check permissions or use manual entry."
             );
             setShowManualInput(true);
+        } finally {
+            isStartingRef.current = false;
         }
     };
 
     const stopScanning = async () => {
-        if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
-            try {
-                await html5QrCodeRef.current.stop();
-                html5QrCodeRef.current.clear();
-            } catch (error) {
-                console.error("Error stopping scanner:", error);
-            }
+        await cleanupScanner();
+        if (isMountedRef.current) {
+            setIsScanning(false);
         }
-        html5QrCodeRef.current = null;
-        setIsScanning(false);
     };
 
     const handleQRCodeScanned = async (decodedText: string) => {
+        // Stop scanning immediately to prevent multiple scans
         await stopScanning();
         await processQRCode(decodedText);
     };
@@ -195,23 +284,23 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
                 </div>
             )}
 
-            {/* Scanner Area */}
+            {/* Scanner Area - Always rendered but hidden when not in use */}
             {!result && !showManualInput && (
                 <div className="mb-6">
-                    <div
-                        ref={scannerContainerRef}
-                        id="qr-reader"
-                        className="mx-auto max-w-sm bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden"
-                        style={{ minHeight: isScanning ? "auto" : "250px" }}
+                    <div className="mx-auto max-w-sm bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden relative"
+                        style={{ minHeight: "300px" }}
                     >
+                        <div
+                            id={scannerIdRef.current}
+                            ref={scannerContainerRef}
+                            suppressHydrationWarning
+                        />
                         {!isScanning && (
-                            <div className="flex items-center justify-center h-64
-
-">
+                            <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="text-center">
                                     <Camera className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                                     <p className="text-gray-500 dark:text-gray-400 text-sm">
-                                        Camera preview will appear here
+                                        Click "Start Camera" to begin scanning
                                     </p>
                                 </div>
                             </div>
@@ -265,7 +354,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
                                     Stop Camera
                                 </Button>
                             ) : (
-                                <Button onClick={startScanning}>
+                                <Button onClick={startScanning} disabled={!scannerReady}>
                                     <Camera className="h-4 w-4 mr-2" />
                                     Start Camera
                                 </Button>

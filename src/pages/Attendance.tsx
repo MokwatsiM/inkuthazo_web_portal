@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Plus, QrCode, History, RefreshCw } from "lucide-react";
 import Button from "../components/ui/Button";
 import EmptyState from "../components/ui/EmptyState";
+import ErrorBoundary from "../components/error/ErrorBoundary";
 import {
     CreateSessionModal,
     QRCodeDisplay,
@@ -221,7 +222,28 @@ const Attendance: React.FC = () => {
             </div>
 
             {/* Tab Content */}
-            {activeTab === "scan" && <QRScanner />}
+            {activeTab === "scan" && (
+                <ErrorBoundary
+                    fallback={
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                            <div className="text-center">
+                                <QrCode className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                    QR Scanner Error
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    The QR scanner encountered an error. This might be due to camera permissions or browser compatibility.
+                                </p>
+                                <Button onClick={() => window.location.reload()}>
+                                    Reload Page
+                                </Button>
+                            </div>
+                        </div>
+                    }
+                >
+                    <QRScanner />
+                </ErrorBoundary>
+            )}
             {activeTab === "history" && <AttendanceHistory />}
         </div>
     );

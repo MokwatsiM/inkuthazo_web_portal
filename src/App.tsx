@@ -35,6 +35,7 @@ import ResetPassword from "./components/auth/ResetPassword";
 import Configuration from "./pages/Configuration";
 import HostAssignments from "./pages/HostAssignments";
 import MemberHostView from "./components/hostAssignments/MemberHostView";
+import Attendance from "./pages/Attendance";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -279,6 +280,17 @@ const AppRoutes: React.FC = () => {
       />
 
       <Route
+        path="/attendance"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <Attendance />
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="*"
         element={
           user ? (
@@ -299,22 +311,22 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <NotificationProvider>
-          <AuthProvider>
-            <AnalyticsProvider>
-              <BrowserRouter>
-                <SessionProvider>
-                  <NotificationContainer />
-                  <ConnectionStatus />
-                  <AppRoutes />
-                </SessionProvider>
-              </BrowserRouter>
-            </AnalyticsProvider>
-          </AuthProvider>
-        </NotificationProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <NotificationProvider>
+        <AuthProvider>
+          <AnalyticsProvider>
+            <BrowserRouter>
+              <SessionProvider>
+                <NotificationContainer />
+                <ConnectionStatus />
+                <AppRoutes />
+              </SessionProvider>
+            </BrowserRouter>
+          </AnalyticsProvider>
+        </AuthProvider>
+      </NotificationProvider>
+    </ThemeProvider>
+   </ErrorBoundary>
   );
 };
 

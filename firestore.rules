@@ -174,5 +174,36 @@ service cloud.firestore {
 
       allow delete: if isAdmin();
     }
+
+    // Attendance Sessions collection
+    match /attendance_sessions/{sessionId} {
+      // All signed-in users can read (needed to validate QR codes)
+      allow read: if isSignedIn();
+      
+      // Only admins can create attendance sessions
+      allow create: if isAdmin() &&
+        request.resource.data.keys().hasAll(['meeting_title', 'meeting_date', 'qr_code_data', 'created_by', 'created_at', 'expires_at', 'is_active']) &&
+        request.resource.data.created_by == request.auth.uid;
+      
+      // Only admins can update (e.g., close session)
+      allow update: if isAdmin();
+      
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Attendance Records collection
+    match /attendance_records/{recordId} {
+      // Members can read their own records, admins can read all
+      allow read: if isAdmin() || (isSignedIn() && resource.data.member_id == request.auth.uid);
+      
+      // Signed-in users can create their own attendance record
+      allow create: if isSignedIn() &&
+        request.resource.data.member_id == request.auth.uid &&
+        request.resource.data.keys().hasAll(['session_id', 'member_id', 'member_name', 'checked_in_at', 'check_in_method']);
+      
+      // No updates or deletes allowed - attendance records are immutable
+      allow update, delete: if false;
+    }
   }
 }

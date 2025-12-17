@@ -17,6 +17,7 @@ import {
   Settings,
   ArrowUpRight,
   LogOut,
+  QrCode,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
@@ -125,6 +126,17 @@ const LandingPage: React.FC = () => {
       link: '/host-assignments',
     },
     {
+      title: 'Attendance',
+      description: 'QR check-ins & tracking',
+      icon: QrCode,
+      iconBg: 'bg-teal-50 dark:bg-teal-900/50',
+      iconColor: 'text-teal-600 dark:text-teal-300',
+      badge: 'New',
+      badgeBg: 'bg-teal-100',
+      badgeColor: 'text-teal-700',
+      link: '/attendance',
+    },
+    {
       title: 'Analytics',
       description: 'Performance overview',
       icon: BarChart3,
@@ -224,6 +236,17 @@ const LandingPage: React.FC = () => {
       badgeBg: 'bg-orange-50',
       badgeColor: 'text-orange-700',
       link: '/disciplinary',
+    },
+    {
+      title: 'Attendance',
+      description: 'Scan QR to check in',
+      icon: QrCode,
+      iconBg: 'bg-teal-50 dark:bg-teal-900/50',
+      iconColor: 'text-teal-600 dark:text-teal-300',
+      badge: 'New',
+      badgeBg: 'bg-teal-100',
+      badgeColor: 'text-teal-700',
+      link: '/attendance',
     },
   ];
 

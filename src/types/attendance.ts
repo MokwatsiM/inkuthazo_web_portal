@@ -24,7 +24,7 @@ export interface AttendanceSession {
 export type AttendanceSessionInput = Omit<AttendanceSession, "id" | "created_at" | "qr_code_data">;
 
 /**
- * Represents an individual attendance record when a member checks in
+ * Represents an individual attendance record when a member checks in or is marked absent
  */
 export interface AttendanceRecord {
   id: string;
@@ -32,7 +32,10 @@ export interface AttendanceRecord {
   member_id: string;
   member_name: string;
   checked_in_at: Timestamp;
-  check_in_method: "qr_scan" | "manual";
+  check_in_method: "qr_scan" | "manual" | "absent";
+  is_late: boolean;               // True if checked in >15 minutes after meeting start
+  status: "present" | "absent";   // Present if checked in, absent if not
+  absence_reason?: "apology" | "no_apology";  // Optional: reason for absence
 }
 
 /**

@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Timestamp } from "firebase/firestore";
-import { X, Calendar, MapPin, Clock, Users } from "lucide-react";
+import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
+import { X, Calendar, MapPin, Clock, Users, Link } from "lucide-react";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import { createAttendanceSession } from "../../services/attendanceService";
+import { db } from "../../config/firebase";
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
 import type { AttendanceSession } from "../../types";
+import type { Event } from "../../types/event";
 
 interface CreateSessionModalProps {
     isOpen: boolean;
@@ -30,6 +33,8 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
     const { user } = useAuth();
     const { showError, showSuccess } = useNotifications();
 
+    const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+    const [selectedEventId, setSelectedEventId] = useState<string>(eventId || "");
     const [meetingTitle, setMeetingTitle] = useState(eventTitle);
     const [meetingDate, setMeetingDate] = useState(
         eventDate ? eventDate.toISOString().slice(0, 16) : ""
@@ -38,6 +43,61 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
     const [expiryHours, setExpiryHours] = useState(2);
     const [maxAttendees, setMaxAttendees] = useState<number | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loadingEvents, setLoadingEvents] = useState(false);
+
+    // Fetch upcoming events when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            fetchUpcomingEvents();
+        }
+    }, [isOpen]);
+
+    const fetchUpcomingEvents = async () => {
+        try {
+            setLoadingEvents(true);
+            const eventsRef = collection(db, "events");
+            const now = Timestamp.now();
+
+            // Get events that haven't ended yet, limited to next 50
+            const eventsQuery = query(
+                eventsRef,
+                where("start", ">=", now),
+                orderBy("start", "asc"),
+                limit(50)
+            );
+
+            const snapshot = await getDocs(eventsQuery);
+            const events = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            })) as Event[];
+
+            setUpcomingEvents(events);
+        } catch (error) {
+            console.error("Error fetching events:", error);
+        } finally {
+            setLoadingEvents(false);
+        }
+    };
+
+    const handleEventSelect = (eventId: string) => {
+        setSelectedEventId(eventId);
+
+        if (eventId === "") {
+            // Clear fields if "No Event" is selected
+            return;
+        }
+
+        const selectedEvent = upcomingEvents.find(e => e.id === eventId);
+        if (selectedEvent) {
+            // Auto-populate fields from selected event
+            setMeetingTitle(selectedEvent.title);
+            setMeetingDate(selectedEvent.start.toDate().toISOString().slice(0, 16));
+            if (selectedEvent.venue) {
+                setVenue(selectedEvent.venue);
+            }
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -68,7 +128,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
             );
 
             const session = await createAttendanceSession({
-                event_id: eventId,
+                event_id: selectedEventId || undefined,
                 meeting_title: meetingTitle.trim(),
                 meeting_date: meetingTimestamp,
                 venue: venue.trim() || undefined,
@@ -90,6 +150,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
     };
 
     const handleClose = () => {
+        setSelectedEventId(eventId || "");
         setMeetingTitle(eventTitle);
         setMeetingDate(eventDate ? eventDate.toISOString().slice(0, 16) : "");
         setVenue(eventVenue);
@@ -125,6 +186,34 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                             </div>
 
                             <div className="space-y-4">
+                                {/* Link to Calendar Event */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        <Link className="inline-block h-4 w-4 mr-1" />
+                                        Link to Calendar Event
+                                    </label>
+                                    <select
+                                        value={selectedEventId}
+                                        onChange={(e) => handleEventSelect(e.target.value)}
+                                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        disabled={loadingEvents}
+                                    >
+                                        <option value="">No linked event (manual entry)</option>
+                                        {loadingEvents ? (
+                                            <option disabled>Loading events...</option>
+                                        ) : (
+                                            upcomingEvents.map((event) => (
+                                                <option key={event.id} value={event.id}>
+                                                    {event.title} - {event.start.toDate().toLocaleDateString()} {event.start.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </option>
+                                            ))
+                                        )}
+                                    </select>
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        Select a calendar event to auto-populate meeting details, or create manually.
+                                    </p>
+                                </div>
+
                                 {/* Meeting Title */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

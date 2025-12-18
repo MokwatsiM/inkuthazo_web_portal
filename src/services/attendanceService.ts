@@ -158,15 +158,36 @@ export const validateQRCode = async (
 
 /**
  * Record member attendance
+ * Automatically calculates is_late if member checked in >15 minutes after meeting start
  */
 export const recordAttendance = async (
   input: AttendanceRecordInput
 ): Promise<AttendanceRecord> => {
-  const docRef = await addDoc(collection(db, RECORDS_COLLECTION), input);
-  
+  // Get the session to check meeting start time
+  const session = await getAttendanceSession(input.session_id);
+
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  // Calculate if member is late (>15 minutes after meeting start)
+  const meetingStartTime = session.meeting_date.toMillis();
+  const checkInTime = input.checked_in_at.toMillis();
+  const fifteenMinutesInMs = 15 * 60 * 1000;
+  const isLate = checkInTime > (meetingStartTime + fifteenMinutesInMs);
+
+  // Add is_late and status to the input
+  const recordData = {
+    ...input,
+    is_late: isLate,
+    status: "present" as const,
+  };
+
+  const docRef = await addDoc(collection(db, RECORDS_COLLECTION), recordData);
+
   return {
     id: docRef.id,
-    ...input,
+    ...recordData,
   } as AttendanceRecord;
 };
 
@@ -337,4 +358,70 @@ export const getActiveSessions = async (): Promise<AttendanceSession[]> => {
   
   // Filter out expired sessions client-side
   return sessions.filter(s => s.expires_at.toMillis() > now.toMillis());
+};
+
+/**
+ * Mark absent members for a session
+ * Gets all active members and creates absence records for those who didn't check in
+ */
+export const markAbsentMembers = async (
+  sessionId: string
+): Promise<AttendanceRecord[]> => {
+  // Get all members
+  const membersSnapshot = await getDocs(collection(db, "members"));
+  const allMembers = membersSnapshot.docs
+    .map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    .filter((m: any) => m.status === "active" || m.status === "approved");
+
+  // Get existing attendance records for this session
+  const attendees = await getSessionAttendees(sessionId);
+  const attendedMemberIds = new Set(attendees.map(a => a.member_id));
+
+  // Find members who didn't attend
+  const absentMembers = allMembers.filter((m: any) => !attendedMemberIds.has(m.id));
+
+  // Get session to use its meeting date
+  const session = await getAttendanceSession(sessionId);
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  // Create absence records
+  const absenceRecords: AttendanceRecord[] = [];
+
+  for (const member of absentMembers) {
+    const recordData = {
+      session_id: sessionId,
+      member_id: member.id,
+      member_name: (member as any).full_name || "Unknown",
+      checked_in_at: session.meeting_date, // Use meeting date as timestamp
+      check_in_method: "absent" as const,
+      is_late: false,
+      status: "absent" as const,
+    };
+
+    const docRef = await addDoc(collection(db, RECORDS_COLLECTION), recordData);
+    absenceRecords.push({
+      id: docRef.id,
+      ...recordData,
+    } as AttendanceRecord);
+  }
+
+  return absenceRecords;
+};
+
+/**
+ * Update absence reason for a member
+ */
+export const updateAbsenceReason = async (
+  recordId: string,
+  reason: "apology" | "no_apology"
+): Promise<void> => {
+  const docRef = doc(db, RECORDS_COLLECTION, recordId);
+  await updateDoc(docRef, {
+    absence_reason: reason,
+  });
 };

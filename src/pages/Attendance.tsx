@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, QrCode, History, RefreshCw } from "lucide-react";
+import { Plus, QrCode, History, RefreshCw, UserPlus } from "lucide-react";
 import Button from "../components/ui/Button";
 import EmptyState from "../components/ui/EmptyState";
 import ErrorBoundary from "../components/error/ErrorBoundary";
@@ -10,6 +10,7 @@ import {
     AttendanceListModal,
     QRScanner,
     AttendanceHistory,
+    ManualAttendance,
 } from "../components/attendance";
 import {
     getAttendanceSessionsWithCounts,
@@ -19,7 +20,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useNotifications } from "../hooks/useNotifications";
 import type { AttendanceSession, AttendanceSessionSummary } from "../types";
 
-type Tab = "sessions" | "scan" | "history";
+type Tab = "sessions" | "scan" | "history" | "manual";
 
 const Attendance: React.FC = () => {
     const { isAdmin } = useAuth();
@@ -108,21 +109,52 @@ const Attendance: React.FC = () => {
                 </div>
             </div>
 
-            {/* Filter Toggle */}
-            <div className="mb-6">
-                <label className="inline-flex items-center cursor-pointer">
-                    <input
-                        type="checkbox"
-                        checked={showActiveOnly}
-                        onChange={(e) => setShowActiveOnly(e.target.checked)}
-                        className="sr-only peer"
-                    />
-                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                    <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                        Show active sessions only
-                    </span>
-                </label>
+            {/* Tabs */}
+            <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+                <nav className="-mb-px flex space-x-8">
+                    <button
+                        onClick={() => setActiveTab("sessions")}
+                        className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                            activeTab === "sessions"
+                                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                        }`}
+                    >
+                        <QrCode className="inline-block h-4 w-4 mr-2" />
+                        Sessions
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("manual")}
+                        className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                            activeTab === "manual"
+                                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                        }`}
+                    >
+                        <UserPlus className="inline-block h-4 w-4 mr-2" />
+                        Manual Entry
+                    </button>
+                </nav>
             </div>
+
+            {/* Tab Content */}
+            {activeTab === "sessions" && (
+                <>
+                    {/* Filter Toggle */}
+                    <div className="mb-6">
+                        <label className="inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={showActiveOnly}
+                                onChange={(e) => setShowActiveOnly(e.target.checked)}
+                                className="sr-only peer"
+                            />
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                            <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                Show active sessions only
+                            </span>
+                        </label>
+                    </div>
 
             {/* Sessions Grid */}
             {loadingSessions ? (
@@ -156,6 +188,10 @@ const Attendance: React.FC = () => {
                     ))}
                 </div>
             )}
+                </>
+            )}
+
+            {activeTab === "manual" && <ManualAttendance />}
 
             {/* Modals */}
             <CreateSessionModal

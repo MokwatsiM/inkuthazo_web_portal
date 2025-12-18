@@ -91,7 +91,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
                 html5QrCodeRef.current = null;
                 try {
                     if (scanner.isScanning) {
-                        scanner.stop().catch(() => {});
+                        scanner.stop().catch(() => { });
                     }
                     // Clear scanner DOM immediately and synchronously
                     scanner.clear();
@@ -235,6 +235,23 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
         setManualCode("");
         setShowManualInput(false);
     };
+
+    // If user is not logged in, show login required message
+    if (!user) {
+        return (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div className="text-center py-8">
+                    <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        Login Required
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                        You must be logged in to scan attendance QR codes.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">

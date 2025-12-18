@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { Download, FileText, AlertCircle } from "lucide-react";
+import { Download, FileText, AlertCircle, BarChart3, Users } from "lucide-react";
 import Button from "../components/ui/Button";
+import AttendanceReport from "../components/reports/AttendanceReport";
 import { generateReport } from "../utils/reportGenerator";
 import type { ReportType, ReportPeriod } from "../types/report";
 import { useAuth } from "../hooks/useAuth";
 
+type ReportTab = "financial" | "attendance";
+
 const Reports: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<ReportTab>("financial");
   const [reportType, setReportType] = useState<ReportType>("contributions");
   const [period, setPeriod] = useState<ReportPeriod>("monthly");
   const [loading, setLoading] = useState(false);
@@ -86,10 +90,40 @@ const Reports: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark">Financial Reports</h2>
+        <h2 className="text-2xl font-bold text-text-primary dark:text-text-primary-dark">Reports</h2>
       </div>
 
-      <div className="bg-surface-2 dark:bg-surface-2-dark rounded-lg shadow p-6">
+      {/* Tabs */}
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab("financial")}
+            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+              activeTab === "financial"
+                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+            }`}
+          >
+            <BarChart3 className="h-4 w-4" />
+            Financial Reports
+          </button>
+          <button
+            onClick={() => setActiveTab("attendance")}
+            className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+              activeTab === "attendance"
+                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            Attendance Report
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === "financial" ? (
+        <div className="bg-surface-2 dark:bg-surface-2-dark rounded-lg shadow p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <label className="block text-sm font-medium text-text-secondary dark:text-text-secondary-dark mb-2">
@@ -161,6 +195,9 @@ const Reports: React.FC = () => {
           )}
         </div>
       </div>
+      ) : (
+        <AttendanceReport />
+      )}
     </div>
   );
 };

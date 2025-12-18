@@ -8,6 +8,7 @@ import WelcomeBanner from "../components/dashboard/WelcomeBanner";
 import QuickActions from "../components/dashboard/QuickActions";
 import RecentActivity from "../components/dashboard/RecentActivity";
 import UpcomingEvents from "../components/dashboard/UpcomingEvents";
+import AttendanceStats from "../components/dashboard/AttendanceStats";
 import type { Contribution } from "../types/contribution";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import {
@@ -334,6 +335,14 @@ const Dashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <QuickActions actions={adminQuickActions} />
+
+      {/* Attendance Statistics */}
+      <div>
+        <h3 className="text-xl font-bold text-text-primary dark:text-text-primary-dark mb-4">
+          Attendance Tracking
+        </h3>
+        <AttendanceStats />
+      </div>
 
       {/* Charts and Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

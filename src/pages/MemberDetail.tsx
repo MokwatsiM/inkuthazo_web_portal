@@ -27,8 +27,9 @@ import ClaimsSection from "../components/claims/ClaimsSection";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import EmptyState from "../components/ui/EmptyState";
 import Button from "../components/ui/Button";
-import { Ghost, Edit, FileText, ChevronRight } from "lucide-react";
+import { Ghost, Edit, FileText, ChevronRight, CreditCard } from "lucide-react";
 import { format } from "date-fns";
+import MembershipCard from "../components/members/MembershipCard";
 
 const MemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -169,21 +170,18 @@ const MemberDetail: React.FC = () => {
                     {member.full_name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-surface dark:ring-surface-dark ${
-                  member.status === 'active' || member.status === 'approved' ? 'bg-emerald-500' : 'bg-red-500'
-                }`} title={member.status}></span>
+                <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-surface dark:ring-surface-dark ${member.status === 'active' || member.status === 'approved' ? 'bg-emerald-500' : 'bg-red-500'
+                  }`} title={member.status}></span>
               </div>
               <div>
                 <h1 className="text-2xl tracking-tight font-semibold text-text-primary dark:text-text-primary-dark">Member Details</h1>
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
-                    member.status === 'active' || member.status === 'approved'
-                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
-                      : 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-300'
-                  }`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${
-                      member.status === 'active' || member.status === 'approved' ? 'bg-emerald-400' : 'bg-red-400'
-                    }`}></span>
+                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${member.status === 'active' || member.status === 'approved'
+                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
+                    : 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-300'
+                    }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${member.status === 'active' || member.status === 'approved' ? 'bg-emerald-400' : 'bg-red-400'
+                      }`}></span>
                     {member.status}
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-sky-600 dark:text-sky-300 capitalize">
@@ -244,6 +242,9 @@ const MemberDetail: React.FC = () => {
             <button onClick={() => scrollToSection('payouts')} className="inline-flex items-center gap-2 rounded-md border border-line dark:border-line-dark bg-surface/50 dark:bg-surface-dark/50 px-3 py-1.5 text-xs text-text-secondary dark:text-text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark hover:border-line-hover dark:hover:border-line-dark transition">
               Payouts
             </button>
+            <button onClick={() => scrollToSection('membership-card')} className="inline-flex items-center gap-2 rounded-md border border-indigo-500/20 bg-indigo-500/10 px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 border-indigo-500/30 transition">
+              Membership Card
+            </button>
           </div>
         </div>
       </header>
@@ -268,6 +269,26 @@ const MemberDetail: React.FC = () => {
                   contributions={member.contributions}
                   payouts={member.payouts}
                 />
+              </div>
+            </div>
+          </section>
+
+          {/* Membership Card Section */}
+          <section id="membership-card" className="pt-10">
+            <div className="bg-surface dark:bg-surface-dark rounded-2xl border border-line dark:border-line-dark overflow-hidden shadow-sm">
+              <div className="p-6 border-b border-line dark:border-line-dark bg-surface-hover dark:bg-surface-dark/60">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                    <CreditCard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-text-primary dark:text-text-primary-dark">Digital Membership Card</h2>
+                    <p className="text-xs text-text-secondary dark:text-text-secondary-dark mt-0.5">Generate and download your official membership identification</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8 flex justify-center bg-gray-50/50 dark:bg-black/20">
+                <MembershipCard member={member} />
               </div>
             </div>
           </section>

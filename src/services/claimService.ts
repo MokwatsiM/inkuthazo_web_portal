@@ -11,8 +11,8 @@ import { db, storage } from '../config/firebase';
 import { createPayoutFromClaim } from './payoutService';
 import type { Claim, ClaimStatus } from '../types/claim';
 
-export const uploadClaimDocument = async (file: File): Promise<string> => {
-  const storageRef = ref(storage, `claim_documents/${Date.now()}_${file.name}`);
+export const uploadClaimDocument = async (file: File, memberId: string): Promise<string> => {
+  const storageRef = ref(storage, `claim_documents/${memberId}/${Date.now()}_${file.name}`);
   const snapshot = await uploadBytes(storageRef, file);
   return getDownloadURL(snapshot.ref);
 };
@@ -24,7 +24,9 @@ export const addClaim = async (
   let documents_url: string[] = [];
 
   if (files?.length) {
-    documents_url = await Promise.all(files.map(uploadClaimDocument,));
+    documents_url = await Promise.all(
+      files.map((file) => uploadClaimDocument(file, claim.member_id))
+    );
   }
 
   const claimsRef = collection(db, 'claims');

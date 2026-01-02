@@ -64,32 +64,42 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
 
             // Capture the card as canvas with high quality
             const canvas = await html2canvas(cardRef.current, {
-                scale: 2, // Higher scale for PDF quality
+                scale: 4, // Higher scale for PDF quality
                 useCORS: false,
                 allowTaint: false,
-                backgroundColor: '#FAF9F6',
+                backgroundColor: '#FFFFFF',
                 logging: false,
                 imageTimeout: 15000,
                 onclone: (clonedDoc) => {
-                    // Fix text rendering issues in the cloned document
+                   // Force the cloned element to be visible and properly sized
                     const clonedElement = clonedDoc.querySelector('[data-card-capture]') as HTMLElement;
                     if (clonedElement) {
                         clonedElement.style.transform = 'none';
                         clonedElement.style.position = 'relative';
-                        clonedElement.style.display = 'block';
+                        clonedElement.style.display = 'flex';
+                        clonedElement.style.flexDirection = 'row';
+                        clonedElement.style.width = '323px';
+                        clonedElement.style.height = '204px';
 
                         // Fix text elements to prevent cutoff
-                        const textElements = clonedElement.querySelectorAll('h4, p, span');
+                        const textElements = clonedElement.querySelectorAll('h1, h2, p, span');
                         textElements.forEach((el) => {
                             const htmlEl = el as HTMLElement;
                             // Add extra padding to text elements to prevent cutoff
-                            htmlEl.style.paddingBottom = '8px';
+                            htmlEl.style.paddingBottom = '4px';
                             // Ensure line-height is sufficient
                             const currentLineHeight = window.getComputedStyle(htmlEl).lineHeight;
                             if (currentLineHeight === 'normal' || parseFloat(currentLineHeight) < 1.2) {
-                                htmlEl.style.lineHeight = '1.8';
+                                htmlEl.style.lineHeight = '2.8';
                             }
                         });
+
+                        // Resize QR code for download
+                        // const qrImage = clonedElement.querySelector('[data-qr-code]') as HTMLImageElement;
+                        // if (qrImage) {
+                        //     qrImage.style.width = '2rem'; // w-8
+                        //     qrImage.style.height = '2rem'; // h-8
+                        // }
                     }
                 }
             });
@@ -99,28 +109,16 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                 img.src = src;
             });
 
-            // Create PDF in A4 landscape dimensions for the larger card
+            // Create PDF in credit card dimensions (85.6mm x 53.98mm)
             const pdf = new jsPDF({
-                orientation: 'portrait',
+                orientation: 'landscape',
                 unit: 'mm',
-                format: 'a4' // A4 landscape (297mm x 210mm)
+                format: [85.6, 53.98] // ISO/IEC 7810 ID-1 standard (credit card size)
             });
-
-            // Calculate dimensions to fit card on page with margins
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const margin = 10;
-            const cardWidth = pageWidth - (margin * 2);
-            const cardHeight = (canvas.height / canvas.width) * cardWidth;
-
-            // Center the card vertically if there's extra space
-            const yOffset = cardHeight < (pageHeight - margin * 2)
-                ? (pageHeight - cardHeight) / 2
-                : margin;
 
             // Convert canvas to image and add to PDF
             const imgData = canvas.toDataURL('image/png', 1.0);
-            pdf.addImage(imgData, 'PNG', margin, yOffset, cardWidth, cardHeight, '', 'FAST');
+            pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 53.98, '', 'FAST');
 
             // Download the PDF
             pdf.save(`inkuthazo-membership-${member.full_name.replace(/\s+/g, "-").toLowerCase()}.pdf`);
@@ -134,6 +132,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
     const downloadCard = async () => {
         if (!cardRef.current) return;
 
+        setIsDownloading(true);
         try {
             // Convert images to base64 using fetch and blob to avoid CORS/taint issues
             const imgElements = cardRef.current.querySelectorAll('img');
@@ -175,7 +174,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     // Continue without converting this image
                 }
             }
-            
+
             // Small delay to ensure DOM is updated
             await new Promise(resolve => setTimeout(resolve, 150));
 
@@ -184,7 +183,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                 scale: 3, // Optimal scale for quality vs performance
                 useCORS: false,
                 allowTaint: false,
-                backgroundColor: '#FAF9F6', // Fallback background color
+                backgroundColor: '#FFFFFF', // Fallback background color
                 logging: false,
                 imageTimeout: 15000,
                 onclone: (clonedDoc) => {
@@ -193,20 +192,30 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     if (clonedElement) {
                         clonedElement.style.transform = 'none';
                         clonedElement.style.position = 'relative';
-                        clonedElement.style.display = 'block';
+                        clonedElement.style.display = 'flex';
+                        clonedElement.style.flexDirection = 'row';
+                        clonedElement.style.width = '323px';
+                        clonedElement.style.height = '204px';
 
                         // Fix text elements to prevent cutoff
-                        const textElements = clonedElement.querySelectorAll('h4, p, span');
+                        const textElements = clonedElement.querySelectorAll('h1, h2, p, span');
                         textElements.forEach((el) => {
                             const htmlEl = el as HTMLElement;
                             // Add extra padding to text elements to prevent cutoff
-                            htmlEl.style.paddingBottom = '8px';
+                            htmlEl.style.paddingBottom = '4px';
                             // Ensure line-height is sufficient
                             const currentLineHeight = window.getComputedStyle(htmlEl).lineHeight;
                             if (currentLineHeight === 'normal' || parseFloat(currentLineHeight) < 1.2) {
-                                htmlEl.style.lineHeight = '1.8';
+                                htmlEl.style.lineHeight = '2.8';
                             }
                         });
+
+                        // Resize QR code for download
+                        // const qrImage = clonedElement.querySelector('[data-qr-code]') as HTMLImageElement;
+                        // if (qrImage) {
+                        //     qrImage.style.width = '2rem'; // w-8
+                        //     qrImage.style.height = '2rem'; // h-8
+                        // }
                     }
                 }
             });
@@ -223,6 +232,8 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
             link.click();
         } catch (error) {
             console.error("Error generating membership card image:", error);
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -230,135 +241,135 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
 
     return (
         <div className="flex flex-col items-center gap-6 p-4">
-            {/* Card Preview Container - New Design */}
+            {/* Card Preview Container - Credit Card Size (85.6mm x 53.98mm in landscape) */}
             <div
                 ref={cardRef}
                 data-card-capture
-                className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden border border-amber-700/70 flex flex-col md:flex-row"
+                className="w-full bg-white rounded-lg shadow-xl overflow-hidden border border-amber-700/70 flex"
+                style={{
+                    maxWidth: '323px', // 85.6mm = ~323px at 96dpi
+                    height: '204px', // 53.98mm = ~204px at 96dpi
+                }}
             >
                 {/* Left Panel */}
                 <div className="flex-1 flex flex-col">
                     {/* Top Bar */}
-                    <div className="bg-teal-800 text-white px-6 sm:px-10 py-5 flex items-start gap-4 md:gap-6">
-                        <div className="flex-shrink-0 flex items-center justify-center h-14 w-14 rounded-full bg-white/95 overflow-hidden">
+                    <div className="bg-teal-800 text-white px-2 py-1 flex items-center gap-1.5">
+                        <div className="flex-shrink-0 flex items-center justify-center h-5 w-5 rounded-full bg-white/95 overflow-hidden">
                             <img
                                 src="/logo.png"
                                 alt="Inkuthazo Logo"
-                                className="h-12 w-12 object-contain"
+                                className="h-4 w-4 object-contain"
                                 crossOrigin="anonymous"
                             />
                         </div>
 
-                        <div className="flex-1">
-                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight">
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-[11px] font-bold tracking-tight leading-tight">
                                 INKUTHAZO SOCIAL CLUB
                             </h1>
-                            <p className="text-xs sm:text-sm mt-1 text-teal-100 font-medium tracking-tight">
-                                "Inhlangano inamandla" – Unity is Strength
+                            <p className="text-[7px] text-teal-100 font-medium tracking-tight leading-tight">
+                                "Inhlangano inamandla"- Unity is Strength
                             </p>
                         </div>
                     </div>
 
                     {/* Card Content */}
-                    <div className="flex-1 px-6 sm:px-10 py-6 sm:py-8 flex flex-col gap-6">
-                        {/* Top Member Info */}
-                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                            <div className="space-y-3">
+                    <div className="flex-1 px-2 py-1.5 flex gap-10">
+                        {/* Left: Member Info */}
+                        <div className="flex-1 flex flex-col justify-between min-w-0">
+                            <div className="space-y-1">
                                 <div>
-                                    <p className="text-xs font-medium text-slate-500 uppercase">Member Name</p>
-                                    <p className="text-lg sm:text-xl font-semibold text-slate-900">
+                                    <p className="text-[10px] font-medium text-slate-500 uppercase">Member Name</p>
+                                    <p className="text-[14px] font-semibold text-slate-900 ">
                                         {member.full_name}
                                     </p>
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row sm:items-start sm:gap-12 gap-3">
-                                    <div>
-                                        <p className="text-xs font-medium text-slate-500 uppercase">Member No.</p>
-                                        <p className="text-base sm:text-lg font-semibold tracking-tight text-slate-900">
-                                            #{memberId}
+                                <div className="flex gap-2">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[8px] font-medium text-slate-500 uppercase">Member No.</p>
+                                        <p className="text-[10px] font-semibold tracking-tight text-slate-900">
+                                            {memberId}
                                         </p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-slate-500 uppercase">Member Since</p>
-                                        <p className="text-base sm:text-lg font-semibold tracking-tight text-slate-900">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[8px] font-medium text-slate-500 uppercase">Since</p>
+                                        <p className="text-[10px] font-semibold tracking-tight text-slate-900">
                                             {format(member.join_date.toDate(), "MMMM yyyy")}
                                         </p>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Member Photo */}
-                            {member.avatar_url ? (
-                                <div className="hidden md:flex items-center justify-center w-40 h-32 bg-slate-50 rounded-xl border border-slate-100/80 overflow-hidden">
-                                    <img
-                                        src={member.avatar_url}
-                                        alt={member.full_name}
-                                        className="w-full h-full object-cover"
-                                        crossOrigin="anonymous"
-                                    />
-                                </div>
-                            ) : (
-                                <div className="hidden md:flex items-center justify-center w-40 h-32 bg-slate-50 rounded-xl border border-slate-100/80">
-                                    <div className="text-center opacity-40">
-                                        <div className="h-16 w-16 rounded-full border border-slate-300 mx-auto flex items-center justify-center bg-slate-200">
-                                            <span className="text-2xl font-semibold text-slate-500">
-                                                {member.full_name.charAt(0).toUpperCase()}
-                                            </span>
+                                <div className="flex gap-2">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[8px] font-medium text-slate-500 uppercase leading-tight">Tier</p>
+                                        <div className="flex items-center gap-0.5">
+                                            <p className="text-[10px] font-semibold tracking-tight text-amber-700 capitalize leading-tight truncate">
+                                                {member.role === 'admin' ? 'Admin' : member.role === 'dc_member' ? 'DC' : 'Member'}
+                                            </p>
                                         </div>
                                     </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[8px] font-medium text-slate-500 uppercase leading-tight">Status</p>
+                                        <p className="text-[10px] font-semibold tracking-tight text-slate-900 capitalize leading-tight truncate">
+                                            {member.status === 'approved' ? 'Active' : member.status}
+                                            {/* {member.status} */}
+                                        </p>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Tier + Validity */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
-                            <div className="space-y-3">
-                                <p className="text-xs font-medium text-slate-500 uppercase">Membership Tier</p>
-                                <div className="flex items-center gap-2">
-                                    <User className="w-5 h-5 text-amber-600" strokeWidth={1.5} />
-                                    <p className="text-lg sm:text-xl font-semibold tracking-tight text-amber-700 capitalize">
-                                        {member.role === 'admin' ? 'Administrator' : member.role === 'dc_member' ? 'DC Member' : 'Member'}
-                                    </p>
-                                </div>
-                                <div className="h-px bg-amber-700 mt-2 w-40 sm:w-52"></div>
                             </div>
 
-                            <div className="space-y-3">
-                                <p className="text-xs font-medium text-slate-500 uppercase">Status</p>
-                                <p className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900 capitalize">
-                                    {member.status}
+                            {/* Footer */}
+                            <div className="pt-0.5 border-t border-slate-200">
+                                <p className="text-[6px] text-slate-600 leading-tight truncate">
+                                    {member.phone}
+                                </p>
+                                <p className="text-[6px] font-medium text-slate-600 leading-tight truncate">
+                                www.inkuthazo.netlify.app
                                 </p>
                             </div>
                         </div>
 
-                        {/* Footer */}
-                        <div className="mt-4 pt-4 border-t border-slate-200 text-xs sm:text-sm text-slate-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <p>
-                                Contact: <span className="font-medium">{member.phone}</span>
-                            </p>
-                            <p className="truncate">
-                                <span className="font-medium">https://inkuthazo.netlify.app/</span>
-                            </p>
-                        </div>
+                        {/* Member Photo */}
+                        {member.avatar_url ? (
+                            <div className="flex items-center justify-center w-14 h-14 bg-slate-50 rounded border border-slate-100/80 overflow-hidden flex-shrink-0">
+                                <img
+                                    src={member.avatar_url}
+                                    alt={member.full_name}
+                                    className="w-full h-full object-cover"
+                                    crossOrigin="anonymous"
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center w-14 h-14 bg-slate-50 rounded border border-slate-100/80 flex-shrink-0">
+                                <div className="text-center opacity-40">
+                                    <span className="text-xl font-semibold text-slate-500">
+                                        {member.full_name.charAt(0).toUpperCase()}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Right Panel - QR Code */}
-                <div className="w-full md:w-64 lg:w-72 border-t md:border-t-0 md:border-l border-amber-700/60 bg-slate-50 flex flex-col justify-between">
-                    <div className="flex-1 flex items-center justify-center px-6 py-8">
+                <div className="w-20 border-l border-amber-700/60 bg-slate-50 flex flex-col justify-between flex-shrink-0">
+                    <div className="flex-1 flex items-center justify-center p-1.5">
                         {/* QR Code */}
-                        <div className="relative rounded-2xl border-2 border-teal-800 bg-white p-3 sm:p-4 shadow-sm">
+                        <div className="relative rounded border border-teal-800 bg-white p-1">
                             <img
+                                data-qr-code
                                 src="/qrcode.png"
                                 alt="Membership QR Code"
-                                className="w-32 h-32 sm:w-40 sm:h-40 object-contain"
+                                className="w-16 h-16 object-contain"
                                 crossOrigin="anonymous"
                             />
                         </div>
                     </div>
 
-                    <div className="px-6 pb-5 pt-2 text-center space-y-1">
-                        <p className="text-xs font-medium tracking-tight text-slate-700">
+                    <div className="px-1 pb-1 text-center">
+                        <p className="text-[6px] font-medium tracking-tight text-slate-700 leading-tight">
                             Scan for more information
                         </p>
                        
@@ -367,7 +378,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
             </div>
 
             {/* Download Actions */}
-            <div className="w-full max-w-5xl space-y-3">
+            <div className="w-full max-w-[323px] space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                     <Button
                         onClick={downloadAsPDF}
@@ -389,7 +400,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     </Button>
                 </div>
                 <p className="text-center text-xs text-text-secondary dark:text-text-secondary-dark px-4">
-                    Download as PDF for best quality and easy printing or PNG for quick digital sharing.
+                    Download as PDF for best quality and easy printing or PNG for quick digital sharing. Credit card size (85.6mm x 53.98mm).
                 </p>
             </div>
         </div>

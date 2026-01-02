@@ -1,7 +1,8 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import html2canvas from "html2canvas";
-import { Download, ShieldCheck, Calendar, User } from "lucide-react";
+import { Download, ShieldCheck, Calendar, User, FileText } from "lucide-react";
 import { format } from "date-fns";
+import jsPDF from "jspdf";
 import type { Member } from "../../types";
 import Button from "../ui/Button";
 
@@ -11,63 +12,147 @@ interface MembershipCardProps {
 
 const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
     const cardRef = useRef<HTMLDivElement>(null);
-    const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
 
-    // Convert avatar URL to data URL to avoid CORS issues
-    useEffect(() => {
-        const convertImageToDataUrl = async () => {
-            if (!member.avatar_url) {
-                setAvatarDataUrl(null);
-                return;
+    const downloadAsPDF = async () => {
+        if (!cardRef.current) return;
+
+        setIsDownloading(true);
+        try {
+            // Convert images to base64 using fetch and blob to avoid CORS/taint issues
+            const imgElements = cardRef.current.querySelectorAll('img');
+            const originalSrcs = new Map<HTMLImageElement, string>();
+
+            // Convert each Firebase Storage image to base64
+            for (const img of Array.from(imgElements)) {
+                if (!img.src || !img.src.includes('firebasestorage')) continue;
+
+                try {
+                    // Store original src
+                    originalSrcs.set(img as HTMLImageElement, img.src);
+
+                    // Fetch the image as a blob
+                    const response = await fetch(img.src, {
+                        mode: 'cors',
+                        credentials: 'omit'
+                    });
+
+                    if (!response.ok) {
+                        console.warn('Failed to fetch image:', response.status);
+                        continue;
+                    }
+
+                    const blob = await response.blob();
+
+                    // Convert blob to base64
+                    const base64 = await new Promise<string>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result as string);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+
+                    // Replace image src with base64
+                    img.src = base64;
+                } catch (e) {
+                    console.warn('Failed to convert image to base64:', e);
+                }
             }
 
-            try {
-                const response = await fetch(member.avatar_url);
-                const blob = await response.blob();
-                const reader = new FileReader();
+            // Small delay to ensure DOM is updated
+            await new Promise(resolve => setTimeout(resolve, 150));
 
-                reader.onloadend = () => {
-                    setAvatarDataUrl(reader.result as string);
-                };
+            // Capture the card as canvas with high quality
+            const canvas = await html2canvas(cardRef.current, {
+                scale: 4, // Higher scale for PDF quality
+                useCORS: false,
+                allowTaint: false,
+                backgroundColor: '#4F46E5',
+                logging: false,
+                imageTimeout: 15000,
+            });
 
-                reader.readAsDataURL(blob);
-            } catch (error) {
-                console.error('Error converting avatar to data URL:', error);
-                setAvatarDataUrl(null);
-            }
-        };
+            // Restore original image sources
+            originalSrcs.forEach((src, img) => {
+                img.src = src;
+            });
 
-        convertImageToDataUrl();
-    }, [member.avatar_url]);
+            // Create PDF in credit card dimensions (85.6mm x 53.98mm)
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: [85.6, 53.98] // ISO/IEC 7810 ID-1 standard (credit card size)
+            });
+
+            // Convert canvas to image and add to PDF
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 53.98, '', 'FAST');
+
+            // Download the PDF
+            pdf.save(`inkuthazo-membership-${member.full_name.replace(/\s+/g, "-").toLowerCase()}.pdf`);
+        } catch (error) {
+            console.error("Error generating membership card PDF:", error);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     const downloadCard = async () => {
         if (!cardRef.current) return;
 
         try {
-            // Wait for all images to load before capturing
-            const images = cardRef.current.querySelectorAll('img');
-            await Promise.all(
-                Array.from(images).map((img) => {
-                    if (img.complete) return Promise.resolve();
-                    return new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = reject;
-                        // Set a timeout to prevent hanging
-                        setTimeout(reject, 5000);
+            // Convert images to base64 using fetch and blob to avoid CORS/taint issues
+            const imgElements = cardRef.current.querySelectorAll('img');
+            const originalSrcs = new Map<HTMLImageElement, string>();
+
+            // Convert each Firebase Storage image to base64
+            for (const img of Array.from(imgElements)) {
+                if (!img.src || !img.src.includes('firebasestorage')) continue;
+
+                try {
+                    // Store original src
+                    originalSrcs.set(img as HTMLImageElement, img.src);
+
+                    // Fetch the image as a blob
+                    const response = await fetch(img.src, {
+                        mode: 'cors',
+                        credentials: 'omit'
                     });
-                })
-            ).catch(() => {
-                console.warn('Some images failed to load');
-            });
+
+                    if (!response.ok) {
+                        console.warn('Failed to fetch image:', response.status);
+                        continue;
+                    }
+
+                    const blob = await response.blob();
+
+                    // Convert blob to base64
+                    const base64 = await new Promise<string>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result as string);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+
+                    // Replace image src with base64
+                    img.src = base64;
+                } catch (e) {
+                    console.warn('Failed to convert image to base64:', e);
+                    // Continue without converting this image
+                }
+            }
+            
+            // Small delay to ensure DOM is updated
+            await new Promise(resolve => setTimeout(resolve, 150));
 
             // Use a scale for better resolution and specific window size to prevent cutting
             const canvas = await html2canvas(cardRef.current, {
                 scale: 3, // Optimal scale for quality vs performance
-                useCORS: true,
-                allowTaint: false, // Changed to false for better CORS handling
+                useCORS: false,
+                allowTaint: false,
                 backgroundColor: '#4F46E5', // Fallback background color
                 logging: false,
-                imageTimeout: 15000, // Increased timeout for image loading
+                imageTimeout: 15000,
                 onclone: (clonedDoc) => {
                     // Force the cloned element to be visible and properly sized
                     const clonedElement = clonedDoc.querySelector('[data-card-capture]') as HTMLElement;
@@ -77,6 +162,11 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                         clonedElement.style.display = 'block';
                     }
                 }
+            });
+
+            // Restore original image sources
+            originalSrcs.forEach((src, img) => {
+                img.src = src;
             });
 
             const image = canvas.toDataURL("image/png", 1.0);
@@ -107,9 +197,9 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                 <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-400/20 rounded-full blur-3xl opacity-50"></div>
 
                 {/* Card Content Overlay - Added Padding to prevent cutting */}
-                <div className="relative h-full flex flex-col p-6 text-white box-border">
+                <div className="relative h-full flex flex-col p-5 text-white box-border">
                     {/* Header */}
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center gap-3">
                             {/* Replaced backdrop-blur with solid opacity for canvas compatibility */}
                             <div className="p-2 bg-white/20 rounded-lg flex items-center justify-center border border-white/10">
@@ -127,22 +217,15 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     </div>
 
                     {/* Main Info Section */}
-                    <div className="flex items-center gap-5 mt-auto">
+                    <div className="flex items-center gap-5 flex-1 py-2">
                         {/* Avatar */}
                         <div className="relative flex-shrink-0">
                             <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-white/30 shadow-lg bg-indigo-800/50">
-                                {avatarDataUrl ? (
-                                    <img
-                                        src={avatarDataUrl}
-                                        alt={member.full_name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : member.avatar_url ? (
+                                {member.avatar_url ? (
                                     <img
                                         src={member.avatar_url}
                                         alt={member.full_name}
                                         className="w-full h-full object-cover"
-                                        crossOrigin="anonymous"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-indigo-600/50">
@@ -172,7 +255,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     </div>
 
                     {/* Footer Info */}
-                    <div className="mt-6 flex justify-between items-end border-t border-white/20 pt-4">
+                    <div className="flex justify-between items-end border-t border-white/20 pt-3">
                         <div>
                             <p className="text-[9px] uppercase tracking-widest text-white/50 mb-1">Member ID</p>
                             <p className="text-sm font-mono font-bold tracking-[0.2em] text-white">
@@ -187,18 +270,30 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                 </div>
             </div>
 
-            {/* Download Action */}
-            <div className="w-full max-w-[400px]">
-                <Button
-                    onClick={downloadCard}
-                    className="w-full py-4 group hover:shadow-lg transition-all"
-                    variant="primary"
-                    icon={Download}
-                >
-                    Download Digital Card
-                </Button>
-                <p className="text-center text-xs text-text-secondary dark:text-text-secondary-dark mt-3 px-4">
-                    Save this card to your device to verify your membership offline.
+            {/* Download Actions */}
+            <div className="w-full max-w-[400px] space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                    <Button
+                        onClick={downloadAsPDF}
+                        className="py-4 group hover:shadow-lg transition-all"
+                        variant="primary"
+                        icon={FileText}
+                        disabled={isDownloading}
+                    >
+                        {isDownloading ? 'Generating...' : 'Download PDF'}
+                    </Button>
+                    <Button
+                        onClick={downloadCard}
+                        className="py-4 group hover:shadow-lg transition-all"
+                        variant="secondary"
+                        icon={Download}
+                        disabled={isDownloading}
+                    >
+                        Download PNG
+                    </Button>
+                </div>
+                <p className="text-center text-xs text-text-secondary dark:text-text-secondary-dark px-4">
+                    Download as PDF for best quality or PNG for quick sharing. PDF format is credit card sized for easy printing.
                 </p>
             </div>
         </div>

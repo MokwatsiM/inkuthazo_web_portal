@@ -280,8 +280,8 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                         <div className="flex-1 flex flex-col justify-between min-w-0">
                             <div className="space-y-1">
                                 <div>
-                                    <p className="text-[10px] font-medium text-slate-500 uppercase">Member Name</p>
-                                    <p className="text-[14px] font-semibold text-slate-900 ">
+                                    <p className="text-[8px] font-medium text-slate-500 uppercase">Member Name</p>
+                                    <p className="text-[11px] font-semibold text-slate-900 ">
                                         {member.full_name}
                                     </p>
                                 </div>

@@ -30,7 +30,7 @@ const AuthLayout: React.FC = () => {
           Inkuthazo Social Club Portal
         </h2>
         <p className="mt-2 text-center text-sm text-text-secondary dark:text-text-secondary-dark">
-          Manage your burial society membership
+          Manage your social society membership
         </p>
       </div>
 

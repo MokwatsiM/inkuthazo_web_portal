@@ -230,7 +230,7 @@ export const generateInvoicePDF = async (
   const instructions = [
     "Please make payment within 7 days",
     "Bank: First National Bank",
-    "Account Name: Inkuthazo Burial Club",
+    "Account Name: Inkuthazo Social Club",
     "Account Type: Cheque",
     "Branch Code: 250655",
     "Account#: 63050597279",
@@ -252,7 +252,7 @@ export const generateInvoicePDF = async (
   //   [
   //     "Please make payment within 7 days",
   //     "Bank: First National Bank",
-  //     "Account Name: Inkuthazo Burial Club",
+  //     "Account Name: Inkuthazo Social Club",
   //     "Account Type: Cheque",
   //     "Branch Code: 250655",
   //     "Account Number: 63050597279",

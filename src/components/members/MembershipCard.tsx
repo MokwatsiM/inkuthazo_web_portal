@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import html2canvas from "html2canvas";
-import { Download, ShieldCheck, Calendar, User, FileText } from "lucide-react";
+import { Download, Calendar, User, FileText } from "lucide-react";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
 import type { Member } from "../../types";
@@ -70,6 +70,28 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                 backgroundColor: '#4F46E5',
                 logging: false,
                 imageTimeout: 15000,
+                onclone: (clonedDoc) => {
+                    // Fix text rendering issues in the cloned document
+                    const clonedElement = clonedDoc.querySelector('[data-card-capture]') as HTMLElement;
+                    if (clonedElement) {
+                        clonedElement.style.transform = 'none';
+                        clonedElement.style.position = 'relative';
+                        clonedElement.style.display = 'block';
+
+                        // Fix text elements to prevent cutoff
+                        const textElements = clonedElement.querySelectorAll('h4, p, span');
+                        textElements.forEach((el) => {
+                            const htmlEl = el as HTMLElement;
+                            // Add extra padding to text elements to prevent cutoff
+                            htmlEl.style.paddingBottom = '2px';
+                            // Ensure line-height is sufficient
+                            const currentLineHeight = window.getComputedStyle(htmlEl).lineHeight;
+                            if (currentLineHeight === 'normal' || parseFloat(currentLineHeight) < 1.2) {
+                                htmlEl.style.lineHeight = '1.5';
+                            }
+                        });
+                    }
+                }
             });
 
             // Restore original image sources
@@ -160,6 +182,19 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                         clonedElement.style.transform = 'none';
                         clonedElement.style.position = 'relative';
                         clonedElement.style.display = 'block';
+
+                        // Fix text elements to prevent cutoff
+                        const textElements = clonedElement.querySelectorAll('h4, p, span');
+                        textElements.forEach((el) => {
+                            const htmlEl = el as HTMLElement;
+                            // Add extra padding to text elements to prevent cutoff
+                            htmlEl.style.paddingBottom = '8px';
+                            // Ensure line-height is sufficient
+                            const currentLineHeight = window.getComputedStyle(htmlEl).lineHeight;
+                            if (currentLineHeight === 'normal' || parseFloat(currentLineHeight) < 1.2) {
+                                htmlEl.style.lineHeight = '1.8';
+                            }
+                        });
                     }
                 }
             });
@@ -201,18 +236,23 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     {/* Header */}
                     <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center gap-3">
-                            {/* Replaced backdrop-blur with solid opacity for canvas compatibility */}
-                            <div className="p-2 bg-white/20 rounded-lg flex items-center justify-center border border-white/10">
-                                <ShieldCheck className="w-6 h-6 text-white" />
+                            {/* Logo */}
+                            <div className="p-2  rounded-lg flex items-center justify-center ">
+                                <img
+                                    src="/logo.png"
+                                    alt="Inkuthazo Logo"
+                                    className="w-8 h-8 object-contain"
+                                    crossOrigin="anonymous"
+                                />
                             </div>
                             <div className="flex flex-col">
-                                <h3 className="font-bold text-lg tracking-tight leading-none">INKUTHAZO</h3>
+                                <h3 className="font-bold text-lg tracking-tight leading-none">INKUTHAZO </h3>
                                 <span className="text-[10px] font-medium tracking-[0.2em] text-indigo-200 mt-1">SOCIAL CLUB</span>
                             </div>
                         </div>
                         {/* Replaced backdrop-blur with solid opacity for canvas compatibility */}
-                        <div className="bg-white/20 px-3 py-1.5 rounded-full border border-white/20 text-[10px] font-bold tracking-wider uppercase flex items-center justify-center">
-                            Digital Member
+                        <div className="bg-white/20 px-3 py-1 rounded-full border border-white/20 text-[10px] font-bold tracking-wider uppercase flex items-center justify-center">
+                            <span className="text-m font-bold">Digital Member</span>
                         </div>
                     </div>
 
@@ -238,9 +278,10 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
 
                         {/* Member Details */}
                         <div className="flex-1 flex flex-col justify-center overflow-hidden">
-                            <h4 className="text-xl font-bold leading-tight mb-2 break-words line-clamp-2">
+                            {/* <h4 className="text-l font-bold  mb-1 line-clamp-2">
                                 {member.full_name}
-                            </h4>
+                            </h4> */}
+                            <span className="text-xl font-bold  mb-1">{member.full_name}</span>
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-2 text-white/80 text-[10px] font-semibold uppercase tracking-widest">
                                     <User className="w-3.5 h-3.5" />

@@ -24,6 +24,7 @@
     "@nivo/radar": "^0.90.0",
     "date-fns": "^4.1.0",
     "firebase": "^11.0.2",
+    "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
     "ics": "^3.8.1",
     "jspdf": "^3.0.1",

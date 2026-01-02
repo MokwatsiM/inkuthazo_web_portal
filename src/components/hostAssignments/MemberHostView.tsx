@@ -157,7 +157,7 @@ const MemberHostView: React.FC = () => {
         <div className="flex items-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <Info className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0" />
           <div className="text-sm text-blue-800">
-            <p className="font-medium mb-1">Burial Society Meeting Hosting</p>
+            <p className="font-medium mb-1">Social Society Meeting Hosting</p>
             <p>
               Meetings are held on the second Sunday of each month. As a host, you'll be responsible
               for providing the venue and refreshments for the meeting.

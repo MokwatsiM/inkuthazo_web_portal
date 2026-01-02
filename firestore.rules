@@ -196,14 +196,21 @@ service cloud.firestore {
     match /attendance_records/{recordId} {
       // Members can read their own records, admins can read all
       allow read: if isAdmin() || (isSignedIn() && resource.data.member_id == request.auth.uid);
-      
-      // Signed-in users can create their own attendance record
-      allow create: if isSignedIn() &&
-        request.resource.data.member_id == request.auth.uid &&
-        request.resource.data.keys().hasAll(['session_id', 'member_id', 'member_name', 'checked_in_at', 'check_in_method']);
-      
-      // No updates or deletes allowed - attendance records are immutable
-      allow update, delete: if false;
+
+      // Members can create their own attendance record (QR scan)
+      // Admins can create attendance records for any member (manual entry, marking absent)
+      allow create: if isSignedIn() && (
+        (request.resource.data.member_id == request.auth.uid &&
+         request.resource.data.keys().hasAll(['session_id', 'member_id', 'member_name', 'checked_in_at', 'check_in_method'])) ||
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['session_id', 'member_id', 'member_name', 'checked_in_at', 'check_in_method']))
+      );
+
+      // Admins can update attendance records (e.g., update absence reason)
+      allow update: if isAdmin();
+
+      // No deletes allowed - attendance records are immutable
+      allow delete: if false;
     }
   }
 }

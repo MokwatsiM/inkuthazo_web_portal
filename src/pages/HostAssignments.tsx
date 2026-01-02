@@ -80,7 +80,7 @@ const HostAssignments: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title="Host Assignments"
-        description="Manage burial society meeting host assignments"
+        description="Manage social society meeting host assignments"
         actions={
           <div className="flex items-center gap-3">
             <select

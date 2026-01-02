@@ -88,7 +88,7 @@ export const exportHostScheduleToPDF = (schedule: HostSchedule): void => {
     // Subtitle
     doc.setFontSize(12);
     doc.setFont(undefined, 'normal');
-    doc.text('Burial Society Meeting Host Schedule', pageWidth / 2, 30, { align: 'center' });
+    doc.text('Social Society Meeting Host Schedule', pageWidth / 2, 30, { align: 'center' });
 
     // Schedule info
     doc.setFontSize(10);

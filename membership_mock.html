@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Digital Membership Card</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/lucide-static@0.321.0/font/lucide.css"
+    />
+  </head>
+  <body class="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <div
+      class="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden border border-amber-700/70 flex flex-col md:flex-row"
+    >
+      <!-- Left Panel -->
+      <div class="flex-1 flex flex-col">
+        <!-- Top Bar -->
+        <div
+          class="bg-teal-800 text-white px-6 sm:px-10 py-5 flex items-start gap-4 md:gap-6"
+        >
+          <div
+            class="flex-shrink-0 flex items-center justify-center h-14 w-14 rounded-full bg-white/95"
+          >
+            <span
+              class="text-xs leading-snug text-center font-semibold text-teal-900 tracking-tight"
+            >
+              INKUTHAZO<br />SOCIAL
+            </span>
+          </div>
+
+          <div class="flex-1">
+            <h1
+              class="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight"
+            >
+              INKUTHAZO SOCIAL CLUB
+            </h1>
+            <p
+              class="text-xs sm:text-sm mt-1 text-teal-100 font-medium tracking-tight"
+            >
+              "Inhlanganо inamandla" – Unity is Strength
+            </p>
+          </div>
+        </div>
+
+        <!-- Card Content -->
+        <div class="flex-1 px-6 sm:px-10 py-6 sm:py-8 flex flex-col gap-6">
+          <!-- Top Member Info -->
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+            <div class="space-y-3">
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase">
+                  Member Name
+                </p>
+                <p class="text-lg sm:text-xl font-semibold text-slate-900">
+                  Thabo J. Mokoena
+                </p>
+              </div>
+
+              <div
+                class="flex flex-col sm:flex-row sm:items-start sm:gap-12 gap-3"
+              >
+                <div>
+                  <p class="text-xs font-medium text-slate-500 uppercase">
+                    Member ID
+                  </p>
+                  <p
+                    class="text-base sm:text-lg font-semibold tracking-tight text-slate-900"
+                  >
+                    ISC-2024-00847
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs font-medium text-slate-500 uppercase">
+                    Member Since
+                  </p>
+                  <p
+                    class="text-base sm:text-lg font-semibold tracking-tight text-slate-900"
+                  >
+                    March 2024
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Faded Logo -->
+            <div
+              class="hidden md:flex items-center justify-center w-40 h-32 bg-slate-50 rounded-xl border border-slate-100/80"
+            >
+              <div class="text-center opacity-40">
+                <div
+                  class="h-16 w-16 rounded-full border border-slate-300 mx-auto flex items-center justify-center"
+                >
+                  <div
+                    class="h-9 w-9 rounded-full bg-slate-200 flex items-center justify-center"
+                  >
+                    <span class="text-[0.5rem] font-semibold text-slate-500">
+                      LOGO
+                    </span>
+                  </div>
+                </div>
+                <p class="mt-2 text-[0.65rem] font-medium tracking-tight">
+                  "Inhlanganо inamandla"
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tier + Validity -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
+            <div class="space-y-3">
+              <p class="text-xs font-medium text-slate-500 uppercase">
+                Membership Tier
+              </p>
+              <div class="flex items-center gap-2">
+                <i
+                  class="lucide lucide-star-4 text-amber-600"
+                  style="stroke-width:1.5"
+                ></i>
+                <p
+                  class="text-lg sm:text-xl font-semibold tracking-tight text-amber-700"
+                >
+                  Gold Member
+                </p>
+              </div>
+              <div class="h-px bg-amber-700 mt-2 w-40 sm:w-52"></div>
+            </div>
+
+            <div class="space-y-3">
+              <p class="text-xs font-medium text-slate-500 uppercase">
+                Valid Through
+              </p>
+              <p
+                class="text-lg sm:text-xl font-semibold tracking-tight text-slate-900"
+              >
+                December 2025
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div
+            class="mt-4 pt-4 border-t border-slate-200 text-xs sm:text-sm text-slate-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+          >
+            <p>
+              Emergency Contact:
+              <span class="font-medium">+27 11 XXX XXXX</span>
+            </p>
+            <p class="truncate">
+              <span class="font-medium">www.inkuthazosocial.co.za</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div
+        class="w-full md:w-64 lg:w-72 border-t md:border-t-0 md:border-l border-amber-700/60 bg-slate-50 flex flex-col justify-between"
+      >
+        <div class="flex-1 flex items-center justify-center px-6 py-8">
+          <!-- QR Placeholder -->
+          <div
+            class="relative rounded-2xl border-2 border-teal-800 bg-white p-3 sm:p-4 shadow-sm"
+          >
+            <div class="grid grid-cols-4 gap-1.5 sm:gap-2">
+              <!-- 16 squares -->
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-sm"></div>
+
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+              <div class="w-4 h-4 sm:w-5 sm:h-5 bg-teal-800 rounded-sm"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 pb-5 pt-2 text-center space-y-1">
+          <p class="text-xs font-medium tracking-tight text-slate-700">
+            Scan to Verify
+          </p>
+          <p class="text-xs text-slate-500">
+            Scheme:
+            <span class="font-medium text-teal-800">Teal &amp; Copper</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

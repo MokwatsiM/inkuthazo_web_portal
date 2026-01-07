@@ -10,6 +10,7 @@ const serviceAccount = JSON.parse(
 );
 
 // Initialize Firebase Admin
+// node scripts/updateUserEmail.js
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });

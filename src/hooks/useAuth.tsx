@@ -122,6 +122,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Fetch the newly created user details
       await fetchUserDetails(result.user);
+
+      // Log audit trail
+      try {
+        const { logAuditTrail } = await import("../services/auditService");
+        await logAuditTrail(
+          result.user.uid,
+          "MEMBER_SIGNUP",
+          {
+            email,
+            full_name: fullName,
+            phone,
+            role: "member"
+          }
+        );
+      } catch (auditError) {
+        console.error("Failed to log member signup audit trail:", auditError);
+      }
+
       showSuccess("Account created successfully. Please verify your email.");
     } catch (error: unknown) {
       console.error("Error during signup:", error);

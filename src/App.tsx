@@ -8,7 +8,7 @@ import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
 import ConnectionStatus from "./components/ui/ConnectionStatus";
 import ErrorBoundary from "./components/error/ErrorBoundary";
 import { initializeConnectionHandler } from "./utils/firebaseConnection";
-import Layout from "./components/Layout";
+// import Layout from "./components/Layout";
 import FullScreenLayout from "./components/FullScreenLayout";
 import AuthLayout from "./components/auth/AuthLayout";
 import Login from "./components/auth/Login";
@@ -36,6 +36,7 @@ import Configuration from "./pages/Configuration";
 import HostAssignments from "./pages/HostAssignments";
 import MemberHostView from "./components/hostAssignments/MemberHostView";
 import Attendance from "./pages/Attendance";
+import AuditLogs from "./pages/AuditLogs";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -280,6 +281,19 @@ const AppRoutes: React.FC = () => {
       />
 
       <Route
+        path="/audit-logs"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <AuditLogs />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/attendance"
         element={
           <ProtectedRoute>
@@ -311,22 +325,22 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-    <ThemeProvider>
-      <NotificationProvider>
-        <AuthProvider>
-          <AnalyticsProvider>
-            <BrowserRouter>
-              <SessionProvider>
-                <NotificationContainer />
-                <ConnectionStatus />
-                <AppRoutes />
-              </SessionProvider>
-            </BrowserRouter>
-          </AnalyticsProvider>
-        </AuthProvider>
-      </NotificationProvider>
-    </ThemeProvider>
-   </ErrorBoundary>
+      <ThemeProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <AnalyticsProvider>
+              <BrowserRouter>
+                <SessionProvider>
+                  <NotificationContainer />
+                  <ConnectionStatus />
+                  <AppRoutes />
+                </SessionProvider>
+              </BrowserRouter>
+            </AnalyticsProvider>
+          </AuthProvider>
+        </NotificationProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

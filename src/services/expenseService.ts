@@ -7,6 +7,7 @@ import {
   Timestamp,
   query,
   where,
+  getDoc,
   getDocs,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
@@ -22,6 +23,22 @@ export const addExpense = async (
       created_at: Timestamp.now(),
       updated_at: Timestamp.now(),
     });
+
+    // Log audit trail
+    try {
+      const { logAuditTrail } = await import("./auditService");
+      await logAuditTrail(
+        data.created_by || "admin",
+        "EXPENSE_CREATE",
+        {
+          title: data.title,
+          amount: data.amount,
+          type: data.type
+        }
+      );
+    } catch (auditError) {
+      console.error("Failed to log expense creation audit trail:", auditError);
+    }
   } catch (error) {
     console.error("Error adding expense:", error);
     throw error;
@@ -34,10 +51,51 @@ export const updateExpense = async (
 ): Promise<void> => {
   try {
     const expenseRef = doc(db, "expenses", id);
+    
+    // Fetch current state for audit log
+    let previousExpense: any = null;
+    try {
+      const docSnap = await getDoc(expenseRef);
+      if (docSnap.exists()) {
+        previousExpense = docSnap.data();
+      }
+    } catch (err) {
+      console.error("Failed to fetch previous expense state:", err);
+    }
+
     await updateDoc(expenseRef, {
       ...data,
       updated_at: Timestamp.now(),
     });
+
+    // Log audit trail
+    try {
+      const { logAuditTrail } = await import("./auditService");
+      
+      // Extract changes
+      const changes: Record<string, { old: any; new: any }> = {};
+      if (previousExpense) {
+        Object.keys(data).forEach((key) => {
+          if (JSON.stringify(previousExpense[key]) !== JSON.stringify((data as any)[key])) {
+            changes[key] = {
+              old: previousExpense[key],
+              new: (data as any)[key]
+            };
+          }
+        });
+      }
+
+      await logAuditTrail(
+        "admin",
+        "EXPENSE_UPDATE",
+        {
+          expense_id: id,
+          changes
+        }
+      );
+    } catch (auditError) {
+      console.error("Failed to log expense update audit trail:", auditError);
+    }
   } catch (error) {
     console.error("Error updating expense:", error);
     throw error;
@@ -47,6 +105,20 @@ export const updateExpense = async (
 export const deleteExpense = async (id: string): Promise<void> => {
   try {
     await deleteDoc(doc(db, "expenses", id));
+
+    // Log audit trail
+    try {
+      const { logAuditTrail } = await import("./auditService");
+      await logAuditTrail(
+        "admin",
+        "EXPENSE_DELETE",
+        {
+          expense_id: id
+        }
+      );
+    } catch (auditError) {
+      console.error("Failed to log expense deletion audit trail:", auditError);
+    }
   } catch (error) {
     console.error("Error deleting expense:", error);
     throw error;
@@ -65,6 +137,21 @@ export const markExpenseAsPaid = async (
       payment_reference: paymentReference,
       updated_at: Timestamp.now(),
     });
+
+    // Log audit trail
+    try {
+      const { logAuditTrail } = await import("./auditService");
+      await logAuditTrail(
+        "admin",
+        "EXPENSE_PAID",
+        {
+          expense_id: id,
+          payment_reference: paymentReference
+        }
+      );
+    } catch (auditError) {
+      console.error("Failed to log expense payment audit trail:", auditError);
+    }
   } catch (error) {
     console.error("Error marking expense as paid:", error);
     throw error;

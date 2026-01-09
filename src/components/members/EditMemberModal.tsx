@@ -48,6 +48,8 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
         ...formData,
         join_date: toFirestoreTimestamp(formData.join_date),
       };
+
+    
       await onSubmit(updatedData);
       onClose();
     } catch (error) {

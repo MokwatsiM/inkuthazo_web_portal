@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, ArrowLeft } from 'lucide-react';
+import { LogOut, ArrowLeft, Activity } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import Button from './ui/Button';
 import Avatar from './avatar/Avatar';
@@ -16,7 +16,7 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({
   showBackButton = true
 }) => {
   const navigate = useNavigate();
-  const { signOut, userDetails } = useAuth();
+  const { signOut, userDetails, isAdmin } = useAuth();
 
   const handleSignOut = async () => {
     try {
@@ -56,6 +56,15 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              {isAdmin && (
+                <Link
+                  to="/audit-logs"
+                  className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                  title="Audit Logs"
+                >
+                  <Activity className="h-5 w-5" />
+                </Link>
+              )}
               <ThemeToggle variant="button" />
               {userDetails && (
                 <div className="flex items-center space-x-3">

@@ -37,12 +37,42 @@ export const reviewContribution = async (
   reviewerId: string
 ): Promise<void> => {
   const contributionRef = doc(db, 'contributions', id);
+  
+  // Fetch contribution to get member_id for audit log
+  let memberName = 'Unknown Member';
+  try {
+    const docSnap = await getDoc(contributionRef);
+    if (docSnap.exists()) {
+      memberName = await getMemberName(docSnap.data().member_id);
+    }
+  } catch (err) {
+    console.error('Failed to fetch contribution for audit log:', err);
+  }
+
   await updateDoc(contributionRef, {
     status,
     review_notes: notes,
     reviewed_by: reviewerId,
     reviewed_at: Timestamp.now()
   });
+
+  // Log audit trail
+  try {
+    const { logAuditTrail } = await import('../auditService');
+    await logAuditTrail(
+      reviewerId,
+      'CONTRIBUTION_REVIEW',
+      {
+        contribution_id: id,
+        member_name: memberName,
+        status,
+        notes,
+        timestamp: new Date().toISOString()
+      }
+    );
+  } catch (auditError) {
+    console.error('Failed to log contribution review audit trail:', auditError);
+  }
 };
 
 export const addContribution = async (
@@ -80,6 +110,23 @@ export const addContribution = async (
   // Fetch member name
   const memberName = await getMemberName(contribution.member_id);
 
+  // Log audit trail
+  try {
+    const { logAuditTrail } = await import('../auditService');
+    await logAuditTrail(
+      contribution.member_id,
+      'CONTRIBUTION_CREATE',
+      {
+        type: contribution.type,
+        amount: contribution.amount,
+        member_name: memberName
+      },
+      memberName
+    );
+  } catch (auditError) {
+    console.error('Failed to log contribution creation audit trail:', auditError);
+  }
+
   return {
     id: docRef.id,
     ...contribution,
@@ -110,7 +157,53 @@ export const updateContribution = async (
   };
 
   const contributionRef = doc(db, 'contributions', id);
+  
+  // Fetch current state for audit log
+  let previousContribution: any = null;
+  try {
+    const docSnap = await getDoc(contributionRef);
+    if (docSnap.exists()) {
+      previousContribution = docSnap.data();
+    }
+  } catch (err) {
+    console.error('Failed to fetch previous contribution state:', err);
+  }
+
   await updateDoc(contributionRef, updateData);
+
+  // Log audit trail
+  try {
+    const { logAuditTrail } = await import('../auditService');
+    
+    // Extract changes
+    const changes: Record<string, { old: any; new: any }> = {};
+    if (previousContribution) {
+      Object.keys(updateData).forEach((key) => {
+        if (JSON.stringify(previousContribution[key]) !== JSON.stringify((updateData as any)[key])) {
+          changes[key] = {
+            old: previousContribution[key],
+            new: (updateData as any)[key]
+          };
+        }
+      });
+    }
+
+    // Fetch member name for audit log
+    const memberName = await getMemberName(previousContribution?.member_id || contribution.member_id || 'system');
+
+    await logAuditTrail(
+      contribution.member_id || 'system',
+      'CONTRIBUTION_UPDATE',
+      {
+        contribution_id: id,
+        member_name: memberName,
+        changes
+      },
+      memberName !== 'Unknown Member' ? memberName : undefined
+    );
+  } catch (auditError) {
+    console.error('Failed to log contribution update audit trail:', auditError);
+  }
 
   if (contribution.member_id) {
     const memberName = await getMemberName(contribution.member_id);
@@ -123,10 +216,36 @@ export const updateContribution = async (
 };
 
 export const deleteContribution = async (id: string, proofOfPaymentUrl?: string): Promise<void> => {
+  const contributionRef = doc(db, 'contributions', id);
+
+  // Log audit trail BEFORE deletion so we can fetch the member_id
+  try {
+    const { logAuditTrail } = await import('../auditService');
+    
+    let memberName = 'Unknown Member';
+    try {
+      const docSnap = await getDoc(contributionRef);
+      if (docSnap.exists()) {
+        memberName = await getMemberName(docSnap.data().member_id);
+      }
+    } catch (e) {}
+
+    await logAuditTrail(
+      'admin', 
+      'CONTRIBUTION_DELETE',
+      {
+        contribution_id: id,
+        member_name: memberName
+      },
+      'Admin'
+    );
+  } catch (auditError) {
+    console.error('Failed to log contribution deletion audit trail:', auditError);
+  }
+
   if (proofOfPaymentUrl) {
     await deleteProofOfPayment(proofOfPaymentUrl);
   }
 
-  const contributionRef = doc(db, 'contributions', id);
   await deleteDoc(contributionRef);
 };

@@ -4,6 +4,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   query,
   where,
   orderBy,
@@ -40,6 +41,22 @@ export const addConfiguration = async (
     }
 
     await addDoc(collection(db, "configurations"), configData);
+
+    // Log audit trail
+    try {
+      const { logAuditTrail } = await import("./auditService");
+      await logAuditTrail(
+        createdBy,
+        "CONFIG_CREATE",
+        {
+          config_name: data.name,
+          type: data.type,
+          value: data.value
+        }
+      );
+    } catch (auditError) {
+      console.error("Failed to log configuration creation audit trail:", auditError);
+    }
   } catch (error) {
     console.error("Error adding configuration:", error);
     throw error;
@@ -94,7 +111,47 @@ export const updateConfiguration = async (
       }
     }
 
+    // Fetch current state for audit log
+    let previousConfig: any = null;
+    try {
+      const docSnap = await getDoc(configRef);
+      if (docSnap.exists()) {
+        previousConfig = docSnap.data();
+      }
+    } catch (err) {
+      console.error("Failed to fetch previous configuration state:", err);
+    }
+
     await updateDoc(configRef, updateData);
+
+    // Log audit trail
+    try {
+      const { logAuditTrail } = await import("./auditService");
+      
+      // Extract changes
+      const changes: Record<string, { old: any; new: any }> = {};
+      if (previousConfig) {
+        Object.keys(updateData).forEach((key) => {
+          if (JSON.stringify(previousConfig[key]) !== JSON.stringify((updateData as any)[key])) {
+            changes[key] = {
+              old: previousConfig[key],
+              new: (updateData as any)[key]
+            };
+          }
+        });
+      }
+
+      await logAuditTrail(
+        "admin",
+        "CONFIG_UPDATE",
+        {
+          config_id: id,
+          changes
+        }
+      );
+    } catch (auditError) {
+      console.error("Failed to log configuration update audit trail:", auditError);
+    }
   } catch (error) {
     console.error("Error updating configuration:", error);
     throw error;
@@ -104,6 +161,20 @@ export const updateConfiguration = async (
 export const deleteConfiguration = async (id: string): Promise<void> => {
   try {
     await deleteDoc(doc(db, "configurations", id));
+
+    // Log audit trail
+    try {
+      const { logAuditTrail } = await import("./auditService");
+      await logAuditTrail(
+        "admin",
+        "CONFIG_DELETE",
+        {
+          config_id: id
+        }
+      );
+    } catch (auditError) {
+      console.error("Failed to log configuration deletion audit trail:", auditError);
+    }
   } catch (error) {
     console.error("Error deleting configuration:", error);
     throw error;

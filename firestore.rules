@@ -212,5 +212,11 @@ service cloud.firestore {
       // No deletes allowed - attendance records are immutable
       allow delete: if false;
     }
+
+    // Audit logs collection
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if isSignedIn();
+    }
   }
 }

@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   CalendarDays,
   TrendingUp,
+  Activity,
 } from "lucide-react";
 import { Settings } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -113,6 +114,12 @@ const Layout: React.FC = () => {
       label: "Configuration",
       color: "text-gray-500",
     },
+    {
+      path: "/audit-logs",
+      icon: Activity,
+      label: "Audit Logs",
+      color: "text-blue-600",
+    },
   ];
 
   const memberMenuItems = [
@@ -167,10 +174,9 @@ const Layout: React.FC = () => {
       <Link
         to={item.path}
         className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out
-          ${
-            active
-              ? "bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300"
-              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+          ${active
+            ? "bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300"
+            : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           }
           ${mobile ? "flex-col justify-center items-center space-y-0.5" : ""}
         `}
@@ -178,28 +184,23 @@ const Layout: React.FC = () => {
       >
         <div
           className={`
-          flex items-center justify-center ${
-            mobile ? "w-5 h-5" : "w-8 h-8"
-          } rounded-md transition-all duration-200
-          ${
-            active
+          flex items-center justify-center ${mobile ? "w-5 h-5" : "w-8 h-8"
+            } rounded-md transition-all duration-200
+          ${active
               ? `${item.color} bg-white dark:bg-gray-800 shadow-sm`
               : "text-gray-400 group-hover:text-gray-600 dark:text-gray-400 dark:group-hover:text-gray-300"
-          }
+            }
         `}
         >
           <Icon
-            className={`${
-              mobile ? "w-4 h-4" : "w-5 h-5"
-            } transition-transform duration-200 ${
-              active ? "scale-110" : "group-hover:scale-110"
-            }`}
+            className={`${mobile ? "w-4 h-4" : "w-5 h-5"
+              } transition-transform duration-200 ${active ? "scale-110" : "group-hover:scale-110"
+              }`}
           />
         </div>
         <span
-          className={`${
-            mobile ? "text-[10px]" : "ml-3"
-          } transition-colors duration-200 ${active ? "font-semibold" : ""}`}
+          className={`${mobile ? "text-[10px]" : "ml-3"
+            } transition-colors duration-200 ${active ? "font-semibold" : ""}`}
         >
           {mobile ? item.label.split(" ")[0] : item.label}
         </span>
@@ -324,9 +325,8 @@ const Layout: React.FC = () => {
 
         {/* Main Content */}
         <main
-          className={`flex-1 relative overflow-y-auto focus:outline-none ${
-            !isAdmin ? "pb-16" : "pb-6"
-          }`}
+          className={`flex-1 relative overflow-y-auto focus:outline-none ${!isAdmin ? "pb-16" : "pb-6"
+            }`}
         >
           <div className="py-6 px-4 sm:px-6 lg:px-8">
             <Outlet />

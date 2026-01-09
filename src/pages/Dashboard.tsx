@@ -14,7 +14,7 @@ import LoadingSpinner from "../components/ui/LoadingSpinner";
 import {
   Users, DollarSign, TrendingUp, Calendar, UserPlus,
   PlusCircle, BarChart3, Settings, Mail, Clock,
-  AlertTriangle, Eye
+  AlertTriangle, Eye, Activity
 } from "lucide-react";
 
 const COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
@@ -207,7 +207,7 @@ const Dashboard: React.FC = () => {
         const members = membersSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        })) as Array<{ id: string; status?: string; [key: string]: any }>;
+        })) as Array<{ id: string; status?: string;[key: string]: any }>;
 
         memberStats.total = members.length;
         memberStats.active = members.filter(m =>
@@ -284,12 +284,19 @@ const Dashboard: React.FC = () => {
       icon: Settings,
       href: "/configuration",
       color: 'red' as const
+    },
+    {
+      title: "Audit Logs",
+      description: "View system audit trail",
+      icon: Activity,
+      href: "/audit-logs",
+      color: 'blue' as const
     }
   ];
 
   const renderAdminDashboard = () => (
     <div className="space-y-8">
-      
+
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

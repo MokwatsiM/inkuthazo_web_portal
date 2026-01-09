@@ -68,6 +68,25 @@ export const useMembers = (): UseMembersReturn => {
       } as Member;
 
       setMembers((prev) => [...prev, newMember]);
+
+      // Log audit trail
+      try {
+        const { logAuditTrail } = await import("../services/auditService");
+        await logAuditTrail(
+          userDetails?.id || "admin",
+          "MEMBER_CREATE",
+          {
+            member_id: docRef.id,
+            member_name: member.full_name,
+            email: member.email,
+            role: member.role
+          },
+          userDetails?.full_name || "Admin"
+        );
+      } catch (auditError) {
+        console.error("Failed to log member creation audit trail:", auditError);
+      }
+
       return newMember;
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -81,6 +100,8 @@ export const useMembers = (): UseMembersReturn => {
   ): Promise<void> => {
     try {
       const memberRef = doc(db, "members", id);
+      const previousMember = members.find(m => m.id === id);
+
       const updateData = {
         ...member,
         ...(member.join_date && {
@@ -92,6 +113,40 @@ export const useMembers = (): UseMembersReturn => {
       };
 
       await updateDoc(memberRef, updateData);
+
+      // Log audit trail
+      try {
+        const { logAuditTrail } = await import("../services/auditService");
+
+        // Extract only the fields that changed for the audit log
+        const changes: Record<string, { old: any; new: any }> = {};
+        if (previousMember) {
+          Object.keys(updateData).forEach((key) => {
+            const field = key as keyof Member;
+            // Simple comparison for primitive types
+            if (JSON.stringify(previousMember[field]) !== JSON.stringify((updateData as any)[key])) {
+              changes[key] = {
+                old: previousMember[field],
+                new: (updateData as any)[key]
+              };
+            }
+          });
+        }
+
+        await logAuditTrail(
+          userDetails?.id || "system",
+          "MEMBER_UPDATE",
+          {
+            target_member_id: id,
+            target_member_name: previousMember?.full_name || "Unknown",
+            changes,
+            timestamp: new Date().toISOString()
+          },
+          userDetails?.full_name || "System"
+        );
+      } catch (auditError) {
+        console.error("Failed to log member update audit trail:", auditError);
+      }
 
       setMembers((prev) =>
         prev.map((m) => (m.id === id ? { ...m, ...updateData } : m))

@@ -40,6 +40,24 @@ export const addClaim = async (
   const memberDoc = await getDoc(doc(db, 'members', claim.member_id));
   const memberName = memberDoc.exists() ? memberDoc.data().full_name : 'Unknown Member';
 
+  // Log audit trail
+  try {
+    const { logAuditTrail } = await import('./auditService');
+    await logAuditTrail(
+      claim.member_id,
+      'CLAIM_CREATE',
+      {
+        claim_type: claim.type,
+        claimant_name: claim.claimant.full_name,
+        member_name: memberName,
+        amount: claim.amount
+      },
+      memberName
+    );
+  } catch (auditError) {
+    console.error('Failed to log claim creation audit trail:', auditError);
+  }
+
   return {
     id: docRef.id,
     ...claim,
@@ -61,6 +79,16 @@ export const reviewClaim = async (
   try {
     const claimRef = doc(db, 'claims', id);
     
+    // Fetch claimant name for audit log
+    let claimantName = 'Unknown Claimant';
+    try {
+      const claimSnapshot = await getDoc(claimRef);
+      if (claimSnapshot.exists()) {
+        const claimData = claimSnapshot.data();
+        claimantName = claimData.claimant?.full_name || 'Unknown Claimant';
+      }
+    } catch (e) {}
+
     await updateDoc(claimRef, {
       status,
       review_notes: notes,
@@ -76,9 +104,29 @@ export const reviewClaim = async (
         await createPayoutFromClaim(claimData);
       }
     }
+
+    // Log audit trail
+    try {
+      const { logAuditTrail } = await import('./auditService');
+      
+      // Resolve reviewer name if possible (service doesn't have it, but we can resolve in UI)
+      // For now, focus on target name
+      await logAuditTrail(
+        reviewerId,
+        'CLAIM_REVIEW',
+        {
+          claim_id: id,
+          claimant_name: claimantName,
+          status,
+          notes,
+          timestamp: new Date().toISOString()
+        }
+      );
+    } catch (auditError) {
+      console.error('Failed to log claim review audit trail:', auditError);
+    }
   } catch (error) {
     console.error('Error reviewing claim:', error);
     throw error;
   }
 };
-

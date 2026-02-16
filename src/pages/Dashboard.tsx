@@ -3,10 +3,9 @@ import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, Cart
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../hooks/useAuth";
-import StatCard from "../components/stats/StatCard";
-import WelcomeBanner from "../components/dashboard/WelcomeBanner";
+import KPICard from "../components/ui/KPICard";
+import ActivityFeed from "../components/dashboard/ActivityFeed";
 import QuickActions from "../components/dashboard/QuickActions";
-import RecentActivity from "../components/dashboard/RecentActivity";
 import UpcomingEvents from "../components/dashboard/UpcomingEvents";
 import AttendanceStats from "../components/dashboard/AttendanceStats";
 import BulkImportModal from "../components/contributions/BulkImportModal";
@@ -15,7 +14,8 @@ import LoadingSpinner from "../components/ui/LoadingSpinner";
 import {
   Users, DollarSign, TrendingUp, Calendar, UserPlus,
   PlusCircle, BarChart3, Settings, Mail, Clock,
-  AlertTriangle, Eye, Activity, Database
+  AlertTriangle, Eye, Activity, ArrowUp, ArrowDown,
+  Database
 } from "lucide-react";
 import { href } from "react-router-dom";
 
@@ -313,48 +313,46 @@ const Dashboard: React.FC = () => {
   ];
 
   const renderAdminDashboard = () => (
-    <div className="space-y-8">
-
-
+    <div className="space-y-6">
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
+        <KPICard
           title="Total Members"
           value={stats.totalMembers}
           subtitle={`${stats.activeMembers} active`}
           icon={Users}
-          color="blue"
+          gradient="blue"
           trend={{
-            value: Math.round(stats.memberGrowth),
+            value: `${Math.abs(Math.round(stats.memberGrowth))}%`,
             isPositive: stats.memberGrowth > 0,
-            label: "this month"
+            icon: stats.memberGrowth > 0 ? ArrowUp : ArrowDown
           }}
         />
-        <StatCard
-          title="This Month's Contributions"
+        <KPICard
+          title="This Month"
           value={`R ${stats.thisMonthContributions.toFixed(2)}`}
           subtitle={`R ${stats.totalContributions.toFixed(2)} total`}
           icon={DollarSign}
-          color="green"
+          gradient="green"
           trend={{
-            value: Math.abs(Math.round(stats.contributionGrowth)),
+            value: `${Math.abs(Math.round(stats.contributionGrowth))}%`,
             isPositive: stats.contributionGrowth > 0,
-            label: "vs last month"
+            icon: stats.contributionGrowth > 0 ? ArrowUp : ArrowDown
           }}
         />
-        <StatCard
+        <KPICard
           title="Pending Reviews"
           value={stats.pendingContributions}
           subtitle={`${stats.pendingMembers} member approvals`}
           icon={AlertTriangle}
-          color="yellow"
+          gradient="amber"
         />
-        <StatCard
+        <KPICard
           title="Monthly Contributions"
           value={`R ${stats.monthlyContributions.toFixed(2)}`}
           subtitle={`${stats.approvedContributions} approved`}
           icon={TrendingUp}
-          color="purple"
+          gradient="purple"
         />
       </div>
 
@@ -362,18 +360,18 @@ const Dashboard: React.FC = () => {
       <QuickActions actions={adminQuickActions} />
 
       {/* Attendance Statistics */}
-      <div>
-        <h3 className="text-xl font-bold text-text-primary dark:text-text-primary-dark mb-4">
+      <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
           Attendance Tracking
         </h3>
         <AttendanceStats />
       </div>
 
       {/* Charts and Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Monthly Trends */}
-        <div className="bg-surface dark:bg-surface-dark p-6 rounded-xl shadow border border-line dark:border-line-dark">
-          <h3 className="text-xl font-bold text-text-primary dark:text-text-primary-dark mb-6">
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
             Monthly Contribution Trends
           </h3>
           <div className="h-[300px]">
@@ -382,25 +380,32 @@ const Dashboard: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis
                   dataKey="month"
-                  className="text-text-secondary dark:text-text-secondary-dark"
+                  className="text-gray-600 dark:text-gray-400"
                 />
-                <YAxis className="text-text-secondary dark:text-text-secondary-dark" />
+                <YAxis className="text-gray-600 dark:text-gray-400" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-line)',
-                    borderRadius: '8px'
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    padding: '12px'
                   }}
                 />
-                <Bar dataKey="contributions" fill="#4F46E5" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="contributions" fill="url(#colorGradient)" radius={[8, 8, 0, 0]} />
+                <defs>
+                  <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#7C5CFC" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#6D28D9" stopOpacity={1} />
+                  </linearGradient>
+                </defs>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Contributions by Type */}
-        <div className="bg-surface dark:bg-surface-dark p-6 rounded-xl shadow border border-line dark:border-line-dark">
-          <h3 className="text-xl font-bold text-text-primary dark:text-text-primary-dark mb-6">
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
             Contributions by Type
           </h3>
           <div className="h-[300px]">
@@ -432,8 +437,18 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Activity and Upcoming Events */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <RecentActivity activities={recentActivities} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ActivityFeed
+          activities={recentActivities.map(activity => ({
+            id: activity.id,
+            type: activity.type,
+            title: activity.title,
+            description: activity.description,
+            timestamp: activity.timestamp,
+            user: activity.user
+          }))}
+          maxItems={8}
+        />
         <UpcomingEvents events={upcomingEvents} />
       </div>
     </div>
@@ -480,36 +495,41 @@ const Dashboard: React.FC = () => {
   ];
 
   const renderMemberDashboard = () => (
-    <div className="space-y-8">
-      {/* Welcome Banner */}
-      <WelcomeBanner
-        userName={userDetails?.full_name || "Member"}
-        userRole={userDetails?.role || "member"}
-        memberSince={userDetails?.join_date?.toDate()}
-      />
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-[20px] p-8 text-white shadow-lg">
+        <h1 className="text-3xl font-bold mb-2">
+          Welcome back, {userDetails?.full_name?.split(' ')[0] || "Member"}!
+        </h1>
+        <p className="text-purple-100">
+          {userDetails?.join_date
+            ? `Member since ${new Date(userDetails.join_date.toDate()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+            : "Member"}
+        </p>
+      </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StatCard
-          title="My Total Contributions"
+        <KPICard
+          title="Total Contributions"
           value={`R ${stats.totalContributions.toFixed(2)}`}
           subtitle={`${stats.approvedContributions} approved`}
           icon={DollarSign}
-          color="green"
+          gradient="green"
         />
-        <StatCard
+        <KPICard
           title="Pending Reviews"
           value={stats.pendingContributions}
           subtitle="Awaiting approval"
           icon={Clock}
-          color="yellow"
+          gradient="amber"
         />
-        <StatCard
+        <KPICard
           title="This Month"
           value={`R ${stats.thisMonthContributions.toFixed(2)}`}
           subtitle="Your contributions"
           icon={TrendingUp}
-          color="blue"
+          gradient="blue"
         />
       </div>
 
@@ -517,10 +537,10 @@ const Dashboard: React.FC = () => {
       <QuickActions actions={memberQuickActions} title="What would you like to do?" />
 
       {/* Charts and Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Contributions by Type */}
-        <div className="bg-surface dark:bg-surface-dark p-6 rounded-xl shadow border border-line dark:border-line-dark">
-          <h3 className="text-xl font-bold text-text-primary dark:text-text-primary-dark mb-6">
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
             My Contributions by Type
           </h3>
           {contributionsByType.length > 0 ? (
@@ -551,11 +571,11 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-[300px] text-center">
-              <DollarSign className="h-16 w-16 text-text-tertiary dark:text-text-tertiary-dark mb-4" />
-              <p className="text-text-secondary dark:text-text-secondary-dark">
+              <DollarSign className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">
                 No contributions recorded yet
               </p>
-              <p className="text-sm text-text-tertiary dark:text-text-tertiary-dark mt-2">
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
                 Start by adding your first contribution
               </p>
             </div>
@@ -563,8 +583,8 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Monthly Progress */}
-        <div className="bg-surface dark:bg-surface-dark p-6 rounded-xl shadow border border-line dark:border-line-dark">
-          <h3 className="text-xl font-bold text-text-primary dark:text-text-primary-dark mb-6">
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
             Monthly Progress
           </h3>
           <div className="h-[300px]">
@@ -573,17 +593,24 @@ const Dashboard: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis
                   dataKey="month"
-                  className="text-text-secondary dark:text-text-secondary-dark"
+                  className="text-gray-600 dark:text-gray-400"
                 />
-                <YAxis className="text-text-secondary dark:text-text-secondary-dark" />
+                <YAxis className="text-gray-600 dark:text-gray-400" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-line)',
-                    borderRadius: '8px'
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    padding: '12px'
                   }}
                 />
-                <Bar dataKey="contributions" fill="#10B981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="contributions" fill="url(#colorGradientGreen)" radius={[8, 8, 0, 0]} />
+                <defs>
+                  <linearGradient id="colorGradientGreen" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#059669" stopOpacity={1} />
+                  </linearGradient>
+                </defs>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -591,10 +618,16 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Activity and Upcoming Events */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <RecentActivity
-          activities={recentActivities}
-          title="My Recent Activity"
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ActivityFeed
+          activities={recentActivities.map(activity => ({
+            id: activity.id,
+            type: activity.type,
+            title: activity.title,
+            description: activity.description,
+            timestamp: activity.timestamp,
+            user: activity.user
+          }))}
           maxItems={8}
         />
         <UpcomingEvents
@@ -607,17 +640,15 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background dark:bg-background-dark">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isAdmin ? renderAdminDashboard() : renderMemberDashboard()}
-      </div>
+    <div className="space-y-6">
+      {isAdmin ? renderAdminDashboard() : renderMemberDashboard()}
 
       <BulkImportModal
         isOpen={isImportModalOpen}

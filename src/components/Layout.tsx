@@ -25,6 +25,8 @@ import { useAuth } from "../hooks/useAuth";
 import Button from "./ui/Button";
 import Avatar from "./avatar/Avatar";
 import { ThemeToggle } from "./ui/ThemeToggle";
+import TopBar from "./layout/TopBar";
+import ProfileSummary from "./layout/ProfileSummary";
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
@@ -173,171 +175,178 @@ const Layout: React.FC = () => {
     return (
       <Link
         to={item.path}
-        className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out
+        className={`group flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-[12px] transition-all duration-200 ease-in-out
           ${active
-            ? "bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300"
+            ? "bg-gradient-purple text-white shadow-lg"
             : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           }
-          ${mobile ? "flex-col justify-center items-center space-y-0.5" : ""}
+          ${mobile ? "flex-col justify-center items-center space-y-0.5 gap-1 px-2 py-2" : ""}
         `}
         onClick={handleMenuItemClick}
       >
         <div
           className={`
-          flex items-center justify-center ${mobile ? "w-5 h-5" : "w-8 h-8"
-            } rounded-md transition-all duration-200
+          flex items-center justify-center ${mobile ? "w-5 h-5" : "w-10 h-10"
+            } rounded-xl transition-all duration-200
           ${active
-              ? `${item.color} bg-white dark:bg-gray-800 shadow-sm`
-              : "text-gray-400 group-hover:text-gray-600 dark:text-gray-400 dark:group-hover:text-gray-300"
+              ? "bg-white/20 backdrop-blur-sm"
+              : `${item.color} bg-gray-100 dark:bg-gray-800`
             }
         `}
         >
           <Icon
             className={`${mobile ? "w-4 h-4" : "w-5 h-5"
-              } transition-transform duration-200 ${active ? "scale-110" : "group-hover:scale-110"
+              } transition-transform duration-200 ${active ? "scale-110 text-white" : "group-hover:scale-110"
               }`}
           />
         </div>
         <span
-          className={`${mobile ? "text-[10px]" : "ml-3"
+          className={`${mobile ? "text-[10px]" : "flex-1"
             } transition-colors duration-200 ${active ? "font-semibold" : ""}`}
         >
           {mobile ? item.label.split(" ")[0] : item.label}
         </span>
-        {active && !mobile && (
-          <span className="ml-auto w-1.5 h-5 rounded-full bg-brand-500" />
-        )}
       </Link>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Top Navigation Bar */}
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              {isAdmin && (
-                <button
-                  onClick={toggleMobileMenu}
-                  className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500 md:hidden"
-                >
-                  {isMobileMenuOpen ? (
-                    <X className="block h-6 w-6" />
-                  ) : (
-                    <Menu className="block h-6 w-6" />
-                  )}
-                </button>
-              )}
-              <div className="flex items-center space-x-2">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* Mobile Sidebar Overlay */}
+      {isMobileMenuOpen && (
+        <aside className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"
+            onClick={toggleMobileMenu}
+          />
+          <div className="relative flex flex-col w-72 max-w-xs h-full bg-white dark:bg-surface-dark shadow-2xl transform transition-transform duration-300 ease-in-out">
+            {/* Sidebar Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-3">
                 <img
                   src="/logo.png"
                   alt="Logo"
-                  className="h-8 w-8 text-brand-600 dark:text-brand-400"
+                  className="h-10 w-10"
                 />
-                <h1 className="text-xl font-bold text-text-primary dark:text-text-primary-dark ml-2 md:ml-0">
-                  Inkuthazo Portal
-                </h1>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Inkuthazo
+                  </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Social Club Portal
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={toggleMobileMenu}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+              {menuItems.map((item) => (
+                <MenuItem key={item.path} item={item} />
+              ))}
+            </nav>
+
+            {/* Sidebar Footer */}
+            <div className="border-t border-gray-100 dark:border-gray-800 p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <ThemeToggle variant="button" />
+                <Button
+                  variant="secondary"
+                  icon={LogOut}
+                  onClick={handleSignOut}
+                  className="flex-1"
+                >
+                  Sign Out
+                </Button>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+          </div>
+        </aside>
+      )}
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex lg:flex-shrink-0">
+        <div className="flex flex-col w-72 bg-white dark:bg-surface-dark border-r border-gray-100 dark:border-gray-800">
+          {/* Sidebar Header */}
+          <div className="flex items-center gap-3 px-6 py-6 border-b border-gray-100 dark:border-gray-800">
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-10 w-10"
+            />
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                Inkuthazo
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Social Club Portal
+              </p>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            {menuItems.map((item) => (
+              <MenuItem key={item.path} item={item} />
+            ))}
+          </nav>
+
+          {/* Sidebar Footer */}
+          <div className="border-t border-gray-100 dark:border-gray-800 p-4">
+            <div className="flex items-center gap-3">
               <ThemeToggle variant="button" />
-              {userDetails && (
-                <div className={`${isAdmin ? 'hidden md:flex' : 'flex'} items-center space-x-3`}>
-                  <Link
-                    to={`/members/${userDetails.id}`}
-                    className="relative group"
-                  >
-                    <Avatar member={userDetails} size="sm" />
-                    <div className="absolute inset-0 rounded-full ring-2 ring-transparent group-hover:ring-brand-500 transition-all duration-200" />
-                  </Link>
-                  <div className={`text-sm ${!isAdmin ? 'hidden md:block' : ''}`}>
-                    <p className="font-medium text-gray-700 dark:text-gray-200">
-                      {userDetails.full_name}
-                    </p>
-                    <p className="text-gray-500 dark:text-gray-400 text-xs capitalize">
-                      {userDetails.role}
-                    </p>
-                  </div>
-                </div>
-              )}
               <Button
                 variant="secondary"
                 icon={LogOut}
                 onClick={handleSignOut}
-                className="flex items-center hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
+                className="flex-1"
               >
-                <span className="hidden md:inline">Sign Out</span>
+                Sign Out
               </Button>
             </div>
           </div>
         </div>
-      </nav>
+      </aside>
 
-      <div className="flex">
-        {/* Mobile Sidebar for Admin */}
-        {isAdmin && isMobileMenuOpen && (
-          <aside className="fixed inset-0 z-40 md:hidden">
-            <div
-              className="fixed inset-0 bg-gray-600 bg-opacity-75 backdrop-blur-sm transition-opacity"
-              onClick={toggleMobileMenu}
-            />
-            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-gray-800 transform transition-transform duration-300 ease-in-out">
-              <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                <nav className="mt-5 px-2 space-y-1">
-                  {menuItems.map((item) => (
-                    <MenuItem key={item.path} item={item} />
-                  ))}
-                </nav>
-              </div>
-              {userDetails && (
-                <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
-                  <div className="flex items-center">
-                    <Avatar member={userDetails} size="sm" />
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                        {userDetails.full_name}
-                      </p>
-                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 capitalize">
-                        {userDetails.role}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Bar */}
+        <TopBar />
+
+        {/* Content Wrapper */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Main Content */}
+          <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+            <div className="p-6">
+              <Outlet />
             </div>
+          </main>
+
+          {/* Right Panel - Profile Summary (Desktop Only) */}
+          <aside className="hidden xl:block">
+            <ProfileSummary />
           </aside>
-        )}
-
-        {/* Desktop Sidebar */}
-        <aside className="hidden md:flex md:flex-shrink-0">
-          <div className="flex flex-col w-64">
-            <div className="flex flex-col h-0 flex-1">
-              <nav className="flex-1 px-3 py-4 bg-white dark:bg-gray-800 space-y-1 border-r border-gray-200 dark:border-gray-700">
-                {menuItems.map((item) => (
-                  <MenuItem key={item.path} item={item} />
-                ))}
-              </nav>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main
-          className={`flex-1 relative overflow-y-auto focus:outline-none ${!isAdmin ? "pb-16" : "pb-6"
-            }`}
-        >
-          <div className="py-6 px-4 sm:px-6 lg:px-8">
-            <Outlet />
-          </div>
-        </main>
+        </div>
       </div>
+
+      {/* Mobile Menu Button (Floating) */}
+      <button
+        onClick={toggleMobileMenu}
+        className="lg:hidden fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-purple text-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-200 hover:scale-110"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
 
       {/* Mobile Bottom Navigation for Members Only */}
       {!isAdmin && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50">
-          <div className="grid grid-cols-5 gap-1 px-2 py-1">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 z-40 shadow-lg">
+          <div className="grid grid-cols-5 gap-1 px-2 py-2">
             {menuItems.map((item) => (
               <MenuItem key={item.path} item={item} mobile />
             ))}

@@ -235,8 +235,8 @@ const Members: React.FC = () => {
       />
 
       {/* Search and Content */}
-      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow">
-        <div className="p-4 border-b border-line dark:border-line-dark">
+      <div className="bg-white dark:bg-surface-dark rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between">
             <SearchInput
               placeholder="Search members..."

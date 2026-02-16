@@ -146,9 +146,9 @@ const MemberDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen -mt-6 -mx-4 sm:-mx-6 lg:-mx-8">
+    <div className="min-h-screen">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-surface/70 dark:supports-[backdrop-filter]:bg-surface-dark/70 bg-surface/80 dark:bg-surface-dark/80 border-b border-line dark:border-line-dark">
+      <header className="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-surface-dark/70 bg-white/80 dark:bg-surface-dark/80 border-b border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumbs */}
           <nav className="flex items-center h-12 text-sm text-text-secondary dark:text-text-secondary-dark overflow-x-auto" aria-label="Breadcrumb">
@@ -224,25 +224,25 @@ const MemberDetail: React.FC = () => {
 
           {/* Section Anchor Nav */}
           <div className="flex gap-2 pb-3 -mb-px overflow-x-auto">
-            <button onClick={() => scrollToSection('profile')} className="inline-flex items-center gap-2 rounded-md border border-line dark:border-line-dark bg-surface/50 dark:bg-surface-dark/50 px-3 py-1.5 text-xs text-text-secondary dark:text-text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark hover:border-line-hover dark:hover:border-line-dark transition">
+            <button onClick={() => scrollToSection('profile')} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition">
               Profile
             </button>
-            <button onClick={() => scrollToSection('metrics')} className="inline-flex items-center gap-2 rounded-md border border-line dark:border-line-dark bg-surface/50 dark:bg-surface-dark/50 px-3 py-1.5 text-xs text-text-secondary dark:text-text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark hover:border-line-hover dark:hover:border-line-dark transition">
+            <button onClick={() => scrollToSection('metrics')} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition">
               Overview
             </button>
-            <button onClick={() => scrollToSection('dependants')} className="inline-flex items-center gap-2 rounded-md border border-line dark:border-line-dark bg-surface/50 dark:bg-surface-dark/50 px-3 py-1.5 text-xs text-text-secondary dark:text-text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark hover:border-line-hover dark:hover:border-line-dark transition">
+            <button onClick={() => scrollToSection('dependants')} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition">
               Dependants
             </button>
-            <button onClick={() => scrollToSection('claims')} className="inline-flex items-center gap-2 rounded-md border border-line dark:border-line-dark bg-surface/50 dark:bg-surface-dark/50 px-3 py-1.5 text-xs text-text-secondary dark:text-text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark hover:border-line-hover dark:hover:border-line-dark transition">
+            <button onClick={() => scrollToSection('claims')} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition">
               Claims
             </button>
-            <button onClick={() => scrollToSection('contributions')} className="inline-flex items-center gap-2 rounded-md border border-line dark:border-line-dark bg-surface/50 dark:bg-surface-dark/50 px-3 py-1.5 text-xs text-text-secondary dark:text-text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark hover:border-line-hover dark:hover:border-line-dark transition">
+            <button onClick={() => scrollToSection('contributions')} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition">
               Contributions
             </button>
-            <button onClick={() => scrollToSection('payouts')} className="inline-flex items-center gap-2 rounded-md border border-line dark:border-line-dark bg-surface/50 dark:bg-surface-dark/50 px-3 py-1.5 text-xs text-text-secondary dark:text-text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark hover:border-line-hover dark:hover:border-line-dark transition">
+            <button onClick={() => scrollToSection('payouts')} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition">
               Payouts
             </button>
-            <button onClick={() => scrollToSection('membership-card')} className="inline-flex items-center gap-2 rounded-md border border-indigo-500/20 bg-indigo-500/10 px-3 py-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 border-indigo-500/30 transition">
+            <button onClick={() => scrollToSection('membership-card')} className="inline-flex items-center gap-2 rounded-xl border border-purple-200 dark:border-purple-800 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 px-3 py-1.5 text-xs text-purple-700 dark:text-purple-300 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-900/50 dark:hover:to-purple-800/50 transition font-medium">
               Membership Card
             </button>
           </div>
@@ -275,15 +275,15 @@ const MemberDetail: React.FC = () => {
 
           {/* Membership Card Section */}
           <section id="membership-card" className="pt-10">
-            <div className="bg-surface dark:bg-surface-dark rounded-2xl border border-line dark:border-line-dark overflow-hidden shadow-sm">
-              <div className="p-6 border-b border-line dark:border-line-dark bg-surface-hover dark:bg-surface-dark/60">
+            <div className="bg-white dark:bg-surface-dark rounded-[20px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+              <div className="p-6 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-purple-50 to-teal-50 dark:from-purple-900/20 dark:to-teal-900/20">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                    <CreditCard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <CreditCard className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-text-primary dark:text-text-primary-dark">Digital Membership Card</h2>
-                    <p className="text-xs text-text-secondary dark:text-text-secondary-dark mt-0.5">Generate and download your official membership identification</p>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Digital Membership Card</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Generate and download your official membership identification</p>
                   </div>
                 </div>
               </div>

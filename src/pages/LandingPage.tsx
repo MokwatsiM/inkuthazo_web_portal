@@ -23,7 +23,6 @@ import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
 import Avatar from '../components/avatar/Avatar';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
-import WelcomeBanner from '../components/dashboard/WelcomeBanner';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -302,60 +301,76 @@ const LandingPage: React.FC = () => {
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden bg-gradient-to-br from-purple-50 to-teal-50 dark:from-gray-800 dark:to-gray-900">
         <div className="absolute inset-0 -z-10">
           <img
             src="/group_photo.jpg"
             alt="Mountains"
-            className="w-full h-full object-cover opacity-30 dark:opacity-20"
+            className="w-full h-full object-cover opacity-10 dark:opacity-5"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-white dark:from-gray-900 via-white/80 dark:via-gray-900/80 to-white dark:to-gray-900"></div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Welcome Banner */}
-          <WelcomeBanner
-            userName={userDetails?.full_name || "Admin"}
-            userRole={userDetails?.role || "admin"}
-            memberSince={userDetails?.join_date?.toDate()}
-          />
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-[24px] p-8 md:p-12 text-white shadow-xl">
+            <h1 className="text-4xl md:text-5xl font-bold mb-3">
+              Welcome back, {userDetails?.full_name?.split(' ')[0] || "User"}!
+            </h1>
+            <p className="text-lg text-purple-100 mb-6">
+              {userDetails?.role === 'admin' ? 'Administrator Dashboard' : 'Member Portal'} •
+              {userDetails?.join_date
+                ? ` Member since ${new Date(userDetails.join_date.toDate()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+                : ''}
+            </p>
+            <div className="flex gap-4">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
+                <p className="text-sm text-purple-100">Today</p>
+                <p className="text-xl font-bold">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
+                <p className="text-sm text-purple-100">Status</p>
+                <p className="text-xl font-bold">Active</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Grid Navigation */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="mt-2 mb-4 flex items-center justify-between">
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Quick Access Menu</h2>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 -mt-8">
+        <div className="mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Quick Access Menu</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Navigate to any section of the portal</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {navigationTiles.map((tile) => {
             const Icon = tile.icon;
             return (
               <Link
                 key={tile.title}
                 to={tile.link}
-                className="group relative rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 hover:shadow-md dark:hover:shadow-gray-900/50 transition"
+                className="group relative rounded-[20px] bg-white dark:bg-surface-dark p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-xl ${tile.iconBg} flex items-center justify-center`}>
-                      <Icon className={`h-5 w-5 ${tile.iconColor}`} />
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-start justify-between">
+                    <div className={`h-12 w-12 rounded-xl ${tile.iconBg} flex items-center justify-center shadow-md`}>
+                      <Icon className={`h-6 w-6 ${tile.iconColor}`} />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-base font-medium text-slate-900 dark:text-gray-100">{tile.title}</div>
-                        {tile.badge && (
-                          <span
-                            className={`inline-flex items-center rounded-full ${tile.badgeBg} ${tile.badgeColor} dark:bg-purple-900/50 dark:text-purple-300 text-[10px] px-2 py-0.5`}
-                          >
-                            {tile.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-slate-500 dark:text-gray-400">{tile.description}</p>
-                    </div>
+                    <ArrowUpRight className="h-5 w-5 text-gray-300 dark:text-gray-600 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors" />
                   </div>
-                  <ArrowUpRight className="h-4 w-4 text-slate-300 dark:text-gray-600 group-hover:text-slate-400 dark:group-hover:text-gray-500" />
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white">{tile.title}</h3>
+                      {tile.badge && (
+                        <span
+                          className={`inline-flex items-center rounded-full ${tile.badgeBg} ${tile.badgeColor} dark:bg-purple-900/50 dark:text-purple-300 text-[10px] font-medium px-2 py-0.5`}
+                        >
+                          {tile.badge}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{tile.description}</p>
+                  </div>
                 </div>
               </Link>
             );
@@ -363,26 +378,26 @@ const LandingPage: React.FC = () => {
         </div>
 
         {/* Visual Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
-          <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-gray-700">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+          <div className="rounded-[20px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300">
             <img
               src="/group_photo.jpg"
-              alt="Minimal render"
-              className="w-full h-40 object-cover dark:opacity-80"
+              alt="Club photo"
+              className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
             />
           </div>
-          <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-gray-700">
+          <div className="rounded-[20px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300">
             <img
               src="/group_photo_2.jpg"
-              alt="3D abstract"
-              className="w-full h-40 object-cover dark:opacity-80"
+              alt="Club event"
+              className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
             />
           </div>
-          <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-gray-700">
+          <div className="rounded-[20px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300">
             <img
               src="/group_3.jpeg"
-              alt="Mountains"
-              className="w-full h-40 object-cover dark:opacity-80"
+              alt="Club gathering"
+              className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
             />
           </div>
         </div>

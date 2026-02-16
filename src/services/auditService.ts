@@ -1,15 +1,17 @@
 // src/services/auditService.ts
-import { 
-  collection, 
-  addDoc, 
-  Timestamp, 
-  query, 
-  orderBy, 
-  limit, 
-  getDocs, 
+import {
+  collection,
+  addDoc,
+  Timestamp,
+  query,
+  orderBy,
+  limit,
+  getDocs,
   where,
   QueryConstraint,
-  startAfter
+  startAfter,
+  writeBatch,
+  doc
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -130,6 +132,59 @@ export const getAuditStats = async (days: number = 7) => {
     };
   } catch (error) {
     console.error('Error fetching audit stats:', error);
+    throw error;
+  }
+};
+
+// Get count of logs older than specified months
+export const getOldLogsCount = async (months: number = 3) => {
+  try {
+    const auditRef = collection(db, 'audit_logs');
+    const cutoffDate = new Date();
+    cutoffDate.setMonth(cutoffDate.getMonth() - months);
+
+    const q = query(
+      auditRef,
+      where('timestamp', '<', Timestamp.fromDate(cutoffDate))
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.size;
+  } catch (error) {
+    console.error('Error counting old logs:', error);
+    throw error;
+  }
+};
+
+// Bulk delete logs older than specified months
+export const bulkDeleteOldLogs = async (months: number = 3) => {
+  try {
+    const auditRef = collection(db, 'audit_logs');
+    const cutoffDate = new Date();
+    cutoffDate.setMonth(cutoffDate.getMonth() - months);
+
+    const q = query(
+      auditRef,
+      where('timestamp', '<', Timestamp.fromDate(cutoffDate)),
+      limit(500) // Process in batches of 500
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      return 0;
+    }
+
+    const batch = writeBatch(db);
+    snapshot.docs.forEach((document) => {
+      batch.delete(doc(db, 'audit_logs', document.id));
+    });
+
+    await batch.commit();
+
+    return snapshot.size;
+  } catch (error) {
+    console.error('Error deleting old logs:', error);
     throw error;
   }
 };

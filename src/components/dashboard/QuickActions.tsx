@@ -8,7 +8,7 @@ interface QuickAction {
   icon: LucideIcon;
   href?: string;
   onClick?: () => void;
-  color: 'blue' | 'green' | 'purple' | 'orange' | 'red';
+  color: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'indigo';
   disabled?: boolean;
 }
 
@@ -27,6 +27,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
     purple: 'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700',
     orange: 'from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700',
     red: 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
+    indigo: 'from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700',
   };
 
   const ActionButton: React.FC<{ action: QuickAction }> = ({ action }) => {

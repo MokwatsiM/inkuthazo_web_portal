@@ -6,6 +6,8 @@ import {
   reviewContribution
 } from './operations';
 
+export * from './bulkImport';
+
 export {
   uploadProofOfPayment,
   deleteProofOfPayment,

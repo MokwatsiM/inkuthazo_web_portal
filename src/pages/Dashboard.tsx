@@ -9,13 +9,15 @@ import QuickActions from "../components/dashboard/QuickActions";
 import RecentActivity from "../components/dashboard/RecentActivity";
 import UpcomingEvents from "../components/dashboard/UpcomingEvents";
 import AttendanceStats from "../components/dashboard/AttendanceStats";
+import BulkImportModal from "../components/contributions/BulkImportModal";
 import type { Contribution } from "../types/contribution";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import {
   Users, DollarSign, TrendingUp, Calendar, UserPlus,
   PlusCircle, BarChart3, Settings, Mail, Clock,
-  AlertTriangle, Eye, Activity
+  AlertTriangle, Eye, Activity, Database
 } from "lucide-react";
+import { href } from "react-router-dom";
 
 const COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
@@ -69,7 +71,7 @@ const Dashboard: React.FC = () => {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
@@ -249,6 +251,14 @@ const Dashboard: React.FC = () => {
     }
   }, [userDetails?.id, isAdmin]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('import') === 'true' && isAdmin) {
+      setIsImportModalOpen(true);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [isAdmin]);
   const adminQuickActions = [
     {
       title: "Add New Member",
@@ -291,6 +301,14 @@ const Dashboard: React.FC = () => {
       icon: Activity,
       href: "/audit-logs",
       color: 'blue' as const
+    }
+    ,
+    {
+      title: "Bulk Migration",
+      description: "Setup club with historical records",
+      icon: Database,
+      onClick: () => setIsImportModalOpen(true),
+      color: 'indigo' as const
     }
   ];
 
@@ -436,6 +454,13 @@ const Dashboard: React.FC = () => {
       href: "/my-contributions",
       color: 'blue' as const
     },
+    // {
+    //   title: "Bulk Migration",
+    //   description: "Setup club with historical records",
+    //   icon: Database,
+    //   onClick: () => setIsImportModalOpen(true),
+    //   color: 'indigo' as const
+    // },
     {
       title: "Upcoming Events",
       description: "Check events and meetings",
@@ -593,6 +618,12 @@ const Dashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isAdmin ? renderAdminDashboard() : renderMemberDashboard()}
       </div>
+
+      <BulkImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => fetchDashboardData()}
+      />
     </div>
   );
 };

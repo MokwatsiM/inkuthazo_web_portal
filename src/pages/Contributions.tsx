@@ -19,7 +19,6 @@ import SearchInput from "../components/ui/SearchInput";
 import MonthFilter from "../components/contributions/MonthFilter";
 import AddContributionModal from "../components/contributions/AddContributionModal";
 import EditContributionModal from "../components/contributions/EditContributionModal";
-import DeleteContributionModal from "../components/contributions/DeleteContributionModal";
 import ReviewContributionModal from "../components/contributions/ReviewContributionModal";
 import { formatDate } from "../utils/dateUtils";
 import type { Contribution, ContributionStatus } from "../types/contribution";
@@ -30,6 +29,7 @@ import Card, { CardBody, CardHeader } from "../components/ui/Card";
 import EmptyState from "../components/ui/EmptyState";
 import PageHeader from "../components/ui/PageHeader";
 import Badge from "../components/ui/Badge";
+import DeleteContributionModal from "../components/contributions/DeleteContributionModal";
 
 const Contributions: React.FC = () => {
   const {
@@ -70,7 +70,7 @@ const Contributions: React.FC = () => {
       const matchesDate =
         dateRange.start && dateRange.end
           ? contribution.date.toDate() >= dateRange.start &&
-            contribution.date.toDate() <= dateRange.end
+          contribution.date.toDate() <= dateRange.end
           : true;
       if (isAdmin) {
         return matchesSearch && matchesDate;
@@ -349,8 +349,8 @@ const Contributions: React.FC = () => {
                             contribution.status === "approved"
                               ? "success"
                               : contribution.status === "rejected"
-                              ? "error"
-                              : "warning"
+                                ? "error"
+                                : "warning"
                           }
                         >
                           {contribution.status}

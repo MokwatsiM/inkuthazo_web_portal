@@ -18,6 +18,7 @@ import {
   ArrowUpRight,
   LogOut,
   QrCode,
+  Database,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
@@ -183,6 +184,17 @@ const LandingPage: React.FC = () => {
       iconColor: 'text-slate-700 dark:text-slate-200',
       badge: null,
       link: '/configuration',
+    },
+    {
+      title: 'Bulk Migration',
+      description: 'Historical data import',
+      icon: Database,
+      iconBg: 'bg-indigo-50 dark:bg-indigo-900/50',
+      iconColor: 'text-indigo-600 dark:text-indigo-300',
+      badge: 'Admin',
+      badgeBg: 'bg-indigo-100',
+      badgeColor: 'text-indigo-700',
+      link: '/home?import=true',
     },
   ];
 

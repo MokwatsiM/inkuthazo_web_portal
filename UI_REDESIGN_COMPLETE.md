@@ -180,12 +180,14 @@ Right panel showing user profile, contact info, and quick stats.
 | Layout | ✅ Updated | TopBar, ProfileSummary, Sidebar |
 | Dashboard | ✅ Updated | KPICard, ActivityFeed, Charts |
 | Members | ✅ Updated | MemberCard, Filters, Table |
+| Member Detail | ✅ Updated | Modern headers, gradient cards |
 | Landing Page | ✅ Updated | Hero, Navigation Tiles |
 | Contributions | ✅ Updated | KPI Cards (Phase 1) |
+| Analytics | ✅ Updated | KPICard, Charts, Insights |
+| Audit Logs | ✅ Updated | Card-based display, bulk delete |
 | Claims | ⏳ Pending | - |
 | Payouts | ⏳ Pending | - |
 | Calendar | ⏳ Pending | - |
-| Analytics | ⏳ Pending | - |
 | Expenses | ⏳ Pending | - |
 | Configuration | ⏳ Pending | - |
 

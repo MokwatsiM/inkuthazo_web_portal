@@ -6,6 +6,10 @@ import {
   Trash2,
   CheckCircle,
   FileX,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
 } from "lucide-react";
 import { useContributions } from "../hooks/useContributions";
 import { useAuth } from "../hooks/useAuth";
@@ -80,6 +84,31 @@ const Contributions: React.FC = () => {
     });
   }, [contributions, searchTerm, dateRange, isAdmin, userDetails?.id]);
 
+  // Calculate KPI statistics
+  const stats = useMemo(() => {
+    const total = filteredContributions.reduce(
+      (sum, c) => sum + c.amount,
+      0
+    );
+    const approved = filteredContributions.filter(
+      (c) => c.status === "approved"
+    );
+    const pending = filteredContributions.filter(
+      (c) => c.status === "pending"
+    );
+    const approvedTotal = approved.reduce((sum, c) => sum + c.amount, 0);
+    const pendingTotal = pending.reduce((sum, c) => sum + c.amount, 0);
+
+    return {
+      totalAmount: total,
+      approvedAmount: approvedTotal,
+      pendingAmount: pendingTotal,
+      approvedCount: approved.length,
+      pendingCount: pending.length,
+      totalCount: filteredContributions.length,
+    };
+  }, [filteredContributions]);
+
   const handleAddContribution = async (
     data: Omit<Contribution, "id" | "members" | "status">,
     file?: File
@@ -140,8 +169,7 @@ const Contributions: React.FC = () => {
   };
 
   return (
-    <div>
-      {/* <div className="flex justify-between items-center mb-6"> */}
+    <div className="space-y-6">
       <PageHeader
         title="Contributions"
         description="View and manage all members contributions"
@@ -152,9 +180,120 @@ const Contributions: React.FC = () => {
         }
       />
 
-      <div className="bg-surface dark:bg-surface-dark rounded-lg shadow border border-line dark:border-line-dark">
+      {/* KPI Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Contributions */}
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                  <DollarSign className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Total Amount
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    R {stats.totalAmount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </h3>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <span className="text-gray-600 dark:text-gray-400">
+                  {stats.totalCount} contributions
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Approved Contributions */}
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
+                  <CheckCircle2 className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Approved
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    R {stats.approvedAmount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </h3>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                <span className="text-green-600 font-semibold">
+                  {stats.approvedCount} approved
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pending Contributions */}
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Pending Review
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    R {stats.pendingAmount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </h3>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <span className="text-amber-600 font-semibold">
+                  {stats.pendingCount} pending
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Approval Rate */}
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Approval Rate
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {stats.totalCount > 0
+                      ? Math.round((stats.approvedCount / stats.totalCount) * 100)
+                      : 0}%
+                  </h3>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <span className="text-gray-600 dark:text-gray-400">
+                  of total submissions
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Card */}
+      <div className="bg-white dark:bg-surface-dark rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
         <Card>
-          <div className="p-4 border-b">
+          <div className="p-6 border-b border-gray-100 dark:border-gray-800">
             <CardHeader>
               <SearchInput
                 placeholder="Search by member name..."

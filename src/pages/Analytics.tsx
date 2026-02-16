@@ -14,6 +14,8 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import Button from "../components/ui/Button";
+import KPICard from "../components/ui/KPICard";
+import { Users, DollarSign, TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import type { Member } from "../types";
 import type { Contribution } from "../types/contribution";
 import type { Claim } from "../types/claim";
@@ -356,30 +358,37 @@ const Analytics: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-        <div className="flex space-x-2">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics Dashboard</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Comprehensive financial insights and metrics</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <Button
             variant={period === "3m" ? "primary" : "secondary"}
             onClick={() => setPeriod("3m")}
+            size="small"
           >
             3 Months
           </Button>
           <Button
             variant={period === "6m" ? "primary" : "secondary"}
             onClick={() => setPeriod("6m")}
+            size="small"
           >
             6 Months
           </Button>
           <Button
             variant={period === "12m" ? "primary" : "secondary"}
             onClick={() => setPeriod("12m")}
+            size="small"
           >
             12 Months
           </Button>
           <Button
             variant={period === "all" ? "primary" : "secondary"}
             onClick={() => setPeriod("all")}
+            size="small"
           >
             All Time
           </Button>
@@ -387,87 +396,84 @@ const Analytics: React.FC = () => {
       </div>
 
       {/* Key Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {insights.map((insight, index) => (
-          <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border-l-4 border-blue-500">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              {insight.title}
-            </h3>
-            <p className={`mt-2 text-2xl font-semibold ${
-              insight.trend === "positive"
-                ? "text-green-600 dark:text-green-400"
-                : insight.trend === "negative"
-                ? "text-red-600 dark:text-red-400"
-                : insight.trend === "warning"
-                ? "text-yellow-600 dark:text-yellow-400"
-                : "text-gray-900 dark:text-white"
-            }`}>
-              {insight.value}
-            </p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {insight.description}
-            </p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {insights.map((insight, index) => {
+          const gradients = ["purple", "teal", "blue", "amber"] as const;
+          return (
+            <div key={index} className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${
+                  insight.trend === "positive" ? "from-green-500 to-green-600" :
+                  insight.trend === "negative" ? "from-red-500 to-red-600" :
+                  insight.trend === "warning" ? "from-amber-500 to-amber-600" :
+                  "from-blue-500 to-blue-600"
+                } flex items-center justify-center shadow-lg`}>
+                  {insight.trend === "positive" ? (
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  ) : insight.trend === "negative" ? (
+                    <TrendingDown className="w-6 h-6 text-white" />
+                  ) : (
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  )}
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {insight.title}
+              </h3>
+              <p className={`mt-2 text-2xl font-bold ${
+                insight.trend === "positive"
+                  ? "text-green-600 dark:text-green-400"
+                  : insight.trend === "negative"
+                  ? "text-red-600 dark:text-red-400"
+                  : insight.trend === "warning"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-gray-900 dark:text-white"
+              }`}>
+                {insight.value}
+              </p>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                {insight.description}
+              </p>
+            </div>
+          );
+        })}
       </div>
 
       {/* Core Financial Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Total Members
-          </h3>
-          <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
-            {metrics.approvedMembers}
-          </p>
-          <p className="mt-1 text-sm text-green-600 dark:text-green-400">
-            {metrics.activeMembers} active
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Total Contributions
-          </h3>
-          <p className="mt-2 text-3xl font-semibold text-green-600 dark:text-green-400">
-            R {metrics.totalContributions.toFixed(0)}
-          </p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Avg: R {metrics.avgContribution.toFixed(0)} per contribution
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Total Payouts
-          </h3>
-          <p className="mt-2 text-3xl font-semibold text-red-600 dark:text-red-400">
-            R {(metrics.totalPayouts + metrics.totalExpenses).toFixed(0)}
-          </p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Claims: R {metrics.totalPayouts.toFixed(0)} | Expenses: R {metrics.totalExpenses.toFixed(0)}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Fund Balance
-          </h3>
-          <p
-            className={`mt-2 text-3xl font-semibold ${
-              fundBalance >= 0
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
-            }`}
-          >
-            R {fundBalance.toFixed(0)}
-          </p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {metrics.pendingClaims} pending claims
-          </p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <KPICard
+          title="Total Members"
+          value={metrics.approvedMembers}
+          subtitle={`${metrics.activeMembers} active`}
+          icon={Users}
+          gradient="blue"
+        />
+        <KPICard
+          title="Total Contributions"
+          value={`R ${metrics.totalContributions.toFixed(0)}`}
+          subtitle={`Avg: R ${metrics.avgContribution.toFixed(0)}`}
+          icon={DollarSign}
+          gradient="green"
+        />
+        <KPICard
+          title="Total Payouts"
+          value={`R ${(metrics.totalPayouts + metrics.totalExpenses).toFixed(0)}`}
+          subtitle={`Claims: R ${metrics.totalPayouts.toFixed(0)}`}
+          icon={TrendingDown}
+          gradient="red"
+        />
+        <KPICard
+          title="Fund Balance"
+          value={`R ${fundBalance.toFixed(0)}`}
+          subtitle={`${metrics.pendingClaims} pending claims`}
+          icon={Wallet}
+          gradient={fundBalance >= 0 ? "green" : "red"}
+        />
       </div>
 
       {/* Cash Flow Analysis */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4">Cash Flow Analysis</h3>
+      <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Cash Flow Analysis</h3>
         <div className="h-[400px]">
           <ResponsiveBar
             data={cashflowData}
@@ -528,8 +534,8 @@ const Analytics: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Claims Status Overview</h3>
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Claims Status Overview</h3>
           {claimsStatusData.length > 0 ? (
             <div className="h-[300px]">
               <ResponsivePie
@@ -580,8 +586,8 @@ const Analytics: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Member Status Breakdown</h3>
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Member Status Breakdown</h3>
           {memberStatusData.length > 0 ? (
             <div className="h-[300px]">
               <ResponsivePie
@@ -635,8 +641,8 @@ const Analytics: React.FC = () => {
 
       {/* Premium vs Penalty Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Premium vs Penalty Breakdown</h3>
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Premium vs Penalty Breakdown</h3>
           {penaltyBreakdownData.length > 0 ? (
             <div className="h-[300px]">
               <ResponsivePie
@@ -687,8 +693,8 @@ const Analytics: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Monthly Premium vs Penalty Trends</h3>
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Monthly Premium vs Penalty Trends</h3>
           <div className="h-[300px]">
             <ResponsiveBar
               data={penaltyAnalysis.monthlyBreakdown}
@@ -750,9 +756,9 @@ const Analytics: React.FC = () => {
       </div>
 
       {/* Additional Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Quick Stats</h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600 dark:text-gray-400">Contribution Frequency</span>
@@ -779,8 +785,8 @@ const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Pending Actions</h3>
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Pending Actions</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
               <div>
@@ -799,8 +805,8 @@ const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Period Summary</h3>
+        <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Period Summary</h3>
           <div className="space-y-3">
             <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">

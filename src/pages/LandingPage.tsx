@@ -1,29 +1,31 @@
-import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import {
-  Home,
-  Users,
-  CreditCard,
-  Banknote,
-  ShieldCheck,
-  Receipt,
+  Activity,
   AlertTriangle,
+  ArrowUpRight,
+  Banknote,
+  BarChart3,
   Calendar,
   CalendarClock,
-  BarChart3,
-  TrendingUp,
+  CreditCard,
+  Database,
   FileText,
-  UserX,
-  Settings,
-  ArrowUpRight,
+  Gift,
+  Home,
   LogOut,
   QrCode,
-  Database,
+  Receipt,
+  Settings,
+  ShieldCheck,
+  TrendingUp,
+  Users,
+  UserX,
 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import Button from '../components/ui/Button';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../components/avatar/Avatar';
+import Button from '../components/ui/Button';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { useAuth } from '../hooks/useAuth';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -93,6 +95,17 @@ const LandingPage: React.FC = () => {
       iconColor: 'text-rose-600 dark:text-rose-300',
       badge: null,
       link: '/expenses',
+    },
+    {
+      title: 'Donations',
+      description: 'Investments & contributions',
+      icon: Gift,
+      iconBg: 'bg-purple-50 dark:bg-purple-900/50',
+      iconColor: 'text-purple-600 dark:text-purple-300',
+      badge: null,
+      badgeBg: 'bg-purple-50',
+      badgeColor: 'text-purple-700',
+      link: '/donations',
     },
     {
       title: 'Disciplinary',
@@ -186,6 +199,17 @@ const LandingPage: React.FC = () => {
       link: '/configuration',
     },
     {
+      title: 'Audit Log',
+      description: 'Audit Trail',
+      icon: Activity,
+      iconBg: 'bg-indigo-50 dark:bg-indigo-900/50',
+      iconColor: 'text-indigo-600 dark:text-indigo-300',
+      badge: 'Admin',
+      badgeBg: 'bg-indigo-100',
+      badgeColor: 'text-indigo-700',
+      link: '/audit-logs',
+    },
+    {
       title: 'Bulk Migration',
       description: 'Historical data import',
       icon: Database,
@@ -218,6 +242,17 @@ const LandingPage: React.FC = () => {
       link: '/my-contributions',
     },
     {
+      title: 'My Donations',
+      description: 'My Investments & contributions',
+      icon: Gift,
+      iconBg: 'bg-purple-50 dark:bg-purple-900/50',
+      iconColor: 'text-purple-600 dark:text-purple-300',
+      badge: null,
+      badgeBg: 'bg-purple-50',
+      badgeColor: 'text-purple-700',
+      link: '/my-donations',
+    },
+    {
       title: 'Calendar',
       description: 'Events and deadlines',
       icon: Calendar,
@@ -248,6 +283,7 @@ const LandingPage: React.FC = () => {
       badgeColor: 'text-orange-700',
       link: '/disciplinary',
     },
+
     {
       title: 'Attendance',
       description: 'Scan QR to check in',

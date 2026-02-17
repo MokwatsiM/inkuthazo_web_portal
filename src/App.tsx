@@ -37,6 +37,8 @@ import HostAssignments from "./pages/HostAssignments";
 import MemberHostView from "./components/hostAssignments/MemberHostView";
 import Attendance from "./pages/Attendance";
 import AuditLogs from "./pages/AuditLogs";
+import Donations from "./pages/Donations";
+import MyDonations from "./pages/MyDonations";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -127,6 +129,19 @@ const AppRoutes: React.FC = () => {
       />
 
       <Route
+        path="/my-donations"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["member", "dc_member"]}>
+                <MyDonations />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/payouts"
         element={
           <ProtectedRoute>
@@ -159,6 +174,19 @@ const AppRoutes: React.FC = () => {
             <FullScreenLayout>
               <RoleBasedRoute allowedRoles={["admin"]}>
                 <Expenses />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/donations"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <Donations />
               </RoleBasedRoute>
             </FullScreenLayout>
           </ProtectedRoute>

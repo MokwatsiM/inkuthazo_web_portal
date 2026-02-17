@@ -265,6 +265,12 @@ const AuditLogVisualizer: React.FC = () => {
                         <option value="CONTRIBUTION_CREATE">Contribution Create</option>
                         <option value="CONTRIBUTION_UPDATE">Contribution Update</option>
                         <option value="CONTRIBUTION_REVIEW">Contribution Review</option>
+                        <option value="DONATION_CREATE">Donation Create</option>
+                        <option value="DONATION_UPDATE">Donation Update</option>
+                        <option value="DONATION_REVIEW">Donation Review</option>
+                        <option value="DONATION_DELETE">Donation Delete</option>
+                        <option value="DONATION_RECEIPT_ISSUED">Donation Receipt Issued</option>
+                        <option value="DONATION_BULK_APPROVE">Donation Bulk Approve</option>
                         <option value="EXPENSE_CREATE">Expense Create</option>
                         <option value="EXPENSE_UPDATE">Expense Update</option>
                         <option value="EXPENSE_PAID">Expense Paid</option>

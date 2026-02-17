@@ -19,6 +19,7 @@ import {
   CalendarDays,
   TrendingUp,
   Activity,
+  Gift,
 } from "lucide-react";
 import { Settings } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -67,6 +68,12 @@ const Layout: React.FC = () => {
       icon: Receipt,
       label: "Expenses",
       color: "text-pink-500",
+    },
+    {
+      path: "/donations",
+      icon: Gift,
+      label: "Donations",
+      color: "text-purple-500",
     },
     {
       path: "/disciplinary",
@@ -132,6 +139,13 @@ const Layout: React.FC = () => {
       icon: CreditCard,
       label: "Contributions",
       color: "text-violet-500",
+    },
+
+    {
+      path: "/my-donations",
+      icon: Gift,
+      label: "My Donations",
+      color: "text-purple-500",
     },
 
     {

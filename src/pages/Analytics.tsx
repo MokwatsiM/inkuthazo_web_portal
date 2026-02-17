@@ -15,12 +15,13 @@ import {
 import { db } from "../config/firebase";
 import Button from "../components/ui/Button";
 import KPICard from "../components/ui/KPICard";
-import { Users, DollarSign, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Users, DollarSign, TrendingUp, TrendingDown, Wallet, Gift } from "lucide-react";
 import type { Member } from "../types";
 import type { Contribution } from "../types/contribution";
 import type { Claim } from "../types/claim";
 import type { Payout } from "../types/payout";
 import { Expense } from "../types/expense";
+import type { Donation } from "../types/donation";
 
 const Analytics: React.FC = () => {
   const { theme } = useTheme();
@@ -33,12 +34,14 @@ const Analytics: React.FC = () => {
     claims: Claim[];
     payouts: Payout[];
     expenses: Expense[];
+    donations: Donation[];
   }>({
     members: [],
     contributions: [],
     claims: [],
     payouts: [],
     expenses: [],
+    donations: [],
   });
   const [penaltyAnalysis, setPenaltyAnalysis] = useState<{
     totalPremiums: number;
@@ -132,7 +135,22 @@ const Analytics: React.FC = () => {
           ...doc.data(),
         })) as Expense[];
 
-        setData({ members, contributions, claims, payouts, expenses });
+        // Fetch donations
+        const donationsRef = collection(db, "donations");
+        const donationsQuery = query(
+          donationsRef,
+          where("date", ">=", Timestamp.fromDate(startDate)),
+          where("date", "<=", Timestamp.fromDate(endDate)),
+          where("status", "==", "approved"),
+          orderBy("date", "asc")
+        );
+        const donationsSnapshot = await getDocs(donationsQuery);
+        const donations = donationsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Donation[];
+
+        setData({ members, contributions, claims, payouts, expenses, donations });
 
         // Calculate penalty analysis
         await calculatePenaltyAnalysis(contributions);
@@ -232,6 +250,8 @@ const Analytics: React.FC = () => {
     totalClaims,
     totalPayouts: data.payouts.reduce((sum, p) => sum + p.amount, 0),
     totalExpenses: data.expenses.reduce((sum, e) => sum + e.amount, 0),
+    totalDonations: data.donations.reduce((sum, d) => sum + d.amount, 0),
+    donationCount: data.donations.length,
     pendingClaims: data.claims.filter((c) => c.status === "pending").length,
     approvedClaims: data.claims.filter((c) => c.status === "approved").length,
     rejectedClaims: data.claims.filter((c) => c.status === "rejected").length,
@@ -254,9 +274,9 @@ const Analytics: React.FC = () => {
         : 0,
   };
 
-  // Calculate actual fund balance including expenses
+  // Calculate actual fund balance including expenses and donations
   const fundBalance =
-    metrics.totalContributions - metrics.totalPayouts - metrics.totalExpenses;
+    metrics.totalContributions + metrics.totalDonations - metrics.totalPayouts - metrics.totalExpenses;
 
   // Prepare cashflow data (contributions vs payouts + expenses)
   const cashflowData = Array.from({
@@ -273,6 +293,11 @@ const Analytics: React.FC = () => {
         return contribDate >= monthStart && contribDate <= monthEnd;
       }).reduce((sum, c) => sum + c.amount, 0);
 
+      const monthDonations = data.donations.filter((d) => {
+        const donationDate = d.date.toDate();
+        return donationDate >= monthStart && donationDate <= monthEnd;
+      }).reduce((sum, d) => sum + d.amount, 0);
+
       const monthPayouts = data.payouts.filter((p) => {
         const payoutDate = p.date.toDate();
         return payoutDate >= monthStart && payoutDate <= monthEnd;
@@ -283,11 +308,15 @@ const Analytics: React.FC = () => {
         return expenseDate >= monthStart && expenseDate <= monthEnd;
       }).reduce((sum, e) => sum + e.amount, 0);
 
+      const totalIncome = monthContributions + monthDonations;
+      const totalOutgoing = monthPayouts + monthExpenses;
+
       return {
         month: format(date, "MMM yyyy"),
         Contributions: monthContributions,
-        "Payouts & Expenses": monthPayouts + monthExpenses,
-        "Net Flow": monthContributions - (monthPayouts + monthExpenses),
+        Donations: monthDonations,
+        "Payouts & Expenses": totalOutgoing,
+        "Net Flow": totalIncome - totalOutgoing,
       };
     })
     .reverse();
@@ -440,7 +469,7 @@ const Analytics: React.FC = () => {
       </div>
 
       {/* Core Financial Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <KPICard
           title="Total Members"
           value={metrics.approvedMembers}
@@ -454,6 +483,13 @@ const Analytics: React.FC = () => {
           subtitle={`Avg: R ${metrics.avgContribution.toFixed(0)}`}
           icon={DollarSign}
           gradient="green"
+        />
+        <KPICard
+          title="Donations & Investments"
+          value={`R ${metrics.totalDonations.toFixed(0)}`}
+          subtitle={`${metrics.donationCount} donations`}
+          icon={Gift}
+          gradient="purple"
         />
         <KPICard
           title="Total Payouts"
@@ -477,12 +513,12 @@ const Analytics: React.FC = () => {
         <div className="h-[400px]">
           <ResponsiveBar
             data={cashflowData}
-            keys={["Contributions", "Payouts & Expenses", "Net Flow"]}
+            keys={["Contributions", "Donations", "Payouts & Expenses", "Net Flow"]}
             indexBy="month"
             margin={{ top: 50, right: 130, bottom: 50, left: 80 }}
             padding={0.3}
             groupMode="grouped"
-            colors={["#10b981", "#ef4444", "#3b82f6"]}
+            colors={["#10b981", "#a855f7", "#ef4444", "#3b82f6"]}
             borderRadius={4}
             axisBottom={{
               tickSize: 5,

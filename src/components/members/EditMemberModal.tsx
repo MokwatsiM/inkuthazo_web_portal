@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import Button from "../ui/Button";
-import { useAuth } from "../../hooks/useAuth";
-import { toFirestoreTimestamp } from "../../utils/dateUtils";
-import type { Member } from "../../types";
 import { format } from "date-fns";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import type { Member } from "../../types";
+import { toFirestoreTimestamp } from "../../utils/dateUtils";
+import Button from "../ui/Button";
 
 interface EditMemberModalProps {
   isOpen: boolean;
@@ -49,7 +49,7 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
         join_date: toFirestoreTimestamp(formData.join_date),
       };
 
-    
+
       await onSubmit(updatedData);
       onClose();
     } catch (error) {
@@ -151,6 +151,7 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
                   <option value="member">Member</option>
                   <option value="dc_member">DC Member</option>
                   <option value="admin">Admin</option>
+                  <option value="chairperson">Chairperson</option>
                 </select>
               </div>
             )}

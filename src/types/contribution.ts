@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 
 export type ContributionStatus = 'pending' | 'approved' | 'rejected';
-export type ContributionType = 'monthly' | 'registration' | 'other';
+export type ContributionType = 'monthly' | 'registration' | 'credit_payment' | 'other';
 
 export interface Contribution {
   id: string;
@@ -15,6 +15,7 @@ export interface Contribution {
   reviewed_by?: string;
   reviewed_at?: Timestamp;
   payment_method?: string;
+  credit_id?: string; // For credit_payment type - links to the credit being paid
   members?: {
     full_name: string;
   };

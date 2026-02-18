@@ -39,6 +39,9 @@ import Attendance from "./pages/Attendance";
 import AuditLogs from "./pages/AuditLogs";
 import Donations from "./pages/Donations";
 import MyDonations from "./pages/MyDonations";
+import Credits from "./pages/Credits";
+import CreditReviews from "./pages/CreditReviews";
+import MyCredit from "./pages/MyCredit";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -142,6 +145,19 @@ const AppRoutes: React.FC = () => {
       />
 
       <Route
+        path="/my-credit"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["member", "dc_member"]}>
+                <MyCredit />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/payouts"
         element={
           <ProtectedRoute>
@@ -187,6 +203,32 @@ const AppRoutes: React.FC = () => {
             <FullScreenLayout>
               <RoleBasedRoute allowedRoles={["admin"]}>
                 <Donations />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/credits"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin"]}>
+                <Credits />
+              </RoleBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/credit-reviews"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <RoleBasedRoute allowedRoles={["admin", "chairperson"]}>
+                <CreditReviews />
               </RoleBasedRoute>
             </FullScreenLayout>
           </ProtectedRoute>

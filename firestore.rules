@@ -19,10 +19,17 @@ service cloud.firestore {
     }
     
      function isDCMember() {
-      return isSignedIn() && 
+      return isSignedIn() &&
         exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'dc_member';
     }
+
+    function isChairperson() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'chairperson';
+    }
+
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
@@ -89,7 +96,7 @@ service cloud.firestore {
      // Expenses collection
     match /expenses/{expenseId} {
       allow read: if isAdmin();
-      allow create: if isAdmin();
+      allow create: if isAdmin() || isChairperson();
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }
@@ -265,6 +272,28 @@ service cloud.firestore {
       allow update: if isAdmin();
 
       // Only admins can delete donations
+      allow delete: if isAdmin();
+    }
+
+    // Credits collection
+    match /credits/{creditId} {
+      // Admins and chairpersons can read all credits
+      // Members can only read their own credits
+      allow read: if isAdmin() ||
+        isChairperson() ||
+        (isSignedIn() && resource.data.member_id == request.auth.uid);
+
+      // Only admins can create credits
+      allow create: if isAdmin() &&
+        request.resource.data.keys().hasAll(['member_id', 'member_name', 'reason', 'terms', 'status', 'created_by', 'created_by_name', 'created_at', 'updated_at', 'payments', 'total_paid', 'remaining_balance']) &&
+        request.resource.data.status == 'pending_review' &&
+        request.resource.data.created_by == request.auth.uid;
+
+      // Admins can update credits (for reviews and payments)
+      // Chairpersons can update credits (for reviewing only)
+      allow update: if isAdmin() || isChairperson();
+
+      // Only admins can delete credits
       allow delete: if isAdmin();
     }
   }

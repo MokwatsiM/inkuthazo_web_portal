@@ -1,22 +1,22 @@
-import React, { useState, useMemo } from "react";
-import Table from "../ui/Table";
-import { formatDate } from "../../utils/dateUtils";
+import { FirebaseError } from "firebase/app";
+import { CheckCircle, Edit2, PlusCircle, Trash2 } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { useContributions } from "../../hooks/useContributions";
+import { useNotifications } from "../../hooks/useNotifications";
 import type {
   Contribution,
   ContributionStatus,
 } from "../../types/contribution";
-import Badge from "../ui/Badge";
-import { useAuth } from "../../hooks/useAuth";
-import { CheckCircle, Edit2, Trash2, PlusCircle } from "lucide-react";
-import ReviewContributionModal from "../contributions/ReviewContributionModal";
+import { formatDate } from "../../utils/dateUtils";
+import AddContributionModal from "../contributions/AddContributionModal";
 import DeleteContributionModal from "../contributions/DeleteContributionModal";
 import EditContributionModal from "../contributions/EditContributionModal";
-import AddContributionModal from "../contributions/AddContributionModal";
-import { useContributions } from "../../hooks/useContributions";
-import { useNotifications } from "../../hooks/useNotifications";
-import { FirebaseError } from "firebase/app";
-import Pagination from "../ui/Pagination";
+import ReviewContributionModal from "../contributions/ReviewContributionModal";
+import Badge from "../ui/Badge";
 import Button from "../ui/Button";
+import Pagination from "../ui/Pagination";
+import Table from "../ui/Table";
 
 interface ContributionsHistoryProps {
   contributions?: Contribution[];
@@ -72,8 +72,8 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
         setSelectedContribution(null);
         showSuccess(
           "Successfully deleted your: " +
-            selectedContribution.members?.full_name +
-            " contribution"
+          selectedContribution.members?.full_name +
+          " contribution"
         );
 
         // Trigger refresh of member data
@@ -203,8 +203,8 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
                   contribution.status === "approved"
                     ? "success"
                     : contribution.status === "rejected"
-                    ? "error"
-                    : "warning"
+                      ? "error"
+                      : "warning"
                 }
               >
                 {contribution.status}
@@ -279,6 +279,7 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddContribution}
           isAdmin={true}
+          memberId={memberId}
         />
       )}
 

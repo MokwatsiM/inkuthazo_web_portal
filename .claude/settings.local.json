@@ -12,7 +12,9 @@
       "Bash(npm audit:*)",
       "Bash(npm pack:*)",
       "Bash(tar:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "ask": []

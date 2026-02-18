@@ -6,10 +6,12 @@ import {
   BarChart3,
   Calendar,
   CalendarClock,
+  ClipboardList,
   CreditCard,
   Database,
   FileText,
   Gift,
+  HandCoins,
   Home,
   LogOut,
   QrCode,
@@ -106,6 +108,28 @@ const LandingPage: React.FC = () => {
       badgeBg: 'bg-purple-50',
       badgeColor: 'text-purple-700',
       link: '/donations',
+    },
+    {
+      title: 'Credits',
+      description: 'Member loans & repayments',
+      icon: HandCoins,
+      iconBg: 'bg-green-50 dark:bg-green-900/50',
+      iconColor: 'text-green-600 dark:text-green-300',
+      badge: null,
+      badgeBg: 'bg-green-50',
+      badgeColor: 'text-green-700',
+      link: '/credits',
+    },
+    {
+      title: 'Credit Reviews',
+      description: 'Approve credit requests',
+      icon: ClipboardList,
+      iconBg: 'bg-teal-50 dark:bg-teal-900/50',
+      iconColor: 'text-teal-600 dark:text-teal-300',
+      badge: null,
+      badgeBg: 'bg-teal-50',
+      badgeColor: 'text-teal-700',
+      link: '/credit-reviews',
     },
     {
       title: 'Disciplinary',
@@ -253,6 +277,17 @@ const LandingPage: React.FC = () => {
       link: '/my-donations',
     },
     {
+      title: 'My Credit',
+      description: 'View your credit & payments',
+      icon: HandCoins,
+      iconBg: 'bg-green-50 dark:bg-green-900/50',
+      iconColor: 'text-green-600 dark:text-green-300',
+      badge: null,
+      badgeBg: 'bg-green-50',
+      badgeColor: 'text-green-700',
+      link: '/my-credit',
+    },
+    {
       title: 'Calendar',
       description: 'Events and deadlines',
       icon: Calendar,
@@ -297,7 +332,43 @@ const LandingPage: React.FC = () => {
     },
   ];
 
-  const navigationTiles = isAdmin ? adminNavigationTiles : memberNavigationTiles;
+  const chairpersonNavigationTiles = [
+    {
+      title: 'Home',
+      description: 'Overview and quick insights',
+      icon: Home,
+      iconBg: 'bg-emerald-50 dark:bg-emerald-900/50',
+      iconColor: 'text-emerald-600 dark:text-emerald-300',
+      badge: null,
+      link: '/',
+    },
+    {
+      title: 'Credit Reviews',
+      description: 'Review & approve credits',
+      icon: ClipboardList,
+      iconBg: 'bg-teal-50 dark:bg-teal-900/50',
+      iconColor: 'text-teal-600 dark:text-teal-300',
+      badge: null,
+      badgeBg: 'bg-teal-50',
+      badgeColor: 'text-teal-700',
+      link: '/credit-reviews',
+    },
+    {
+      title: 'Calendar',
+      description: 'Events and deadlines',
+      icon: Calendar,
+      iconBg: 'bg-sky-50 dark:bg-sky-900/50',
+      iconColor: 'text-sky-600 dark:text-sky-300',
+      badge: null,
+      link: '/calendar',
+    },
+  ];
+
+  const navigationTiles = isAdmin
+    ? adminNavigationTiles
+    : userDetails?.role === 'chairperson'
+    ? chairpersonNavigationTiles
+    : memberNavigationTiles;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -364,7 +435,11 @@ const LandingPage: React.FC = () => {
               Welcome back, {userDetails?.full_name?.split(' ')[0] || "User"}!
             </h1>
             <p className="text-lg text-purple-100 mb-6">
-              {userDetails?.role === 'admin' ? 'Administrator Dashboard' : 'Member Portal'} •
+              {userDetails?.role === 'admin'
+                ? 'Administrator Dashboard'
+                : userDetails?.role === 'chairperson'
+                ? 'Chairperson Dashboard'
+                : 'Member Portal'} •
               {userDetails?.join_date
                 ? ` Member since ${new Date(userDetails.join_date.toDate()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
                 : ''}

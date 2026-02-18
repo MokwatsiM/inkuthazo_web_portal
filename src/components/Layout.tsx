@@ -20,6 +20,8 @@ import {
   TrendingUp,
   Activity,
   Gift,
+  HandCoins,
+  ClipboardList,
 } from "lucide-react";
 import { Settings } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -74,6 +76,18 @@ const Layout: React.FC = () => {
       icon: Gift,
       label: "Donations",
       color: "text-purple-500",
+    },
+    {
+      path: "/credits",
+      icon: HandCoins,
+      label: "Credits",
+      color: "text-green-500",
+    },
+    {
+      path: "/credit-reviews",
+      icon: ClipboardList,
+      label: "Credit Reviews",
+      color: "text-teal-500",
     },
     {
       path: "/disciplinary",
@@ -149,6 +163,13 @@ const Layout: React.FC = () => {
     },
 
     {
+      path: "/my-credit",
+      icon: HandCoins,
+      label: "My Credit",
+      color: "text-green-500",
+    },
+
+    {
       path: "/calendar",
       icon: Calendar,
       label: "Calendar",
@@ -168,7 +189,27 @@ const Layout: React.FC = () => {
     },
   ];
 
-  const menuItems = isAdmin ? adminMenuItems : memberMenuItems;
+  const chairpersonMenuItems = [
+    { path: "/", icon: Home, label: "Home", color: "text-emerald-500" },
+    {
+      path: "/credit-reviews",
+      icon: ClipboardList,
+      label: "Credit Reviews",
+      color: "text-teal-500",
+    },
+    {
+      path: "/calendar",
+      icon: Calendar,
+      label: "Calendar",
+      color: "text-sky-500",
+    },
+  ];
+
+  const menuItems = isAdmin
+    ? adminMenuItems
+    : userDetails?.role === "chairperson"
+    ? chairpersonMenuItems
+    : memberMenuItems;
 
   const isActive = (path: string) => location.pathname === path;
 

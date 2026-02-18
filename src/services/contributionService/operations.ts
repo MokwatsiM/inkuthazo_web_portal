@@ -37,13 +37,15 @@ export const reviewContribution = async (
   reviewerId: string
 ): Promise<void> => {
   const contributionRef = doc(db, 'contributions', id);
-  
-  // Fetch contribution to get member_id for audit log
+
+  // Fetch contribution to get member_id and check if it's a credit payment
   let memberName = 'Unknown Member';
+  let contributionData: any = null;
   try {
     const docSnap = await getDoc(contributionRef);
     if (docSnap.exists()) {
-      memberName = await getMemberName(docSnap.data().member_id);
+      contributionData = docSnap.data();
+      memberName = await getMemberName(contributionData.member_id);
     }
   } catch (err) {
     console.error('Failed to fetch contribution for audit log:', err);
@@ -55,6 +57,22 @@ export const reviewContribution = async (
     reviewed_by: reviewerId,
     reviewed_at: Timestamp.now()
   });
+
+  // If approved and it's a credit payment, record it in the credit
+  if (status === 'approved' && contributionData?.type === 'credit_payment' && contributionData?.credit_id) {
+    try {
+      const { recordCreditPayment } = await import('../creditService');
+      await recordCreditPayment(
+        contributionData.credit_id,
+        id, // contribution ID
+        contributionData.amount,
+        reviewerId
+      );
+    } catch (creditError) {
+      console.error('Failed to record credit payment:', creditError);
+      // Don't throw - contribution is still approved even if credit update fails
+    }
+  }
 
   // Log audit trail
   try {

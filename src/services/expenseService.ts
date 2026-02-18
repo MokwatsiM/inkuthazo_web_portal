@@ -11,15 +11,16 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import type { Expense } from "../types/expense";
+import type { Expense, ExpenseStatus } from "../types/expense";
 
 export const addExpense = async (
-  data: Omit<Expense, "id" | "status" | "created_at" | "updated_at">
-): Promise<void> => {
+  data: Omit<Expense, "id" | "created_at" | "updated_at"> & { status?: ExpenseStatus },
+  userId: string
+): Promise<string> => {
   try {
-    await addDoc(collection(db, "expenses"), {
+    const docRef = await addDoc(collection(db, "expenses"), {
       ...data,
-      status: "pending",
+      status: data.status || "pending",
       created_at: Timestamp.now(),
       updated_at: Timestamp.now(),
     });
@@ -28,9 +29,10 @@ export const addExpense = async (
     try {
       const { logAuditTrail } = await import("./auditService");
       await logAuditTrail(
-        data.created_by || "admin",
+        userId,
         "EXPENSE_CREATE",
         {
+          expense_id: docRef.id,
           title: data.title,
           amount: data.amount,
           type: data.type
@@ -39,6 +41,8 @@ export const addExpense = async (
     } catch (auditError) {
       console.error("Failed to log expense creation audit trail:", auditError);
     }
+
+    return docRef.id;
   } catch (error) {
     console.error("Error adding expense:", error);
     throw error;

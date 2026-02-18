@@ -3,7 +3,7 @@ import type { Contribution } from "./contribution";
 import type { Payout } from "./payout";
 export type { ReportType, ReportPeriod, ReportData } from "./report";
 
-export type UserRole = "admin" | "member" | "dc_member";
+export type UserRole = "admin" | "member" | "dc_member" | "chairperson";
 export type MemberStatus = "pending" | "approved" | "active" | "inactive";
 
 export interface Dependant {

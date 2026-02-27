@@ -124,14 +124,21 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
     }
 
     try {
+      // Build contribution data object
+      const contributionData: any = {
+        member_id: memberIdToSubmit,
+        amount: parseFloat(formData.amount),
+        type: formData.type,
+        date: toFirestoreTimestamp(new Date(formData.date)),
+      };
+
+      // Only include credit_id if it's a credit payment
+      if (formData.type === 'credit_payment' && activeCredit?.id) {
+        contributionData.credit_id = activeCredit.id;
+      }
+
       await onSubmit(
-        {
-          member_id: memberIdToSubmit,
-          amount: parseFloat(formData.amount),
-          type: formData.type,
-          date: toFirestoreTimestamp(new Date(formData.date)),
-          credit_id: formData.type === 'credit_payment' ? activeCredit?.id : undefined,
-        } as Omit<Contribution, "id" | "members" | "status">,
+        contributionData as Omit<Contribution, "id" | "members" | "status">,
         selectedFile
       );
 

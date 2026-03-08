@@ -3,7 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
 import { getMemberActiveCredit } from "../../services/creditService";
-import { Member } from "../../types";
+import { getMemberDisciplinaryRecords } from "../../services/disciplinaryService";
+import { Member, DisciplinaryRecord } from "../../types";
 import type { Contribution } from "../../types/contribution";
 import type { Credit } from "../../types/credit";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
@@ -43,6 +44,10 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
   const [loadingCredit, setLoadingCredit] = useState(false);
   const [memberHasCredit, setMemberHasCredit] = useState(false);
 
+  const [pendingPenalties, setPendingPenalties] = useState<DisciplinaryRecord[]>([]);
+  const [selectedPenaltyId, setSelectedPenaltyId] = useState<string>("");
+  const [loadingPenalties, setLoadingPenalties] = useState(false);
+
   // Fetch active credit when member is selected (to check if they have one)
   useEffect(() => {
     const checkMemberCredit = async () => {
@@ -73,6 +78,24 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
       } finally {
         setLoadingCredit(false);
       }
+
+      console.log('Checking for pending disciplinary penalties for member:', memberIdToCheck);
+      setLoadingPenalties(true);
+      try {
+        const records = await getMemberDisciplinaryRecords(memberIdToCheck);
+        const penalties = records.filter(r => r.status === 'pending' && r.penalty_amount && r.penalty_amount > 0);
+        setPendingPenalties(penalties);
+        if (penalties.length === 1) {
+          setSelectedPenaltyId(penalties[0].id);
+        } else {
+          setSelectedPenaltyId(""); // reset if multiple or 0
+        }
+      } catch (error) {
+        console.error('Error fetching disciplinary records:', error);
+        setPendingPenalties([]);
+      } finally {
+        setLoadingPenalties(false);
+      }
     };
 
     checkMemberCredit();
@@ -90,8 +113,16 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
         ...prev,
         amount: suggestedAmount.toFixed(2)
       }));
+    } else if (formData.type === 'infringement_penalty') {
+      const selectedPenalty = pendingPenalties.find(p => p.id === selectedPenaltyId);
+      if (selectedPenalty && selectedPenalty.penalty_amount && !formData.amount) {
+        setFormData((prev) => ({
+          ...prev,
+          amount: selectedPenalty.penalty_amount!.toFixed(2)
+        }));
+      }
     }
-  }, [formData.type, activeCredit]);
+  }, [formData.type, activeCredit, selectedPenaltyId, pendingPenalties]);
 
   if (!isOpen) return null;
 
@@ -123,6 +154,17 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
       }
     }
 
+    if (formData.type === 'infringement_penalty') {
+      if (pendingPenalties.length === 0) {
+        showError('No pending penalties found for this member');
+        return;
+      }
+      if (!selectedPenaltyId) {
+        showError('Please select a specific penalty to pay');
+        return;
+      }
+    }
+
     try {
       // Build contribution data object
       const contributionData: any = {
@@ -135,6 +177,11 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
       // Only include credit_id if it's a credit payment
       if (formData.type === 'credit_payment' && activeCredit?.id) {
         contributionData.credit_id = activeCredit.id;
+      }
+
+      // Include disciplinary record ID if it's a penalty payment
+      if (formData.type === 'infringement_penalty' && selectedPenaltyId) {
+        contributionData.disciplinary_record_id = selectedPenaltyId;
       }
 
       await onSubmit(
@@ -151,6 +198,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
       });
       setSelectedFile(undefined);
       setActiveCredit(null);
+      setSelectedPenaltyId("");
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Failed to add contribution"
@@ -215,6 +263,24 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
               </div>
             )}
 
+            {/* Penalty Alert - Show when member has pending penalties */}
+            {pendingPenalties.length > 0 && formData.member_id && formData.type !== 'infringement_penalty' && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-900 dark:text-red-300">
+                      Pending Penalty Detected
+                    </p>
+                    <p className="text-xs text-red-800 dark:text-red-200 mt-1">
+                      This member has {pendingPenalties.length} pending disciplinary penalty(s).
+                      You can select "Infringement Penalty" from the Type dropdown to record a penalty payment.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-text-primary dark:text-text-primary-dark">
                 Amount (R)
@@ -248,6 +314,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
                 <option value="monthly">Monthly</option>
                 <option value="registration">Registration</option>
                 <option value="credit_payment">Credit Payment</option>
+                <option value="infringement_penalty">Infringement Penalty</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -280,6 +347,60 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
                     <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5" />
                     <p className="text-sm text-orange-800 dark:text-orange-200">
                       No active credit found for this member. Credit payments can only be made for active credits.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Penalty Payment Info */}
+            {formData.type === 'infringement_penalty' && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                {loadingPenalties ? (
+                  <p className="text-sm text-red-800 dark:text-red-200">Loading penalty information...</p>
+                ) : pendingPenalties.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-red-900 dark:text-red-300">
+                          Active Penalties Found
+                        </p>
+                      </div>
+                    </div>
+
+                    {pendingPenalties.length > 1 ? (
+                      <div>
+                        <label className="block text-xs font-medium text-red-900 dark:text-red-300 mb-1">
+                          Select Penalty
+                        </label>
+                        <select
+                          required
+                          className="block w-full text-sm rounded-md border-red-300 focus:border-red-500 focus:ring-red-500 bg-white dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
+                          value={selectedPenaltyId}
+                          onChange={(e) => setSelectedPenaltyId(e.target.value)}
+                        >
+                          <option value="">Select a penalty to pay</option>
+                          {pendingPenalties.map((penalty) => (
+                            <option key={penalty.id} value={penalty.id}>
+                              {penalty.infringement_type} - R{penalty.penalty_amount?.toFixed(2)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="mt-2 space-y-1 text-xs text-red-800 dark:text-red-200">
+                        <p><strong>Type:</strong> {pendingPenalties[0].infringement_type}</p>
+                        <p><strong>Description:</strong> {pendingPenalties[0].description}</p>
+                        <p><strong>Penalty Amount:</strong> R{pendingPenalties[0].penalty_amount?.toFixed(2)}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5" />
+                    <p className="text-sm text-orange-800 dark:text-orange-200">
+                      No pending disciplinary penalties found for this member. Penalty payments can only be made for active penalties.
                     </p>
                   </div>
                 )}

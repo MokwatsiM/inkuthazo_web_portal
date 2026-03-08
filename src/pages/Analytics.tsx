@@ -167,6 +167,9 @@ const Analytics: React.FC = () => {
         const monthlyContributions = contributions.filter(
           (c) => c.status === "approved" && c.type === "monthly"
         );
+        const penaltyContributions = contributions.filter(
+          (c) => c.status === "approved" && c.type === "infringement_penalty"
+        );
 
         let totalPremiums = 0;
         let totalPenalties = 0;
@@ -186,6 +189,18 @@ const Analytics: React.FC = () => {
           }
           contributionsByMonth.get(monthKey)!.push(contribution);
         });
+
+        const penaltyContributionsByMonth = new Map<string, Contribution[]>();
+        penaltyContributions.forEach((contribution) => {
+          const date = contribution.date.toDate();
+          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          if (!penaltyContributionsByMonth.has(monthKey)) {
+            penaltyContributionsByMonth.set(monthKey, []);
+          }
+          penaltyContributionsByMonth.get(monthKey)!.push(contribution);
+        });
+
+
 
         // Analyze each month
         for (const [monthKey, monthContributions] of contributionsByMonth) {
@@ -209,6 +224,8 @@ const Analytics: React.FC = () => {
               monthPremiums += contribution.amount;
             }
           });
+
+          monthPenalties += penaltyContributionsByMonth.get(monthKey)?.reduce((acc, contribution) => acc + contribution.amount, 0) || 0;
 
           totalPremiums += monthPremiums;
           totalPenalties += monthPenalties;
@@ -431,12 +448,11 @@ const Analytics: React.FC = () => {
           return (
             <div key={index} className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300">
               <div className="flex items-start justify-between mb-3">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${
-                  insight.trend === "positive" ? "from-green-500 to-green-600" :
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${insight.trend === "positive" ? "from-green-500 to-green-600" :
                   insight.trend === "negative" ? "from-red-500 to-red-600" :
-                  insight.trend === "warning" ? "from-amber-500 to-amber-600" :
-                  "from-blue-500 to-blue-600"
-                } flex items-center justify-center shadow-lg`}>
+                    insight.trend === "warning" ? "from-amber-500 to-amber-600" :
+                      "from-blue-500 to-blue-600"
+                  } flex items-center justify-center shadow-lg`}>
                   {insight.trend === "positive" ? (
                     <TrendingUp className="w-6 h-6 text-white" />
                   ) : insight.trend === "negative" ? (
@@ -449,15 +465,14 @@ const Analytics: React.FC = () => {
               <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 {insight.title}
               </h3>
-              <p className={`mt-2 text-2xl font-bold ${
-                insight.trend === "positive"
-                  ? "text-green-600 dark:text-green-400"
-                  : insight.trend === "negative"
+              <p className={`mt-2 text-2xl font-bold ${insight.trend === "positive"
+                ? "text-green-600 dark:text-green-400"
+                : insight.trend === "negative"
                   ? "text-red-600 dark:text-red-400"
                   : insight.trend === "warning"
-                  ? "text-amber-600 dark:text-amber-400"
-                  : "text-gray-900 dark:text-white"
-              }`}>
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-gray-900 dark:text-white"
+                }`}>
                 {insight.value}
               </p>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -734,7 +749,7 @@ const Analytics: React.FC = () => {
           <div className="h-[300px]">
             <ResponsiveBar
               data={penaltyAnalysis.monthlyBreakdown}
-              keys={["premiums", "penalties"]}
+              keys={["premiums", "penalties",]}
               indexBy="month"
               margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
               padding={0.3}
@@ -810,12 +825,11 @@ const Analytics: React.FC = () => {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600 dark:text-gray-400">Fund Health Score</span>
-              <span className={`font-semibold ${
-                fundBalance > metrics.totalContributions * 0.3 ? "text-green-600" :
+              <span className={`font-semibold ${fundBalance > metrics.totalContributions * 0.3 ? "text-green-600" :
                 fundBalance > 0 ? "text-yellow-600" : "text-red-600"
-              }`}>
+                }`}>
                 {fundBalance > metrics.totalContributions * 0.3 ? "Excellent" :
-                 fundBalance > 0 ? "Good" : "Critical"}
+                  fundBalance > 0 ? "Good" : "Critical"}
               </span>
             </div>
           </div>

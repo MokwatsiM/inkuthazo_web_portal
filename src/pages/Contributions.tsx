@@ -338,7 +338,7 @@ const Contributions: React.FC = () => {
                         {contribution.members?.full_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap capitalize">
-                        {contribution.type}
+                        {contribution.type.replace('_', ' ')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         R {contribution.amount.toFixed(2)}

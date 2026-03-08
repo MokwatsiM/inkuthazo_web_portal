@@ -59,18 +59,36 @@ export const reviewContribution = async (
   });
 
   // If approved and it's a credit payment, record it in the credit
-  if (status === 'approved' && contributionData?.type === 'credit_payment' && contributionData?.credit_id) {
-    try {
-      const { recordCreditPayment } = await import('../creditService');
-      await recordCreditPayment(
-        contributionData.credit_id,
-        id, // contribution ID
-        contributionData.amount,
-        reviewerId
-      );
-    } catch (creditError) {
-      console.error('Failed to record credit payment:', creditError);
-      // Don't throw - contribution is still approved even if credit update fails
+  if (status === 'approved') {
+    if (contributionData?.type === 'credit_payment' && contributionData?.credit_id) {
+      try {
+        const { recordCreditPayment } = await import('../creditService');
+        await recordCreditPayment(
+          contributionData.credit_id,
+          id, // contribution ID
+          contributionData.amount,
+          reviewerId
+        );
+      } catch (creditError) {
+        console.error('Failed to record credit payment:', creditError);
+        // Don't throw - contribution is still approved even if credit update fails
+      }
+    }
+  }
+
+  // If approved and it's an infringement penalty payment, resolve the disciplinary record
+  if (status === 'approved') {
+    if (contributionData?.type === 'infringement_penalty' && contributionData?.disciplinary_record_id) {
+      try {
+        const { resolveDisciplinaryRecord } = await import('../disciplinaryService');
+        await resolveDisciplinaryRecord(
+          contributionData.disciplinary_record_id,
+          `Penalty payment received and approved via Contribution ID: ${id}`,
+          reviewerId
+        );
+      } catch (disciplinaryError) {
+        console.error('Failed to resolve disciplinary record after penalty payment:', disciplinaryError);
+      }
     }
   }
 

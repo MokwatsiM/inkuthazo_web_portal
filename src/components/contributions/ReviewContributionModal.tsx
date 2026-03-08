@@ -63,7 +63,7 @@ const ReviewContributionModal: React.FC<ReviewContributionModalProps> = ({
           </div>
           <div>
             <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Type</p>
-            <p className="font-medium capitalize text-text-primary dark:text-text-primary-dark">{contribution.type}</p>
+            <p className="font-medium capitalize text-text-primary dark:text-text-primary-dark">{contribution.type.replace('_', ' ')}</p>
           </div>
           {contribution.proof_of_payment && (
             <div>

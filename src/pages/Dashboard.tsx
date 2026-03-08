@@ -134,8 +134,9 @@ const Dashboard: React.FC = () => {
       // Calculate contributions by type
       const typeMap = new Map<string, number>();
       approved.forEach((contribution) => {
-        const current = typeMap.get(contribution.type) || 0;
-        typeMap.set(contribution.type, current + contribution.amount);
+        const typeName = contribution.type.replace('_', ' ');
+        const current = typeMap.get(typeName) || 0;
+        typeMap.set(typeName, current + contribution.amount);
       });
 
       const chartData = Array.from(typeMap.entries()).map(([name, value]) => ({
@@ -170,7 +171,7 @@ const Dashboard: React.FC = () => {
           id: c.id,
           type: 'contribution' as const,
           title: `Contribution ${c.status}`,
-          description: `${c.type} contribution of R${c.amount.toFixed(2)}`,
+          description: `${c.type.replace('_', ' ')} contribution of R${c.amount.toFixed(2)}`,
           timestamp: c.date.toDate(),
           status: c.status,
           amount: c.amount,

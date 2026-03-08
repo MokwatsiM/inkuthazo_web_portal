@@ -200,7 +200,7 @@ const MyContributions: React.FC = () => {
                           {formatDate(contribution.date)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap capitalize">
-                          {contribution.type}
+                          {contribution.type.replace('_', ' ')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           R {contribution.amount.toFixed(2)}
@@ -211,8 +211,8 @@ const MyContributions: React.FC = () => {
                               contribution.status === "approved"
                                 ? "success"
                                 : contribution.status === "rejected"
-                                ? "error"
-                                : "warning"
+                                  ? "error"
+                                  : "warning"
                             }
                           >
                             {contribution.status}

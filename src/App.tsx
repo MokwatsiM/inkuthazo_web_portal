@@ -123,7 +123,7 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <FullScreenLayout>
-              <RoleBasedRoute allowedRoles={["member", "dc_member"]}>
+              <RoleBasedRoute allowedRoles={["member", "dc_member", "chairperson"]}>
                 <MyContributions />
               </RoleBasedRoute>
             </FullScreenLayout>
@@ -136,7 +136,7 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <FullScreenLayout>
-              <RoleBasedRoute allowedRoles={["member", "dc_member"]}>
+              <RoleBasedRoute allowedRoles={["member", "dc_member", "chairperson"]}>
                 <MyDonations />
               </RoleBasedRoute>
             </FullScreenLayout>
@@ -149,7 +149,7 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <FullScreenLayout>
-              <RoleBasedRoute allowedRoles={["member", "dc_member"]}>
+              <RoleBasedRoute allowedRoles={["member", "dc_member", "chairperson"]}>
                 <MyCredit />
               </RoleBasedRoute>
             </FullScreenLayout>
@@ -240,7 +240,7 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <FullScreenLayout>
-              <RoleBasedRoute allowedRoles={["admin", "member", "dc_member"]}>
+              <RoleBasedRoute allowedRoles={["admin", "member", "dc_member", "chairperson"]}>
                 <Disciplinary />
               </RoleBasedRoute>
             </FullScreenLayout>

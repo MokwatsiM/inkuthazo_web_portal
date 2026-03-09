@@ -354,6 +354,37 @@ const LandingPage: React.FC = () => {
       link: '/credit-reviews',
     },
     {
+      title: 'My Contributions',
+      description: 'View your payment history',
+      icon: CreditCard,
+      iconBg: 'bg-emerald-50 dark:bg-emerald-900/50',
+      iconColor: 'text-emerald-600 dark:text-emerald-300',
+      badge: null,
+      link: '/my-contributions',
+    },
+    {
+      title: 'My Donations',
+      description: 'My Investments & contributions',
+      icon: Gift,
+      iconBg: 'bg-purple-50 dark:bg-purple-900/50',
+      iconColor: 'text-purple-600 dark:text-purple-300',
+      badge: null,
+      badgeBg: 'bg-purple-50',
+      badgeColor: 'text-purple-700',
+      link: '/my-donations',
+    },
+    {
+      title: 'My Credit',
+      description: 'View your credit & payments',
+      icon: HandCoins,
+      iconBg: 'bg-green-50 dark:bg-green-900/50',
+      iconColor: 'text-green-600 dark:text-green-300',
+      badge: null,
+      badgeBg: 'bg-green-50',
+      badgeColor: 'text-green-700',
+      link: '/my-credit',
+    },
+    {
       title: 'Calendar',
       description: 'Events and deadlines',
       icon: Calendar,
@@ -362,13 +393,47 @@ const LandingPage: React.FC = () => {
       badge: null,
       link: '/calendar',
     },
+    {
+      title: 'My Hosting Schedule',
+      description: 'View your hosting duties',
+      icon: CalendarClock,
+      iconBg: 'bg-cyan-50 dark:bg-cyan-900/50',
+      iconColor: 'text-cyan-600 dark:text-cyan-300',
+      badge: null,
+      badgeBg: 'bg-cyan-50',
+      badgeColor: 'text-cyan-700',
+      link: '/my-hosting-schedule',
+    },
+    {
+      title: 'Disciplinary',
+      description: 'Cases and resolutions',
+      icon: AlertTriangle,
+      iconBg: 'bg-orange-50 dark:bg-orange-900/50',
+      iconColor: 'text-orange-600 dark:text-orange-300',
+      badge: null,
+      badgeBg: 'bg-orange-50',
+      badgeColor: 'text-orange-700',
+      link: '/disciplinary',
+    },
+
+    {
+      title: 'Attendance',
+      description: 'Scan QR to check in',
+      icon: QrCode,
+      iconBg: 'bg-teal-50 dark:bg-teal-900/50',
+      iconColor: 'text-teal-600 dark:text-teal-300',
+      badge: 'New',
+      badgeBg: 'bg-teal-100',
+      badgeColor: 'text-teal-700',
+      link: '/attendance',
+    },
   ];
 
   const navigationTiles = isAdmin
     ? adminNavigationTiles
     : userDetails?.role === 'chairperson'
-    ? chairpersonNavigationTiles
-    : memberNavigationTiles;
+      ? chairpersonNavigationTiles
+      : memberNavigationTiles;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -438,8 +503,8 @@ const LandingPage: React.FC = () => {
               {userDetails?.role === 'admin'
                 ? 'Administrator Dashboard'
                 : userDetails?.role === 'chairperson'
-                ? 'Chairperson Dashboard'
-                : 'Member Portal'} •
+                  ? 'Chairperson Dashboard'
+                  : 'Member Portal'} •
               {userDetails?.join_date
                 ? ` Member since ${new Date(userDetails.join_date.toDate()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
                 : ''}

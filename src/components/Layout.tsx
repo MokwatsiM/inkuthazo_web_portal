@@ -198,18 +198,51 @@ const Layout: React.FC = () => {
       color: "text-teal-500",
     },
     {
+      path: "/my-contributions",
+      icon: CreditCard,
+      label: "Contributions",
+      color: "text-violet-500",
+    },
+
+    {
+      path: "/my-donations",
+      icon: Gift,
+      label: "My Donations",
+      color: "text-purple-500",
+    },
+
+    {
+      path: "/my-credit",
+      icon: HandCoins,
+      label: "My Credit",
+      color: "text-green-500",
+    },
+
+    {
       path: "/calendar",
       icon: Calendar,
       label: "Calendar",
       color: "text-sky-500",
+    },
+    {
+      path: "/my-hosting-schedule",
+      icon: CalendarDays,
+      label: "Hosting",
+      color: "text-purple-500",
+    },
+    {
+      path: "/disciplinary",
+      icon: AlertTriangle,
+      label: "Disciplinary",
+      color: "text-orange-500",
     },
   ];
 
   const menuItems = isAdmin
     ? adminMenuItems
     : userDetails?.role === "chairperson"
-    ? chairpersonMenuItems
-    : memberMenuItems;
+      ? chairpersonMenuItems
+      : memberMenuItems;
 
   const isActive = (path: string) => location.pathname === path;
 

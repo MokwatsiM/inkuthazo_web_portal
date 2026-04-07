@@ -7,6 +7,7 @@ import {
   Calendar,
   CalendarClock,
   ClipboardList,
+  Code,
   CreditCard,
   FileText,
   Gift,
@@ -99,7 +100,15 @@ const LandingPage: React.FC = () => {
                   Inkuthazo Portal
                 </h1>
               </div>
+              {/* Version Badge */}
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
+                <Code className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                  v{import.meta.env.VITE_APP_VERSION}
+                </span>
+              </div>
             </div>
+
             <div className="flex items-center space-x-4">
               <ThemeToggle variant="button" />
               {userDetails && (

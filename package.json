@@ -1,7 +1,7 @@
 {
-  "name": "burial-society-portal",
+  "name": "social-club-portal",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -25,11 +25,11 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "firebase": "^11.0.2",
-    "firebase-admin": "^13.6.0",
+    "firebase-admin": "^13.7.0",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
     "ics": "^3.8.1",
-    "jspdf": "^3.0.1",
+    "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.468.0",
     "qrcode.react": "^4.2.0",
@@ -59,6 +59,6 @@
     "vite": "^6.2.1"
   },
   "optionalDependencies": {
-    "@rollup/rollup-darwin-arm64": "^4.53.3"
+    "@rollup/rollup-darwin-arm64": "^4.60.1"
   }
 }

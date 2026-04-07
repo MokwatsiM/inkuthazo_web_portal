@@ -1,36 +1,36 @@
 import React, { useState } from "react";
-import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+
 import {
-  Users,
+  Activity,
+  AlertTriangle,
+  BarChart2,
+  Calendar,
+  CalendarDays,
+  ClipboardList,
   CreditCard,
+  DollarSign,
+  FileCheck,
   // PieChart,
   FileText,
-  LogOut,
-  DollarSign,
-  Menu,
-  X,
-  BarChart2,
-  UserX,
-  FileCheck,
-  Calendar,
-  Receipt,
-  Home,
-  AlertTriangle,
-  CalendarDays,
-  TrendingUp,
-  Activity,
   Gift,
   HandCoins,
-  ClipboardList,
+  Home,
+  LogOut,
+  Menu,
+  Receipt,
+  Settings,
+  TrendingUp,
+  Users,
+  UserX,
+  X
 } from "lucide-react";
-import { Settings } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
-import Button from "./ui/Button";
-import Avatar from "./avatar/Avatar";
-import { ThemeToggle } from "./ui/ThemeToggle";
-import TopBar from "./layout/TopBar";
-import ProfileSummary from "./layout/ProfileSummary";
 import logger from "../utils/logger";
+import ProfileSummary from "./layout/ProfileSummary";
+import TopBar from "./layout/TopBar";
+import Button from "./ui/Button";
+import { ThemeToggle } from "./ui/ThemeToggle";
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();

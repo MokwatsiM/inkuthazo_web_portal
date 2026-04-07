@@ -2,6 +2,7 @@
 import React from 'react';
 import Button from '../ui/Button';
 import type { Contribution } from '../../types';
+import logger from '../../utils/logger';
 
 interface DeleteContributionModalProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ const DeleteContributionModal: React.FC<DeleteContributionModalProps> = ({
       await onConfirm();
       onClose();
     } catch (error) {
-      console.error('Error deleting contribution:', error);
+      logger.error('Error deleting contribution:', error);
     }
   };
 

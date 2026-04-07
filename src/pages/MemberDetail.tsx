@@ -30,6 +30,7 @@ import Button from "../components/ui/Button";
 import { Ghost, Edit, FileText, ChevronRight, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import MembershipCard from "../components/members/MembershipCard";
+import logger from "../utils/logger";
 
 const MemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -84,7 +85,7 @@ const MemberDetail: React.FC = () => {
         payouts,
       } as MemberDetailType);
     } catch (error) {
-      console.error("Error fetching member details:", error);
+      logger.error("Error fetching member details:", error);
       setError("Failed to load member details. Please try again later.");
     } finally {
       setLoading(false);
@@ -110,7 +111,7 @@ const MemberDetail: React.FC = () => {
       await fetchMemberData();
       setIsEditModalOpen(false);
     } catch (error) {
-      console.error("Error updating member:", error);
+      logger.error("Error updating member:", error);
     }
   };
 
@@ -121,7 +122,7 @@ const MemberDetail: React.FC = () => {
       const avatarUrl = await uploadAvatar(member.id, file);
       await handleUpdateMember({ avatar_url: avatarUrl });
     } catch (error) {
-      console.error("Error uploading avatar:", error);
+      logger.error("Error uploading avatar:", error);
     }
   };
 

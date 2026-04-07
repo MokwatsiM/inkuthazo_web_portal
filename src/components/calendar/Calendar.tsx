@@ -12,6 +12,7 @@ import AddEventModal from "./AddEventModal";
 import EditEventModal from "./EditEventModal";
 import { downloadICSFile } from "../../utils/calendar/export";
 import type { Event } from "../../types/event";
+import logger from "../../utils/logger";
 
 const Calendar: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -46,7 +47,7 @@ const Calendar: React.FC = () => {
       })) as Event[];
       setEvents(eventsData);
     } catch (error) {
-      console.error("Error fetching events:", error);
+      logger.error("Error fetching events:", error);
     } finally {
       setLoading(false);
     }
@@ -227,7 +228,7 @@ const Calendar: React.FC = () => {
     try {
       downloadICSFile(events);
     } catch (error) {
-      console.error("Error exporting calendar:", error);
+      logger.error("Error exporting calendar:", error);
     }
   };
 

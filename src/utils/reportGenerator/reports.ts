@@ -19,6 +19,7 @@ import type { Contribution } from "../../types/contribution";
 import type { Payout } from "../../types/payout";
 import type { Expense } from "../../types/expense";
 import type { Member } from "../../types";
+import logger from "../logger";
 
 const addLogo = async (doc: jsPDF): Promise<void> => {
   try {
@@ -40,7 +41,7 @@ const addLogo = async (doc: jsPDF): Promise<void> => {
 
     doc.addImage(img, "PNG", x, y, width, height);
   } catch (error) {
-    console.error("Error adding logo to report:", error);
+    logger.error("Error adding logo to report:", error);
   }
 };
 
@@ -80,7 +81,7 @@ const getMemberName = async (memberId: string): Promise<string> => {
     }
     return "Unknown Member";
   } catch (error) {
-    console.error("Error fetching member name:", error);
+    logger.error("Error fetching member name:", error);
     return "Unknown Member";
   }
 };
@@ -434,7 +435,7 @@ export const generateReport = async (
     // Save the PDF
     doc.save(`${type}-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
   } catch (error) {
-    console.error("Error generating report:", error);
+    logger.error("Error generating report:", error);
     throw error;
   }
 };

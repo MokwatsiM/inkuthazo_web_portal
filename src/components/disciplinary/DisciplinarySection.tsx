@@ -12,6 +12,7 @@ import {
   getMemberDisciplinaryRecords,
 } from "../../services/disciplinaryService";
 import type { DisciplinaryRecord, Member } from "../../types";
+import logger from "../../utils/logger";
 
 interface DisciplinarySectionProps {
   member: Member;
@@ -49,7 +50,7 @@ const DisciplinarySection: React.FC<DisciplinarySectionProps> = ({
       }));
       setRecords(enrichedRecords);
     } catch (error) {
-      console.error("Error fetching disciplinary records:", error);
+      logger.error("Error fetching disciplinary records:", error);
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ const DisciplinarySection: React.FC<DisciplinarySectionProps> = ({
       };
       setRecords((prev) => [enrichedRecord, ...prev]);
     } catch (error) {
-      console.error("Error adding disciplinary record:", error);
+      logger.error("Error adding disciplinary record:", error);
     }
   };
 
@@ -82,7 +83,7 @@ const DisciplinarySection: React.FC<DisciplinarySectionProps> = ({
       await resolveDisciplinaryRecord(id, notes, userDetails.id);
       await fetchRecords(); // Refresh the records to get the updated status
     } catch (error) {
-      console.error("Error resolving disciplinary record:", error);
+      logger.error("Error resolving disciplinary record:", error);
     }
   };
 
@@ -91,7 +92,7 @@ const DisciplinarySection: React.FC<DisciplinarySectionProps> = ({
       await deleteDisciplinaryRecord(record.id);
       setRecords((prev) => prev.filter((r) => r.id !== record.id));
     } catch (error) {
-      console.error("Error deleting disciplinary record:", error);
+      logger.error("Error deleting disciplinary record:", error);
     }
   };
 

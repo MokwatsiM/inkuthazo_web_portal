@@ -9,6 +9,7 @@ import GenerateScheduleModal from "../components/hostAssignments/GenerateSchedul
 import ExportButtons from "../components/hostAssignments/ExportButtons";
 import { LoadingSkeleton } from "../components/ui/LoadingOverlay";
 import { formatDate } from "../utils/dateUtils";
+import logger from "../utils/logger";
 
 const HostAssignments: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -33,7 +34,7 @@ const HostAssignments: React.FC = () => {
       await generateSchedule(params);
       setIsGenerateModalOpen(false);
     } catch (error) {
-      console.error("Error generating schedule:", error);
+      logger.error("Error generating schedule:", error);
     }
   };
 
@@ -42,7 +43,7 @@ const HostAssignments: React.FC = () => {
       try {
         await finalizeSchedule(selectedYear);
       } catch (error) {
-        console.error("Error finalizing schedule:", error);
+        logger.error("Error finalizing schedule:", error);
       }
     }
   };
@@ -52,7 +53,7 @@ const HostAssignments: React.FC = () => {
       try {
         await deleteSchedule(selectedYear);
       } catch (error) {
-        console.error("Error deleting schedule:", error);
+        logger.error("Error deleting schedule:", error);
       }
     }
   };

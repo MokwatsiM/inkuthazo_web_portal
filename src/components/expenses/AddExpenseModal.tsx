@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Button from "../ui/Button";
 import type { Expense } from "../../types/expense";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
+import logger from "../../utils/logger";
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -53,7 +54,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       await onSubmit(data);
       onClose();
     } catch (error) {
-      console.error("Error adding expense:", error);
+      logger.error("Error adding expense:", error);
     }
   };
 

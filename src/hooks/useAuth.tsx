@@ -13,6 +13,7 @@ import { auth, db } from "../config/firebase";
 import type { Member } from "../types";
 import { useNotifications } from "./useNotifications";
 import { FirebaseError } from "firebase/app";
+import logger from "../utils/logger";
 
 interface AuthContextType {
   user: User | null;
@@ -55,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setUserDetails(null);
       }
     } catch (error) {
-      console.error("Error fetching user details:", error);
+      logger.error("Error fetching user details:", error);
       showError("Failed to fetch user details. Please try again later.");
       setUserDetails(null);
     }
@@ -82,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // trackUserSignIn("email");
       showSuccess("Successfully signed in");
     } catch (error: unknown) {
-      console.error("Sign in error:", error);
+      logger.error("Sign in error:", error);
       if (error instanceof FirebaseError) {
         showError(error.message || "Failed to sign in");
       }
@@ -137,12 +138,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           }
         );
       } catch (auditError) {
-        console.error("Failed to log member signup audit trail:", auditError);
+        logger.error("Failed to log member signup audit trail:", auditError);
       }
 
       showSuccess("Account created successfully. Please verify your email.");
     } catch (error: unknown) {
-      console.error("Error during signup:", error);
+      logger.error("Error during signup:", error);
       // If there's an error, attempt to delete the auth user if it was created
       if (auth.currentUser) {
         await auth.currentUser.delete();
@@ -162,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUserDetails(null);
       showSuccess("Successfully signed out");
     } catch (error: unknown) {
-      console.error("Sign out error:", error);
+      logger.error("Sign out error:", error);
       if (error instanceof FirebaseError) {
         showError(error.message || "Failed to sign out");
         throw error;

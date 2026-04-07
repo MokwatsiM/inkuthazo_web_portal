@@ -12,6 +12,7 @@ import type { Payout } from "../types/payout";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import Badge from "../components/ui/Badge";
 import PageHeader from "../components/ui/PageHeader";
+import logger from "../utils/logger";
 
 const Payouts: React.FC = () => {
   const { payouts, loading, addPayout, deletePayout, updatePayoutStatus } =
@@ -37,7 +38,7 @@ const Payouts: React.FC = () => {
       await addPayout(data);
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error("Error adding payout:", error);
+      logger.error("Error adding payout:", error);
     }
   };
 

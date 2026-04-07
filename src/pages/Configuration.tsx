@@ -14,6 +14,7 @@ import {
 } from "../services/configurationService";
 import { formatDate } from "../utils/dateUtils";
 import type { Configuration } from "../types/configuration";
+import logger from "../utils/logger";
 
 const ConfigurationPage: React.FC = () => {
 //   const { userDetails } = useAuth();
@@ -39,7 +40,7 @@ const ConfigurationPage: React.FC = () => {
       const configs = await getAllConfigurations();
       setConfigurations(configs);
     } catch (error) {
-      console.error("Error fetching configurations:", error);
+      logger.error("Error fetching configurations:", error);
     } finally {
       setLoading(false);
     }
@@ -60,7 +61,7 @@ const ConfigurationPage: React.FC = () => {
       setIsEditModalOpen(false);
       setSelectedConfiguration(null);
     } catch (error) {
-      console.error("Error updating configuration:", error);
+      logger.error("Error updating configuration:", error);
     }
   };
 
@@ -72,7 +73,7 @@ const ConfigurationPage: React.FC = () => {
       await deleteConfiguration(id);
       await fetchConfigurations();
     } catch (error) {
-      console.error("Error deleting configuration:", error);
+      logger.error("Error deleting configuration:", error);
     }
   };
 

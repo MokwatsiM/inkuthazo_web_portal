@@ -8,6 +8,7 @@ import Button from "../ui/Button";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import { exportHostScheduleToExcel, exportHostScheduleToPDF } from "../../services/hostAssignmentExportService";
 import { useHostAssignments } from "../../hooks/useHostAssignments";
+import logger from "../../utils/logger";
 
 const MemberHostView: React.FC = () => {
   const { userDetails } = useAuth();
@@ -27,7 +28,7 @@ const MemberHostView: React.FC = () => {
       setIsExporting(true);
       await exportHostScheduleToExcel(schedule);
     } catch (error) {
-      console.error('Export to Excel failed:', error);
+      logger.error('Export to Excel failed:', error);
       alert('Failed to export to Excel. Please try again.');
     } finally {
       setIsExporting(false);
@@ -40,7 +41,7 @@ const MemberHostView: React.FC = () => {
       setIsExporting(true);
       await exportHostScheduleToPDF(schedule);
     } catch (error) {
-      console.error('Export to PDF failed:', error);
+      logger.error('Export to PDF failed:', error);
       alert('Failed to export to PDF. Please try again.');
     } finally {
       setIsExporting(false);

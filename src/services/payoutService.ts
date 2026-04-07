@@ -2,6 +2,7 @@ import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { Claim } from '../types/claim';
 import type { Payout } from '../types/payout';
+import logger from '../utils/logger';
 
 export const createPayoutFromClaim = async (claim: Claim): Promise<void> => {
   try {
@@ -15,7 +16,7 @@ export const createPayoutFromClaim = async (claim: Claim): Promise<void> => {
 
     await addDoc(collection(db, 'payouts'), payoutData);
   } catch (error) {
-    console.error('Error creating payout from claim:', error);
+    logger.error('Error creating payout from claim:', error);
     throw error;
   }
 };

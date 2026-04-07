@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Button from '../ui/Button';
 import type { Payout } from '../../types';
+import logger from '../../utils/logger';
 
 interface UpdatePayoutStatusModalProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ const UpdatePayoutStatusModal: React.FC<UpdatePayoutStatusModalProps> = ({
       await onConfirm(status);
       onClose();
     } catch (error) {
-      console.error('Error updating payout status:', error);
+      logger.error('Error updating payout status:', error);
     }
   };
 

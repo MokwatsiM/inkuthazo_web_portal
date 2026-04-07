@@ -3,6 +3,7 @@ import { X, Calendar, Users, AlertTriangle } from "lucide-react";
 import Button from "../ui/Button";
 import { useMembers } from "../../hooks/useMembers";
 import type { GenerateHostScheduleParams } from "../../types";
+import logger from "../../utils/logger";
 
 interface GenerateScheduleModalProps {
   isOpen: boolean;
@@ -51,7 +52,7 @@ const GenerateScheduleModal: React.FC<GenerateScheduleModalProps> = ({
         excludeMemberIds,
       });
     } catch (error) {
-      console.error("Error generating schedule:", error);
+      logger.error("Error generating schedule:", error);
     } finally {
       setSubmitting(false);
     }

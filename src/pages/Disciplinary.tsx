@@ -15,6 +15,7 @@ import {
   getMemberDisciplinaryRecords,
 } from "../services/disciplinaryService";
 import type { DisciplinaryRecord } from "../types";
+import logger from "../utils/logger";
 
 const Disciplinary: React.FC = () => {
   const { userDetails } = useAuth();
@@ -66,7 +67,7 @@ const Disciplinary: React.FC = () => {
 
       setRecords(enrichedRecords);
     } catch (error) {
-      console.error("Error fetching disciplinary records:", error);
+      logger.error("Error fetching disciplinary records:", error);
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,7 @@ const Disciplinary: React.FC = () => {
       await fetchRecords();
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error("Error adding disciplinary record:", error);
+      logger.error("Error adding disciplinary record:", error);
     }
   };
 
@@ -93,7 +94,7 @@ const Disciplinary: React.FC = () => {
       setIsResolveModalOpen(false);
       setSelectedRecord(null);
     } catch (error) {
-      console.error("Error resolving disciplinary record:", error);
+      logger.error("Error resolving disciplinary record:", error);
     }
   };
 
@@ -102,7 +103,7 @@ const Disciplinary: React.FC = () => {
       await deleteDisciplinaryRecord(record.id);
       await fetchRecords();
     } catch (error) {
-      console.error("Error deleting disciplinary record:", error);
+      logger.error("Error deleting disciplinary record:", error);
     }
   };
 

@@ -4,6 +4,7 @@ import { requestMemberDeletion } from './deletionService';
 import { cacheService, CacheKeys } from './cacheService';
 import { CACHE } from '../constants';
 import type { Member } from '../types';
+import logger from '../utils/logger';
 
 /**
  * Fetches a single member's details by ID
@@ -35,7 +36,7 @@ export const fetchMemberDetails = async (memberId: string): Promise<Member | nul
 
     return member;
   } catch (error) {
-    console.error('Error fetching member details:', error);
+    logger.error('Error fetching member details:', error);
     return null;
   }
 };
@@ -103,7 +104,7 @@ export const batchFetchMembers = async (memberIds: string[]): Promise<Map<string
 
     return membersMap;
   } catch (error) {
-    console.error('Error batch fetching members:', error);
+    logger.error('Error batch fetching members:', error);
     return membersMap;
   }
 };
@@ -136,14 +137,14 @@ export const deleteMemberWithAuth = async (memberId: string, requesterId: string
         requesterName
       );
     } catch (auditError) {
-      console.error('Failed to log member deletion request audit trail:', auditError);
+      logger.error('Failed to log member deletion request audit trail:', auditError);
     }
 
     // Delete Firestore document
     const memberRef = doc(db, 'members', memberId);
     await deleteDoc(memberRef);
   } catch (error) {
-    console.error('Error deleting member:', error);
+    logger.error('Error deleting member:', error);
     throw error;
   }
 };

@@ -3,6 +3,7 @@ import { db } from '../config/firebase';
 import { archiveMemberContributions } from '../utils/archivedUtils';
 import type { DeletionRequestStatus } from '../types/deletion';
 import type { Member } from '../types';
+import { logger } from '../utils/logger';
 
 
 export const requestMemberDeletion = async (memberId: string, requesterId: string): Promise<void> => {
@@ -27,7 +28,7 @@ export const requestMemberDeletion = async (memberId: string, requesterId: strin
       member_data: memberDoc.data() // Store member data for potential restoration
     });
   } catch (error) {
-    console.error('Error requesting member deletion:', error);
+    logger.error('Error requesting member deletion:', error);
     throw error;
   }
 };
@@ -52,7 +53,7 @@ export const restoreMemberData = async (memberId: string, memberData: Partial<Me
       restored_at: Timestamp.now()
     });
   } catch (error) {
-    console.error('Error restoring member data:', error);
+    logger.error('Error restoring member data:', error);
     throw error;
   }
 };
@@ -77,7 +78,7 @@ export const rejectDeletionRequest = async (requestId: string): Promise<void> =>
     // Update request status
     await updateDeletionRequestStatus(requestId, 'rejected');
   } catch (error) {
-    console.error('Error rejecting deletion request:', error);
+    logger.error('Error rejecting deletion request:', error);
     throw error;
   }
 };
@@ -88,7 +89,7 @@ export const deleteMember = async (memberId: string): Promise<void> => {
     const memberRef = doc(db, 'members', memberId);
     await deleteDoc(memberRef);
   } catch (error) {
-    console.error('Error deleting member:', error);
+    logger.error('Error deleting member:', error);
     throw error;
   }
 };

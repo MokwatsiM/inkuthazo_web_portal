@@ -4,6 +4,9 @@ import { useAuth } from "../../hooks/useAuth";
 import type { Member } from "../../types";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
 import Button from "../ui/Button";
+import { getAllRoles } from "../../services/roleService";
+import { Role } from "../../types/role";
+import logger from "../../utils/logger";
 
 interface EditMemberModalProps {
   isOpen: boolean;
@@ -27,6 +30,27 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
     role: member.role,
     join_date: format(member.join_date.toDate(), "yyyy-MM-dd"),
   });
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(true);
+
+  // Load roles from Firestore
+  useEffect(() => {
+    const loadRoles = async () => {
+      try {
+        setLoadingRoles(true);
+        const rolesData = await getAllRoles();
+        setRoles(rolesData);
+      } catch (error) {
+        logger.error("Error loading roles:", error);
+      } finally {
+        setLoadingRoles(false);
+      }
+    };
+
+    if (isOpen) {
+      loadRoles();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     setFormData({
@@ -53,24 +77,24 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
       await onSubmit(updatedData);
       onClose();
     } catch (error) {
-      console.error("Error updating member:", error);
+      logger.error("Error updating member:", error);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Edit Member</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-200 dark:border-gray-700">
+        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Edit Member</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Full Name
               </label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 value={formData.full_name}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -81,14 +105,14 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email
               </label>
               <input
                 type="email"
                 pattern="[\-a-zA-Z0-9~!$%^&amp;*_=+\}\{'?]+(\.[\-a-zA-Z0-9~!$%^&amp;*_=+\}\{'?]+)*@[a-zA-Z0-9_][\-a-zA-Z0-9_]*(\.[\-a-zA-Z0-9_]+)*\.[cC][oO][mM](:[0-9]{1,5})?"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 value={formData.email}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, email: e.target.value }))
@@ -97,14 +121,14 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Phone Number
               </label>
               <input
                 type="tel"
                 pattern="[0-9]{10}$"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 value={formData.phone}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, phone: e.target.value }))
@@ -114,13 +138,13 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
             </div>
             {isAdmin && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Join Date
                 </label>
                 <input
                   type="date"
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   value={formData.join_date}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -134,12 +158,12 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
 
             {isAdmin && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Role
                 </label>
                 <select
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   value={formData.role}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -147,12 +171,24 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
                       role: e.target.value as Member["role"],
                     }))
                   }
+                  disabled={loadingRoles}
                 >
-                  <option value="member">Member</option>
-                  <option value="dc_member">DC Member</option>
-                  <option value="admin">Admin</option>
-                  <option value="chairperson">Chairperson</option>
+                  {loadingRoles ? (
+                    <option value="">Loading roles...</option>
+                  ) : roles.length === 0 ? (
+                    <option value="">No roles available</option>
+                  ) : (
+                    roles.map((role) => (
+                      <option key={role.id} value={role.name}>
+                        {role.name.charAt(0).toUpperCase() + role.name.slice(1).replace(/_/g, ' ')}
+                        {role.isSystemRole && ' (System)'}
+                      </option>
+                    ))
+                  )}
                 </select>
+                {loadingRoles && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Loading available roles...</p>
+                )}
               </div>
             )}
           </div>

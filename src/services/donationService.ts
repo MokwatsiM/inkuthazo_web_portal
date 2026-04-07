@@ -27,6 +27,7 @@ import type {
   DonationSource,
   DonationStatus,
 } from '../types/donation';
+import logger from '../utils/logger';
 
 /**
  * Create a new donation record
@@ -70,7 +71,7 @@ export const createDonation = async (
 
     return docRef.id;
   } catch (error) {
-    console.error('Error creating donation:', error);
+    logger.error('Error creating donation:', error);
     throw error;
   }
 };
@@ -92,7 +93,7 @@ export const getDonation = async (donationId: string): Promise<Donation | null> 
       ...donationSnap.data(),
     } as Donation;
   } catch (error) {
-    console.error('Error fetching donation:', error);
+    logger.error('Error fetching donation:', error);
     throw error;
   }
 };
@@ -151,7 +152,7 @@ export const getDonations = async (
       lastDoc: snapshot.docs[snapshot.docs.length - 1],
     };
   } catch (error) {
-    console.error('Error fetching donations:', error);
+    logger.error('Error fetching donations:', error);
     throw error;
   }
 };
@@ -207,7 +208,7 @@ export const updateDonation = async (
       userName
     );
   } catch (error) {
-    console.error('Error updating donation:', error);
+    logger.error('Error updating donation:', error);
     throw error;
   }
 };
@@ -252,7 +253,7 @@ export const reviewDonation = async (
       userName
     );
   } catch (error) {
-    console.error('Error reviewing donation:', error);
+    logger.error('Error reviewing donation:', error);
     throw error;
   }
 };
@@ -289,7 +290,7 @@ export const deleteDonation = async (
       userName
     );
   } catch (error) {
-    console.error('Error deleting donation:', error);
+    logger.error('Error deleting donation:', error);
     throw error;
   }
 };
@@ -383,7 +384,7 @@ export const getDonationSummary = async (
 
     return summary;
   } catch (error) {
-    console.error('Error fetching donation summary:', error);
+    logger.error('Error fetching donation summary:', error);
     throw error;
   }
 };
@@ -412,7 +413,7 @@ export const getMemberDonations = async (
         } as Donation)
     );
   } catch (error) {
-    console.error('Error fetching member donations:', error);
+    logger.error('Error fetching member donations:', error);
     throw error;
   }
 };
@@ -453,7 +454,7 @@ export const issueDonationReceipt = async (
       userName
     );
   } catch (error) {
-    console.error('Error issuing donation receipt:', error);
+    logger.error('Error issuing donation receipt:', error);
     throw error;
   }
 };
@@ -497,7 +498,7 @@ export const bulkApproveDonations = async (
       userName
     );
   } catch (error) {
-    console.error('Error bulk approving donations:', error);
+    logger.error('Error bulk approving donations:', error);
     throw error;
   }
 };

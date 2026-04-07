@@ -11,6 +11,7 @@ import {
 import Button from "../ui/Button";
 import { ConfirmModal } from "../ui/Modal";
 import type { Member, MemberStatus } from "../../types";
+import logger from "../../utils/logger";
 
 interface BatchActionsProps {
   selectedMembers: Member[];
@@ -47,7 +48,7 @@ const BatchActions: React.FC<BatchActionsProps> = ({
       await action();
       onClearSelection();
     } catch (error) {
-      console.error('Bulk action failed:', error);
+      logger.error('Bulk action failed:', error);
     } finally {
       setIsProcessing(false);
     }

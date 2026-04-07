@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 import { getMemberActiveCredit, getCredits } from '../services/creditService';
 import type { Credit } from '../types/credit';
+import logger from '../utils/logger';
 
 const MyCredit: React.FC = () => {
   const { user } = useAuth();
@@ -38,7 +39,7 @@ const MyCredit: React.FC = () => {
       setActiveCredit(active);
       setCreditHistory(history.filter((c) => c.status !== 'active'));
     } catch (error) {
-      console.error('Error fetching member credits:', error);
+      logger.error('Error fetching member credits:', error);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 // src/services/communicationService.ts
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import logger from '../utils/logger';
 
 export interface Message {
   id: string;
@@ -29,7 +30,7 @@ export const sendMessage = async (
       createdAt: new Date()
     });
   } catch (error) {
-    console.error('Error sending message:', error);
+    logger.error('Error sending message:', error);
     throw error;
   }
 };

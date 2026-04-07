@@ -10,6 +10,7 @@ import * as XLSX from 'xlsx';
 import { format, parse, isValid } from 'date-fns';
 import { ContributionStatus, ContributionType } from '../../types/contribution';
 import { Member } from '../../types';
+import logger from '../../utils/logger';
 
 export interface ProcessingResult {
   valid: AggregatedContribution[];
@@ -195,6 +196,6 @@ export const executeBulkImport = async (
       adminName
     );
   } catch (err) {
-    console.error('Failed to log bulk import audit trail:', err);
+    logger.error('Failed to log bulk import audit trail:', err);
   }
 };

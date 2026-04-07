@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from '../ui/Button';
 import type { Payout } from '../../types';
+import logger from '../../utils/logger';
 
 interface DeletePayoutModalProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ const DeletePayoutModal: React.FC<DeletePayoutModalProps> = ({
       await onConfirm();
       onClose();
     } catch (error) {
-      console.error('Error deleting payout:', error);
+      logger.error('Error deleting payout:', error);
     }
   };
 

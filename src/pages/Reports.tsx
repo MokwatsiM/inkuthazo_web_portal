@@ -5,6 +5,7 @@ import AttendanceReport from "../components/reports/AttendanceReport";
 import { generateReport } from "../utils/reportGenerator";
 import type { ReportType, ReportPeriod } from "../types/report";
 import { useAuth } from "../hooks/useAuth";
+import logger from "../utils/logger";
 
 type ReportTab = "financial" | "attendance";
 
@@ -76,7 +77,7 @@ const Reports: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 800));
 
     } catch (error) {
-      console.error("Error generating report:", error);
+      logger.error("Error generating report:", error);
       const errorMessage = error instanceof Error
         ? error.message
         : `Failed to generate ${reportType} report. Please try again.`;

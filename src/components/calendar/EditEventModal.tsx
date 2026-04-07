@@ -7,6 +7,7 @@ import { format, getWeekOfMonth } from "date-fns";
 import { Calendar, Clock, MapPin, Download } from "lucide-react";
 import { downloadICSFile } from "../../utils/calendar/export";
 import type { Event, RecurrenceType } from "../../types/event";
+import logger from "../../utils/logger";
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -105,7 +106,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       onEventUpdated();
       onClose();
     } catch (error) {
-      console.error("Error updating event:", error);
+      logger.error("Error updating event:", error);
     }
   };
 
@@ -117,7 +118,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       onEventUpdated();
       onClose();
     } catch (error) {
-      console.error("Error deleting event:", error);
+      logger.error("Error deleting event:", error);
     }
   };
 
@@ -125,7 +126,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     try {
       downloadICSFile([event]);
     } catch (error) {
-      console.error("Error exporting event:", error);
+      logger.error("Error exporting event:", error);
     }
   };
 

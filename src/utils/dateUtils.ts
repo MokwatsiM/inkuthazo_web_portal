@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
+import logger from './logger';
 
 export const formatDate = (date: Timestamp | Date | string | undefined): string => {
   if (!date) return '';
@@ -16,7 +17,7 @@ export const formatDate = (date: Timestamp | Date | string | undefined): string 
     }
     return '';
   } catch (error) {
-    console.error('Error formatting date:', error);
+    logger.error('Error formatting date:', error);
     return '';
   }
 };
@@ -36,7 +37,7 @@ export const toFirestoreTimestamp = (date: Date | string | Timestamp | undefined
     }
     return Timestamp.now();
   } catch (error) {
-    console.error('Error converting to timestamp:', error);
+    logger.error('Error converting to timestamp:', error);
     return Timestamp.now();
   }
 };

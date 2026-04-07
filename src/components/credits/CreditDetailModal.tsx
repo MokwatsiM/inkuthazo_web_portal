@@ -16,6 +16,7 @@ import Button from '../ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { provideAdditionalInfo, deleteCredit } from '../../services/creditService';
 import type { Credit } from '../../types/credit';
+import logger from '../../utils/logger';
 
 interface CreditDetailModalProps {
   credit: Credit;
@@ -53,7 +54,7 @@ const CreditDetailModal: React.FC<CreditDetailModalProps> = ({ credit, onClose, 
       setAdditionalInfo('');
       onUpdate();
     } catch (error) {
-      console.error('Error providing additional info:', error);
+      logger.error('Error providing additional info:', error);
       alert('Failed to provide additional information. Please try again.');
     } finally {
       setLoading(false);
@@ -79,7 +80,7 @@ const CreditDetailModal: React.FC<CreditDetailModalProps> = ({ credit, onClose, 
       onUpdate();
       onClose();
     } catch (error) {
-      console.error('Error deleting credit:', error);
+      logger.error('Error deleting credit:', error);
       alert('Failed to delete credit. Please try again.');
     } finally {
       setLoading(false);

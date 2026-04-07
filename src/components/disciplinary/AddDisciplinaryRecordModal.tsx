@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useMembers } from "../../hooks/useMembers";
 import type { DisciplinaryRecord } from "../../types";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
+import logger from "../../utils/logger";
 
 interface AddDisciplinaryRecordModalProps {
   isOpen: boolean;
@@ -55,7 +56,7 @@ const AddDisciplinaryRecordModal: React.FC<AddDisciplinaryRecordModalProps> = ({
       });
       onClose();
     } catch (error) {
-      console.error("Error adding disciplinary record:", error);
+      logger.error("Error adding disciplinary record:", error);
     } finally {
       setLoading(false);
     }

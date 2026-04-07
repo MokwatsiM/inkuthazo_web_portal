@@ -6,10 +6,14 @@ import { useAuth } from '../hooks/useAuth';
 import { getCredits, getCreditSummary } from '../services/creditService';
 import CreateCreditModal from '../components/credits/CreateCreditModal';
 import CreditDetailModal from '../components/credits/CreditDetailModal';
+import PermissionGate from '../components/permissions/PermissionGate';
+import { usePermissionState } from '../hooks/usePermissionState';
 import type { Credit, CreditSummary as CreditSummaryType, CreditStatus } from '../types/credit';
+import logger from '../utils/logger';
 
 const Credits: React.FC = () => {
   const { user } = useAuth();
+  const createPermission = usePermissionState('credits', 'create');
   const [loading, setLoading] = useState(true);
   const [credits, setCredits] = useState<Credit[]>([]);
   const [summary, setSummary] = useState<CreditSummaryType | null>(null);
@@ -31,7 +35,7 @@ const Credits: React.FC = () => {
       setCredits(creditsData);
       setSummary(summaryData);
     } catch (error) {
-      console.error('Error fetching credits:', error);
+      logger.error('Error fetching credits:', error);
     } finally {
       setLoading(false);
     }
@@ -80,10 +84,12 @@ const Credits: React.FC = () => {
               Manage member credits and loans
             </p>
           </div>
-          <Button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            Create Credit
-          </Button>
+          <PermissionGate resource="credits" action="create">
+            <Button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Create Credit
+            </Button>
+          </PermissionGate>
         </div>
 
         {/* Summary Cards */}
@@ -193,9 +199,11 @@ const Credits: React.FC = () => {
                 }
               </p>
               {statusFilter === 'all' && (
-                <Button onClick={() => setShowCreateModal(true)}>
-                  Create First Credit
-                </Button>
+                <PermissionGate resource="credits" action="create">
+                  <Button onClick={() => setShowCreateModal(true)}>
+                    Create First Credit
+                  </Button>
+                </PermissionGate>
               )}
             </div>
           ) : (

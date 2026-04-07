@@ -1,6 +1,7 @@
 import React from "react";
 import Button from "../ui/Button";
 import type { Member } from "../../types";
+import logger from "../../utils/logger";
 
 interface ApproveMemberModalProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ const ApproveMemberModal: React.FC<ApproveMemberModalProps> = ({
       await onConfirm();
       onClose();
     } catch (error) {
-      console.error("Error approving member:", error);
+      logger.error("Error approving member:", error);
     }
   };
 

@@ -10,6 +10,7 @@ import { formatDate } from "../utils/dateUtils";
 import type { Claim } from "../types/claim";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import Badge from "../components/ui/Badge";
+import logger from "../utils/logger";
 
 const Claims: React.FC = () => {
   const { claims, loading, reviewClaim } = useClaims();
@@ -43,7 +44,7 @@ const Claims: React.FC = () => {
       setIsReviewModalOpen(false);
       setSelectedClaim(null);
     } catch (error) {
-      console.error("Error reviewing claim:", error);
+      logger.error("Error reviewing claim:", error);
     }
   };
 

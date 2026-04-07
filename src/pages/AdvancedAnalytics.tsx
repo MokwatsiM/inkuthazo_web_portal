@@ -8,6 +8,7 @@ import ComparativeAnalysis from '../components/analytics/ComparativeAnalysis';
 import CustomReportBuilder from '../components/analytics/CustomReportBuilder';
 import { useNavigate } from 'react-router-dom';
 import { generateReport, ReportParams, collectArrearsData } from '../services/reportGenerationService';
+import logger from '../utils/logger';
 
 type TabId = 'overview' | 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'reports';
 
@@ -137,7 +138,7 @@ const AdvancedAnalytics = React.memo(() => {
       await generateReport(params, reportData);
 
     } catch (error) {
-      console.error('Error generating report:', error);
+      logger.error('Error generating report:', error);
       alert(error instanceof Error ? error.message : 'Failed to generate report. Please try again.');
     } finally {
       setIsGeneratingReport(false);

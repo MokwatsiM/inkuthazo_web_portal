@@ -15,6 +15,7 @@ import { toFirestoreTimestamp } from '../../utils/dateUtils';
 import { uploadProofOfPayment, deleteProofOfPayment } from './storage';
 import type { Contribution, ContributionStatus } from '../../types/contribution';
 import { hasDuplicateContribution } from '../../utils/contributionValidation';
+import logger from '../../utils/logger';
 
 
 const getMemberName = async (memberId: string): Promise<string> => {
@@ -25,7 +26,7 @@ const getMemberName = async (memberId: string): Promise<string> => {
     }
     return 'Unknown Member';
   } catch (error) {
-    console.error('Error fetching member name:', error);
+    logger.error('Error fetching member name:', error);
     return 'Unknown Member';
   }
 };
@@ -48,7 +49,7 @@ export const reviewContribution = async (
       memberName = await getMemberName(contributionData.member_id);
     }
   } catch (err) {
-    console.error('Failed to fetch contribution for audit log:', err);
+    logger.error('Failed to fetch contribution for audit log:', err);
   }
 
   await updateDoc(contributionRef, {
@@ -70,7 +71,7 @@ export const reviewContribution = async (
           reviewerId
         );
       } catch (creditError) {
-        console.error('Failed to record credit payment:', creditError);
+        logger.error('Failed to record credit payment:', creditError);
         // Don't throw - contribution is still approved even if credit update fails
       }
     }
@@ -87,7 +88,7 @@ export const reviewContribution = async (
           reviewerId
         );
       } catch (disciplinaryError) {
-        console.error('Failed to resolve disciplinary record after penalty payment:', disciplinaryError);
+        logger.error('Failed to resolve disciplinary record after penalty payment:', disciplinaryError);
       }
     }
   }
@@ -107,7 +108,7 @@ export const reviewContribution = async (
       }
     );
   } catch (auditError) {
-    console.error('Failed to log contribution review audit trail:', auditError);
+    logger.error('Failed to log contribution review audit trail:', auditError);
   }
 };
 
@@ -160,7 +161,7 @@ export const addContribution = async (
       memberName
     );
   } catch (auditError) {
-    console.error('Failed to log contribution creation audit trail:', auditError);
+    logger.error('Failed to log contribution creation audit trail:', auditError);
   }
 
   return {
@@ -202,7 +203,7 @@ export const updateContribution = async (
       previousContribution = docSnap.data();
     }
   } catch (err) {
-    console.error('Failed to fetch previous contribution state:', err);
+    logger.error('Failed to fetch previous contribution state:', err);
   }
 
   await updateDoc(contributionRef, updateData);
@@ -238,7 +239,7 @@ export const updateContribution = async (
       memberName !== 'Unknown Member' ? memberName : undefined
     );
   } catch (auditError) {
-    console.error('Failed to log contribution update audit trail:', auditError);
+    logger.error('Failed to log contribution update audit trail:', auditError);
   }
 
   if (contribution.member_id) {
@@ -276,7 +277,7 @@ export const deleteContribution = async (id: string, proofOfPaymentUrl?: string)
       'Admin'
     );
   } catch (auditError) {
-    console.error('Failed to log contribution deletion audit trail:', auditError);
+    logger.error('Failed to log contribution deletion audit trail:', auditError);
   }
 
   if (proofOfPaymentUrl) {

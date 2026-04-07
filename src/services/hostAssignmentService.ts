@@ -17,6 +17,7 @@ import type {
   GenerateHostScheduleParams,
   Member,
 } from "../types";
+import logger from "../utils/logger";
 
 export const generateHostSchedule = async (
   params: GenerateHostScheduleParams,
@@ -92,7 +93,7 @@ export const generateHostSchedule = async (
 
     return { id: scheduleRef.id, ...schedule };
   } catch (error) {
-    console.error("Error generating host schedule:", error);
+    logger.error("Error generating host schedule:", error);
     throw error;
   }
 };
@@ -130,7 +131,7 @@ export const getHostScheduleForYear = async (year: number): Promise<HostSchedule
       assignments,
     };
   } catch (error) {
-    console.error("Error fetching host schedule:", error);
+    logger.error("Error fetching host schedule:", error);
     throw error;
   }
 };
@@ -163,7 +164,7 @@ export const updateHostAssignment = async (
       }
     }
   } catch (error) {
-    console.error("Error updating host assignment:", error);
+    logger.error("Error updating host assignment:", error);
     throw error;
   }
 };
@@ -210,7 +211,7 @@ export const swapHostAssignments = async (
 
     await batch.commit();
   } catch (error) {
-    console.error("Error swapping host assignments:", error);
+    logger.error("Error swapping host assignments:", error);
     throw error;
   }
 };
@@ -239,7 +240,7 @@ export const deleteHostSchedule = async (year: number): Promise<void> => {
 
     await batch.commit();
   } catch (error) {
-    console.error("Error deleting host schedule:", error);
+    logger.error("Error deleting host schedule:", error);
     throw error;
   }
 };
@@ -260,7 +261,7 @@ export const finalizeHostSchedule = async (year: number, _adminId: string): Prom
       last_modified: Timestamp.now(),
     });
   } catch (error) {
-    console.error("Error finalizing host schedule:", error);
+    logger.error("Error finalizing host schedule:", error);
     throw error;
   }
 };
@@ -296,7 +297,7 @@ export const getHostAssignmentsForMember = async (memberId: string): Promise<Hos
       ...doc.data(),
     })) as HostAssignment[];
   } catch (error) {
-    console.error("Error fetching member host assignments:", error);
+    logger.error("Error fetching member host assignments:", error);
     throw error;
   }
 };

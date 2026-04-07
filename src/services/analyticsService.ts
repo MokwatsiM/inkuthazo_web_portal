@@ -5,6 +5,7 @@ import type { ContributionAnalytics, PayoutAnalytics, MemberAnalytics, Financial
 import type { Member, } from '../types';
 import type { Contribution, } from '../types/contribution'
 import type { Payout} from '../types/payout'
+import logger from '../utils/logger';
 
 
 export const getContributionAnalytics = async (startDate: Date, endDate: Date): Promise<ContributionAnalytics> => {
@@ -233,7 +234,7 @@ export const getFinancialMetrics = async (startDate: Date, endDate: Date):Promis
       monthlyMetrics
     };
   } catch (error) {
-    console.error('Error getting financial metrics:', error);
+    logger.error('Error getting financial metrics:', error);
     throw error;
   }
 };

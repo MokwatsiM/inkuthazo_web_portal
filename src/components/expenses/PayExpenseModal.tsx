@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Button from "../ui/Button";
 import type { Expense } from "../../types/expense";
+import logger from "../../utils/logger";
 
 interface PayExpenseModalProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ const PayExpenseModal: React.FC<PayExpenseModalProps> = ({
       await onSubmit(expense.id, paymentReference);
       onClose();
     } catch (error) {
-      console.error("Error marking expense as paid:", error);
+      logger.error("Error marking expense as paid:", error);
     }
   };
 

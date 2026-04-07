@@ -1,6 +1,7 @@
 import { createEvents, DateArray } from "ics";
 import { format } from "date-fns";
 import type { Event } from "../../types/event";
+import logger from "../logger";
 
 const dateToArray = (date: Date): DateArray => [
   date.getFullYear(),
@@ -80,7 +81,7 @@ export const downloadICSFile = (events: Event[]): void => {
     link.click();
     document.body.removeChild(link);
   } catch (error) {
-    console.error("Error downloading ICS file:", error);
+    logger.error("Error downloading ICS file:", error);
     throw error;
   }
 };

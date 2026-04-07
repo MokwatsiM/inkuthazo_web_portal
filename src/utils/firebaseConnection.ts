@@ -1,6 +1,7 @@
 import { enableNetwork, disableNetwork } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useNotifications } from '../hooks/useNotifications';
+import logger from './logger';
 
 let isOnline = true;
 const listeners: Array<(online: boolean) => void> = [];
@@ -27,7 +28,7 @@ export const initializeConnectionHandler = () => {
         await enableNetwork(db);
         notifyListeners(true);
       } catch (error) {
-        console.error('Error enabling network:', error);
+        logger.error('Error enabling network:', error);
       }
     }
   });
@@ -38,7 +39,7 @@ export const initializeConnectionHandler = () => {
         await disableNetwork(db);
         notifyListeners(false);
       } catch (error) {
-        console.error('Error disabling network:', error);
+        logger.error('Error disabling network:', error);
       }
     }
   });

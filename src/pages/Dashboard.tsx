@@ -18,6 +18,7 @@ import {
   Database
 } from "lucide-react";
 import { href } from "react-router-dom";
+import logger from "../utils/logger";
 
 const COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
@@ -240,7 +241,7 @@ const Dashboard: React.FC = () => {
         memberGrowth: memberStats.growth,
       });
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      logger.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }

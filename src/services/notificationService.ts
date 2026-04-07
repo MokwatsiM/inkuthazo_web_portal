@@ -1,6 +1,7 @@
 // src/services/notificationService.ts
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import logger from '../utils/logger';
 
 export interface Notification {
   id: string;
@@ -29,7 +30,7 @@ export const sendNotification = async (
       createdAt: Timestamp.now()
     });
   } catch (error) {
-    console.error('Error sending notification:', error);
+    logger.error('Error sending notification:', error);
     throw error;
   }
 };

@@ -33,6 +33,75 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // ========================================
+    // Permission-Based Helper Functions
+    // ========================================
+
+    /**
+     * Get the current user's role name from the members collection
+     */
+    function getUserRole() {
+      return isSignedIn() && exists(/databases/$(database)/documents/members/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role
+        : null;
+    }
+
+    /**
+     * Check if the current user has a specific permission for a resource and action
+     * @param resource - The resource name (e.g., 'credits', 'members', 'payouts')
+     * @param action - The action name (e.g., 'view', 'create', 'edit', 'delete', 'approve')
+     */
+    function hasPermission(resource, action) {
+      return isSignedIn() &&
+             getUserRole() != null &&
+             exists(/databases/$(database)/documents/roles/$(getUserRole())) &&
+             resource in get(/databases/$(database)/documents/roles/$(getUserRole())).data.permissions &&
+             action in get(/databases/$(database)/documents/roles/$(getUserRole())).data.permissions[resource] &&
+             get(/databases/$(database)/documents/roles/$(getUserRole())).data.permissions[resource][action] == true;
+    }
+
+    /**
+     * Convenience function - check if user can view a resource
+     */
+    function canView(resource) {
+      return hasPermission(resource, 'view');
+    }
+
+    /**
+     * Convenience function - check if user can create a resource
+     */
+    function canCreate(resource) {
+      return hasPermission(resource, 'create');
+    }
+
+    /**
+     * Convenience function - check if user can edit a resource
+     */
+    function canEdit(resource) {
+      return hasPermission(resource, 'edit');
+    }
+
+    /**
+     * Convenience function - check if user can delete a resource
+     */
+    function canDelete(resource) {
+      return hasPermission(resource, 'delete');
+    }
+
+    /**
+     * Convenience function - check if user can approve a resource
+     */
+    function canApprove(resource) {
+      return hasPermission(resource, 'approve');
+    }
+
+    /**
+     * Convenience function - check if user can export a resource
+     */
+    function canExport(resource) {
+      return hasPermission(resource, 'export');
+    }
+
     function isValidNewMember() {
       let memberData = request.resource.data;
       return 
@@ -45,107 +114,124 @@ service cloud.firestore {
 
     // Members collection
     match /members/{userId} {
-      allow read: if isAdmin() || isOwner(userId) || isDCMember() || isChairperson();
+      // Users with view permission can read all members, OR members can read their own data
+      allow read: if canView('members') || isOwner(userId);
+
       // Allow members to create their own document with restricted role
       allow create: if isOwner(userId) && isValidNewMember();
-      // Allow members to update their own basic info, but not role or status
-      allow update: if isAdmin() || (
-        isOwner(userId) && 
+
+      // Users with edit permission can update any member
+      // OR members can update their own basic info, but not role or status
+      allow update: if canEdit('members') || (
+        isOwner(userId) &&
         !request.resource.data.diff(resource.data).affectedKeys()
           .hasAny(['role', 'status'])
       );
-      allow delete: if isAdmin();
+
+      allow delete: if canDelete('members');
     }
 
       // Disciplinary records collection
     match /disciplinary_records/{recordId} {
-      allow read: if isAdmin() || isDCMember() || 
+      // Users with 'view' permission can read all disciplinary records
+      // OR users can read their own disciplinary records
+      allow read: if canView('disciplinary') ||
         (isSignedIn() && resource.data.member_id == request.auth.uid);
-      allow create: if isAdmin() || isDCMember();
-      allow update: if isAdmin() || isDCMember();
-      allow delete: if isAdmin();
+      allow create: if canCreate('disciplinary');
+      allow update: if canEdit('disciplinary');
+      allow delete: if canDelete('disciplinary');
     }
 
 		 // Claims collection
     match /claims/{claimId} {
-      // Allow members to read their own claims and admins to read all claims
-      allow read: if isAdmin() || (isMember() && resource.data.member_id == request.auth.uid);
-      
-      // Allow members to create claims for themselves
-      allow create: if isSignedIn() && (isAdmin() || (isMember() && 
-        request.resource.data.member_id == request.auth.uid &&
-        request.resource.data.status == 'pending'));
-      
-      // Allow admins to update claim status and add review notes
-      allow update: if isAdmin() &&
+      // Users with 'view' permission can read all claims
+      // OR users can read their own claims regardless of permission
+      allow read: if canView('claims') ||
+        (isSignedIn() && resource.data.member_id == request.auth.uid);
+
+      // Users with 'create' permission can create claims
+      // OR members can create claims for themselves
+      allow create: if canCreate('claims') ||
+        (isSignedIn() &&
+         request.resource.data.member_id == request.auth.uid &&
+         request.resource.data.status == 'pending');
+
+      // Users with 'edit' permission can update claim status and add review notes
+      allow update: if canEdit('claims') &&
         request.resource.data.diff(resource.data).affectedKeys()
           .hasAll(['status', 'review_notes', 'reviewed_by', 'reviewed_at']);
-      
+
       // Never allow direct deletion of claims
       allow delete: if false;
     }
 
  // Events collection
     match /events/{eventId} {
+      // All signed-in users can read events (calendar is visible to everyone)
       allow read: if isSignedIn();
-      allow create: if isAdmin();
-      allow update: if isAdmin() && isOwner(resource.data.created_by);
-      allow delete: if isAdmin() && isOwner(resource.data.created_by);
+      allow create: if canCreate('calendar');
+      allow update: if canEdit('calendar') && isOwner(resource.data.created_by);
+      allow delete: if canDelete('calendar') && isOwner(resource.data.created_by);
     }
      // Expenses collection
     match /expenses/{expenseId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin() || isChairperson();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow read: if canView('expenses');
+      allow create: if canCreate('expenses');
+      allow update: if canEdit('expenses');
+      allow delete: if canDelete('expenses');
     }
 
 		 // Deletion requests collection
     match /deletion_requests/{requestId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin() && 
+      allow read: if canView('deletion_requests');
+      allow create: if canCreate('deletion_requests') &&
         request.resource.data.keys().hasAll(['member_id', 'requested_by', 'requested_at', 'status']) &&
         request.resource.data.requested_by == request.auth.uid &&
         request.resource.data.status == 'pending';
-      allow update: if isAdmin() &&
+      allow update: if canEdit('deletion_requests') &&
         request.resource.data.status in ['completed', 'rejected'] &&
         resource.data.status == 'pending';
       allow delete: if false; // Never allow direct deletion of requests
     }
     // Contributions collection
     match /contributions/{contributionId} {
+      // All signed-in users can read contributions (for transparency)
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && 
-        (isAdmin() || (isMember() && request.resource.data.member_id == request.auth.uid));
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      // Users with 'create' permission OR members creating their own contribution
+      allow create: if canCreate('contributions') ||
+        (isSignedIn() && request.resource.data.member_id == request.auth.uid);
+      allow update: if canEdit('contributions');
+      allow delete: if canDelete('contributions');
     }
 
     // Payouts collection
     match /payouts/{payoutId} {
+      // All signed-in users can read payouts (for transparency)
       allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow create: if canCreate('payouts');
+      allow update: if canEdit('payouts');
+      allow delete: if canDelete('payouts');
     }
 
     // Archived contributions collection
     match /archived_contributions/{archivedId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
+      allow read: if canView('contributions');
+      allow write: if canEdit('contributions');
     }
       // Analytics collection
     match /analytics/{docId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
+      allow read: if canView('analytics');
+      allow write: if canEdit('analytics');
     }
     
      // Invitations collection
     match /invitations/{invitationId} {
       allow read: if isSignedIn();
-      allow create: if isAdmin() && 
+      allow create: if canCreate('members') &&
         request.resource.data.keys().hasAll(['email', 'full_name', 'phone', 'invited_by', 'status', 'created_at', 'expires_at', 'invitation_token']) &&
         request.resource.data.invited_by == request.auth.uid &&
         request.resource.data.status == 'pending';
-      allow update: if isAdmin() &&
+      allow update: if canEdit('members') &&
         request.resource.data.status in ['accepted', 'expired'] &&
         resource.data.status == 'pending';
       allow delete: if false;
@@ -157,16 +243,16 @@ service cloud.firestore {
       // All signed-in users can read host assignments
       allow read: if isSignedIn();
 
-      // Only admins can create, update, and delete host assignments
-      allow create: if isAdmin() &&
+      // Users with create permission can create host assignments
+      allow create: if canCreate('host_assignments') &&
         request.resource.data.keys().hasAll(['member_id', 'member_name', 'assigned_month', 'year', 'month', 'status', 'created_at', 'created_by']) &&
         request.resource.data.created_by == request.auth.uid;
 
-      allow update: if isAdmin() &&
+      allow update: if canEdit('host_assignments') &&
         request.resource.data.keys().hasAll(['updated_at', 'updated_by']) &&
         request.resource.data.updated_by == request.auth.uid;
 
-      allow delete: if isAdmin();
+      allow delete: if canDelete('host_assignments');
     }
 
     // Host Schedules collection
@@ -174,26 +260,26 @@ service cloud.firestore {
       // All signed-in users can read host schedules
       allow read: if isSignedIn();
 
-      // Only admins can create, update, and delete host schedules
-      allow create: if isAdmin() &&
+      // Users with create permission can create host schedules
+      allow create: if canCreate('host_assignments') &&
         request.resource.data.keys().hasAll(['year', 'assignments', 'generated_at', 'generated_by', 'last_modified', 'is_finalized']) &&
         request.resource.data.generated_by == request.auth.uid;
 
-      allow update: if isAdmin() &&
+      allow update: if canEdit('host_assignments') &&
         request.resource.data.keys().hasAny(['last_modified', 'is_finalized']);
 
-      allow delete: if isAdmin();
+      allow delete: if canDelete('host_assignments');
     }
 
    // Configurations collection
     match /configurations/{configId} {
       allow read: if isSignedIn();
-      allow create: if isAdmin() && 
+      allow create: if canCreate('configuration') &&
         request.resource.data.keys().hasAll(['type', 'name', 'description', 'value', 'effective_date', 'created_by', 'created_at', 'updated_at', 'is_active']) &&
         request.resource.data.created_by == request.auth.uid &&
         request.resource.data.is_active == true;
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow update: if canEdit('configuration');
+      allow delete: if canDelete('configuration');
     }
     
       // Meetings collection (QR Attendance System)
@@ -201,14 +287,14 @@ service cloud.firestore {
       // All signed-in users can read meetings
       allow read: if isSignedIn();
 
-      // Only admins can create, update, and delete meetings
-      allow create: if isAdmin() &&
+      // Users with create permission can create meetings
+      allow create: if canCreate('calendar') &&
         request.resource.data.keys().hasAll(['title', 'date', 'startTime', 'questionnaire', 'isActive', 'createdBy', 'createdAt', 'updatedAt']) &&
         request.resource.data.createdBy == request.auth.uid;
 
-      allow update: if isAdmin();
+      allow update: if canEdit('calendar');
 
-      allow delete: if isAdmin();
+      allow delete: if canDelete('calendar');
     }
 
 
@@ -217,35 +303,36 @@ service cloud.firestore {
     match /attendance_sessions/{sessionId} {
       // All signed-in users can read (needed to validate QR codes)
       allow read: if isSignedIn();
-      
-      // Only admins can create attendance sessions
-      allow create: if isAdmin() &&
+
+      // Users with create permission can create attendance sessions
+      allow create: if canCreate('calendar') &&
         request.resource.data.keys().hasAll(['meeting_title', 'meeting_date', 'qr_code_data', 'created_by', 'created_at', 'expires_at', 'is_active']) &&
         request.resource.data.created_by == request.auth.uid;
-      
-      // Only admins can update (e.g., close session)
-      allow update: if isAdmin();
-      
-      // Only admins can delete
-      allow delete: if isAdmin();
+
+      // Users with edit permission can update sessions (e.g., close session)
+      allow update: if canEdit('calendar');
+
+      // Users with delete permission can delete
+      allow delete: if canDelete('calendar');
     }
 
     // Attendance Records collection
     match /attendance_records/{recordId} {
-      // Members can read their own records, admins can read all
-      allow read: if isAdmin() || (isSignedIn() && resource.data.member_id == request.auth.uid);
+      // Users with view permission can read all, or members can read their own
+      allow read: if canView('calendar') ||
+        (isSignedIn() && resource.data.member_id == request.auth.uid);
 
       // Members can create their own attendance record (QR scan)
-      // Admins can create attendance records for any member (manual entry, marking absent)
+      // Users with create permission can create attendance records for any member
       allow create: if isSignedIn() && (
         (request.resource.data.member_id == request.auth.uid &&
          request.resource.data.keys().hasAll(['session_id', 'member_id', 'member_name', 'checked_in_at', 'check_in_method'])) ||
-        (isAdmin() &&
+        (canCreate('calendar') &&
          request.resource.data.keys().hasAll(['session_id', 'member_id', 'member_name', 'checked_in_at', 'check_in_method']))
       );
 
-      // Admins can update attendance records (e.g., update absence reason)
-      allow update: if isAdmin();
+      // Users with edit permission can update attendance records
+      allow update: if canEdit('calendar');
 
       // No deletes allowed - attendance records are immutable
       allow delete: if false;
@@ -253,47 +340,65 @@ service cloud.firestore {
     
      // Audit logs collection
     match /audit_logs/{logId} {
-  allow read: if isAdmin();
-  allow create: if isSignedIn(); // Allow members to log their actions
-  allow update, delete: if false; // Logs must be immutable
-}
+      allow read: if canView('audit_logs');
+      allow create: if isSignedIn(); // Allow all members to log their actions
+      allow update, delete: if false; // Logs must be immutable
+    }
     // Donations collection
  		match /donations/{donationId} {
-      // Admins can read all donations, members can only read their own donations
-      allow read: if isAdmin() || (isSignedIn() && resource.data.member_id == request.auth.uid);
+      // Users with view permission can read all, or members can read their own
+      allow read: if canView('donations') ||
+        (isSignedIn() && resource.data.member_id == request.auth.uid);
 
-      // Only admins can create donations
-      allow create: if isAdmin() &&
+      // Users with create permission can create donations
+      allow create: if canCreate('donations') &&
         request.resource.data.keys().hasAll(['source', 'donor_name', 'type', 'amount', 'date', 'status', 'created_by', 'created_at', 'updated_at']) &&
         request.resource.data.status == 'pending' &&
         request.resource.data.created_by == request.auth.uid;
 
-      // Only admins can update donations
-      allow update: if isAdmin();
+      // Users with edit permission can update donations
+      allow update: if canEdit('donations');
 
-      // Only admins can delete donations
-      allow delete: if isAdmin();
+      // Users with delete permission can delete donations
+      allow delete: if canDelete('donations');
     }
   // Credits collection
     match /credits/{creditId} {
-      // Admins and chairpersons can read all credits
-      // Members can only read their own credits
-      allow read: if isAdmin() ||
-        isChairperson() ||
+      // Users with 'view' permission can read all credits
+      // OR users can read their own credits regardless of permission
+      allow read: if canView('credits') ||
         (isSignedIn() && resource.data.member_id == request.auth.uid);
 
-      // Only admins can create credits
-      allow create: if isAdmin() &&
+      // Users with 'create' permission can create credits
+      allow create: if canCreate('credits') &&
         request.resource.data.keys().hasAll(['member_id', 'member_name', 'reason', 'terms', 'status', 'created_by', 'created_by_name', 'created_at', 'updated_at', 'payments', 'total_paid', 'remaining_balance']) &&
         request.resource.data.status == 'pending_review' &&
         request.resource.data.created_by == request.auth.uid;
 
-      // Admins can update credits (for reviews and payments)
-      // Chairpersons can update credits (for reviewing only)
-      allow update: if isAdmin() || isChairperson();
+      // Users with 'edit' OR 'approve' permission can update credits
+      // (approve permission allows chairpersons to review credits)
+      allow update: if canEdit('credits') || canApprove('credit_reviews');
 
-      // Only admins can delete credits
-      allow delete: if isAdmin();
+      // Users with 'delete' permission can delete credits
+      allow delete: if canDelete('credits');
+    }
+
+    // Roles collection
+    match /roles/{roleId} {
+      // All authenticated users can read roles (needed to check their own permissions)
+      allow read: if isSignedIn();
+
+      // Users with create permission can create new roles
+      // MIGRATION: Also allow isAdmin() for migration purposes (can be removed after migration)
+      allow create: if canCreate('role_management') || isAdmin();
+
+      // Users with edit permission can update roles
+      allow update: if canEdit('role_management') &&
+        request.resource.data.keys().hasAny(['description', 'permissions', 'updatedAt', 'updatedBy']);
+
+      // Users with delete permission can delete roles (system roles are protected in app logic)
+      // MIGRATION: Also allow isAdmin() for migration purposes (can be removed after migration)
+      allow delete: if canDelete('role_management') || isAdmin();
     }
   }
 }

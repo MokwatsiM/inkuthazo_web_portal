@@ -3,6 +3,7 @@ import { X, User, Calendar } from "lucide-react";
 import Button from "../ui/Button";
 import { useMembers } from "../../hooks/useMembers";
 import type { HostAssignment } from "../../types";
+import logger from "../../utils/logger";
 
 interface EditAssignmentModalProps {
   assignment: HostAssignment;
@@ -51,7 +52,7 @@ const EditAssignmentModal: React.FC<EditAssignmentModalProps> = ({
 
       await onSubmit(updates);
     } catch (error) {
-      console.error("Error updating assignment:", error);
+      logger.error("Error updating assignment:", error);
     } finally {
       setSubmitting(false);
     }
@@ -170,7 +171,7 @@ const EditAssignmentModal: React.FC<EditAssignmentModalProps> = ({
           <div className="flex items-center justify-end space-x-3 pt-4 border-t border-line dark:border-line-dark">
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={onClose}
               disabled={submitting}
             >

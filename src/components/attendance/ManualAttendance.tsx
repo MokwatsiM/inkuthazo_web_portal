@@ -7,6 +7,7 @@ import Input from "../ui/Input";
 import { recordAttendance, getActiveSessions, getMemberAttendanceForSession } from "../../services/attendanceService";
 import { useNotifications } from "../../hooks/useNotifications";
 import type { AttendanceSession, Member } from "../../types";
+import logger from "../../utils/logger";
 
 const ManualAttendance: React.FC = () => {
     const [members, setMembers] = useState<Member[]>([]);
@@ -62,7 +63,7 @@ const ManualAttendance: React.FC = () => {
                 setSelectedSession(sessionsData[0].id);
             }
         } catch (error) {
-            console.error("Error loading data:", error);
+            logger.error("Error loading data:", error);
             showError("Failed to load members and sessions");
         } finally {
             setLoading(false);
@@ -125,7 +126,7 @@ const ManualAttendance: React.FC = () => {
                 });
             }, 3000);
         } catch (error) {
-            console.error("Error recording attendance:", error);
+            logger.error("Error recording attendance:", error);
             showError("Failed to record attendance");
         } finally {
             setSubmitting(false);

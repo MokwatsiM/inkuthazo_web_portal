@@ -4,6 +4,7 @@ import { useMembers } from "../../hooks/useMembers";
 import Button from "../ui/Button";
 import { Upload } from "lucide-react";
 import type { Contribution } from "../../types/contribution";
+import logger from "../../utils/logger";
 
 interface EditContributionModalProps {
   isOpen: boolean;
@@ -67,7 +68,7 @@ const EditContributionModal: React.FC<EditContributionModalProps> = ({
       );
       onClose();
     } catch (error) {
-      console.error("Error updating contribution:", error);
+      logger.error("Error updating contribution:", error);
     }
   };
 

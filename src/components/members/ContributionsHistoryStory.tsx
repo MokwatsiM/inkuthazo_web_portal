@@ -17,6 +17,7 @@ import Badge from "../ui/Badge";
 import Button from "../ui/Button";
 import Pagination from "../ui/Pagination";
 import Table from "../ui/Table";
+import logger from "../../utils/logger";
 
 interface ContributionsHistoryProps {
   contributions?: Contribution[];
@@ -81,7 +82,7 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
           onContributionAdded();
         }
       } catch (error) {
-        console.error("Error deleting contribution:", error);
+        logger.error("Error deleting contribution:", error);
       }
     }
   };
@@ -102,7 +103,7 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
         onContributionAdded();
       }
     } catch (error) {
-      console.error("Error updating contribution:", error);
+      logger.error("Error updating contribution:", error);
       if (error instanceof FirebaseError) {
         showError(error.message || "Error occured while updating contribution");
       }
@@ -127,7 +128,7 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
         onContributionAdded();
       }
     } catch (error) {
-      console.error("Error reviewing contribution:", error);
+      logger.error("Error reviewing contribution:", error);
       if (error instanceof FirebaseError) {
         showError(
           error.message || "Error occured while reviewing contribution"
@@ -154,7 +155,7 @@ const ContributionsHistory: React.FC<ContributionsHistoryProps> = ({
         onContributionAdded();
       }
     } catch (error) {
-      console.error("Error adding contribution:", error);
+      logger.error("Error adding contribution:", error);
       if (error instanceof FirebaseError) {
         showError(error.message || "Error adding contribution");
       }

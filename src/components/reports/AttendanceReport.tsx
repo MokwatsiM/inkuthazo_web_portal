@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import type { AttendanceRecord, AttendanceSession } from "../../types";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import logger from "../../utils/logger";
 
 interface AttendanceReportData {
   memberAttendance: Array<{
@@ -81,7 +82,7 @@ const AttendanceReport: React.FC = () => {
       }));
       setSessions(sessionsData);
     } catch (error) {
-      console.error("Error fetching filter data:", error);
+      logger.error("Error fetching filter data:", error);
     }
   };
 
@@ -229,7 +230,7 @@ const AttendanceReport: React.FC = () => {
         }
       });
     } catch (error) {
-      console.error("Error generating report:", error);
+      logger.error("Error generating report:", error);
       alert("Failed to generate report. Please try again.");
     } finally {
       setLoading(false);

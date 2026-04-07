@@ -10,6 +10,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
 import { createPayoutFromClaim } from './payoutService';
 import type { Claim, ClaimStatus } from '../types/claim';
+import logger from '../utils/logger';
 
 export const uploadClaimDocument = async (file: File, memberId: string): Promise<string> => {
   const storageRef = ref(storage, `claim_documents/${memberId}/${Date.now()}_${file.name}`);
@@ -55,7 +56,7 @@ export const addClaim = async (
       memberName
     );
   } catch (auditError) {
-    console.error('Failed to log claim creation audit trail:', auditError);
+    logger.error('Failed to log claim creation audit trail:', auditError);
   }
 
   return {
@@ -123,10 +124,10 @@ export const reviewClaim = async (
         }
       );
     } catch (auditError) {
-      console.error('Failed to log claim review audit trail:', auditError);
+      logger.error('Failed to log claim review audit trail:', auditError);
     }
   } catch (error) {
-    console.error('Error reviewing claim:', error);
+    logger.error('Error reviewing claim:', error);
     throw error;
   }
 };

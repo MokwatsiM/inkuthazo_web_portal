@@ -42,6 +42,7 @@ import type {
   DataSufficiency,
   PredictionConfidence
 } from '../types/predictiveAnalytics';
+import logger from '../utils/logger';
 
 // ==================== DATA SUFFICIENCY CHECK ====================
 
@@ -304,7 +305,7 @@ async function calculateMemberRiskFactors(
     missedPayments = unpaidMonths.length;
     totalOwed = unpaidMonths.reduce((sum, month) => sum + month.amount, 0);
   } catch (error) {
-    console.error('Error calculating unpaid months:', error);
+    logger.error('Error calculating unpaid months:', error);
     // Fallback to simple calculation if invoice logic fails
     missedPayments = 3 - recentContributions.length;
   }
@@ -1029,7 +1030,7 @@ export async function analyzeContributionPatterns(
         consistencyScore = consistencyScore * (1 - arrearsPenalty);
       }
     } catch (error) {
-      console.error('Error checking arrears for member:', member.id, error);
+      logger.error('Error checking arrears for member:', member.id, error);
       // Continue without arrears check if it fails
     }
 

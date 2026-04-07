@@ -14,6 +14,7 @@ import { toFirestoreTimestamp } from "../utils/dateUtils";
 import { deleteMemberWithAuth } from "../services/memberService";
 import { useAuth } from "./useAuth";
 import type { Member } from "../types";
+import logger from "../utils/logger";
 
 interface UseMembersReturn {
   members: Member[];
@@ -84,7 +85,7 @@ export const useMembers = (): UseMembersReturn => {
           userDetails?.full_name || "Admin"
         );
       } catch (auditError) {
-        console.error("Failed to log member creation audit trail:", auditError);
+        logger.error("Failed to log member creation audit trail:", auditError);
       }
 
       return newMember;
@@ -145,7 +146,7 @@ export const useMembers = (): UseMembersReturn => {
           userDetails?.full_name || "System"
         );
       } catch (auditError) {
-        console.error("Failed to log member update audit trail:", auditError);
+        logger.error("Failed to log member update audit trail:", auditError);
       }
 
       setMembers((prev) =>

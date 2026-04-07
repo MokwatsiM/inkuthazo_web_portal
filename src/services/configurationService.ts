@@ -17,6 +17,7 @@ import type {
   ConfigurationInput,
   ConfigurationType,
 } from "../types/configuration";
+import logger from "../utils/logger";
 
 export const addConfiguration = async (
   data: ConfigurationInput,
@@ -55,10 +56,10 @@ export const addConfiguration = async (
         }
       );
     } catch (auditError) {
-      console.error("Failed to log configuration creation audit trail:", auditError);
+      logger.error("Failed to log configuration creation audit trail:", auditError);
     }
   } catch (error) {
-    console.error("Error adding configuration:", error);
+    logger.error("Error adding configuration:", error);
     throw error;
   }
 };
@@ -119,7 +120,7 @@ export const updateConfiguration = async (
         previousConfig = docSnap.data();
       }
     } catch (err) {
-      console.error("Failed to fetch previous configuration state:", err);
+      logger.error("Failed to fetch previous configuration state:", err);
     }
 
     await updateDoc(configRef, updateData);
@@ -150,10 +151,10 @@ export const updateConfiguration = async (
         }
       );
     } catch (auditError) {
-      console.error("Failed to log configuration update audit trail:", auditError);
+      logger.error("Failed to log configuration update audit trail:", auditError);
     }
   } catch (error) {
-    console.error("Error updating configuration:", error);
+    logger.error("Error updating configuration:", error);
     throw error;
   }
 };
@@ -173,10 +174,10 @@ export const deleteConfiguration = async (id: string): Promise<void> => {
         }
       );
     } catch (auditError) {
-      console.error("Failed to log configuration deletion audit trail:", auditError);
+      logger.error("Failed to log configuration deletion audit trail:", auditError);
     }
   } catch (error) {
-    console.error("Error deleting configuration:", error);
+    logger.error("Error deleting configuration:", error);
     throw error;
   }
 };
@@ -197,7 +198,7 @@ export const getAllConfigurations = async (): Promise<Configuration[]> => {
       ...doc.data(),
     })) as Configuration[];
   } catch (error) {
-    console.error("Error fetching configurations:", error);
+    logger.error("Error fetching configurations:", error);
     throw error;
   }
 };
@@ -255,7 +256,7 @@ export const getConfigurationValue = async (
     };
     return defaults[type];
   } catch (error) {
-    console.error("Error getting configuration value:", error);
+    logger.error("Error getting configuration value:", error);
     // Return default values on error
     const defaults: Record<ConfigurationType, number> = {
       monthly_fee: 150,
@@ -285,7 +286,7 @@ export const getConfigurationHistory = async (
       ...doc.data(),
     })) as Configuration[];
   } catch (error) {
-    console.error("Error fetching configuration history:", error);
+    logger.error("Error fetching configuration history:", error);
     throw error;
   }
 };

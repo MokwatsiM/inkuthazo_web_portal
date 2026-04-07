@@ -19,6 +19,7 @@ import { useContributions } from "../hooks/useContributions";
 import { useNotifications } from "../hooks/useNotifications";
 import { FirebaseError } from "firebase/app";
 import Pagination from "../components/ui/Pagination";
+import logger from "../utils/logger";
 
 const MyContributions: React.FC = () => {
   const { userDetails, isApproved } = useAuth();
@@ -53,7 +54,7 @@ const MyContributions: React.FC = () => {
 
         setContributions(contributionsData);
       } catch (error) {
-        console.error("Error fetching contributions:", error);
+        logger.error("Error fetching contributions:", error);
         if (error instanceof FirebaseError) {
           showError(error.message || "Failed to fetch contributions");
         }
@@ -114,7 +115,7 @@ const MyContributions: React.FC = () => {
       setIsAddModalOpen(false);
       showSuccess("Successfully recorded your: " + data.type + " contribution");
     } catch (error) {
-      console.error("Error adding contribution:", error);
+      logger.error("Error adding contribution:", error);
       if (error instanceof FirebaseError) {
         showError(error.message || "Error adding contributions");
       }

@@ -3,6 +3,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
 import Mailjet from "node-mailjet";
+import { logger } from "firebase-functions";
 
 
 initializeApp();
@@ -141,11 +142,11 @@ export const sendMemberInvitation = functions.https.onCall(
       });
 
       const response = await request;
-      console.log("Email sent successfully:", response.body);
+      logger.debug("Email sent successfully:", response.body);
 
       return { success: true, message: "Email sent successfully" };
     } catch (error: any) {
-      console.error("Error sending email:", error.message || error.response);
+      logger.error("Error sending email:", error.message || error.response);
       throw new functions.https.HttpsError(
         "internal",
         "Failed to send email",

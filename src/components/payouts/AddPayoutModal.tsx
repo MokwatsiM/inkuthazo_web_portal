@@ -3,6 +3,7 @@ import { useMembers } from "../../hooks/useMembers";
 import Button from "../ui/Button";
 import type { Payout } from "../../types/payout";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
+import logger from "../../utils/logger";
 
 interface AddPayoutModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ const AddPayoutModal: React.FC<AddPayoutModalProps> = ({
       });
       onClose();
     } catch (error) {
-      console.error("Error adding payout:", error);
+      logger.error("Error adding payout:", error);
     }
   };
 

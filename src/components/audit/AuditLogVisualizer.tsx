@@ -3,6 +3,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Search, Filter, ChevronDown, ChevronUp, Clock, User, Activity, Trash2, AlertTriangle, Info } from 'lucide-react';
 import { AuditLog, getAuditLogs, AuditFilter, getOldLogsCount, bulkDeleteOldLogs } from '../../services/auditService';
 import Button from '../ui/Button';
+import logger from '../../utils/logger';
 
 const AuditLogVisualizer: React.FC = () => {
     const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -50,11 +51,11 @@ const AuditLogVisualizer: React.FC = () => {
                     });
                     setUserNames(prev => ({ ...prev, ...newNames }));
                 } catch (nameError) {
-                    console.error('Error fetching user names:', nameError);
+                    logger.error('Error fetching user names:', nameError);
                 }
             }
         } catch (error) {
-            console.error('Error fetching logs:', error);
+            logger.error('Error fetching logs:', error);
         } finally {
             setLoading(false);
         }
@@ -65,7 +66,7 @@ const AuditLogVisualizer: React.FC = () => {
             const count = await getOldLogsCount(3);
             setOldLogsCount(count);
         } catch (error) {
-            console.error('Error fetching old logs count:', error);
+            logger.error('Error fetching old logs count:', error);
         }
     };
 
@@ -93,7 +94,7 @@ const AuditLogVisualizer: React.FC = () => {
 
             alert(`Successfully deleted ${totalDeleted} logs older than 3 months.`);
         } catch (error) {
-            console.error('Error bulk deleting logs:', error);
+            logger.error('Error bulk deleting logs:', error);
             alert('Failed to delete old logs. Please try again.');
         } finally {
             setDeletingOldLogs(false);

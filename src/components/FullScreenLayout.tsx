@@ -1,9 +1,10 @@
+import { Activity, ArrowLeft, Code, LogOut } from 'lucide-react';
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, ArrowLeft, Activity } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import Button from './ui/Button';
+import logger from '../utils/logger';
 import Avatar from './avatar/Avatar';
+import Button from './ui/Button';
 import { ThemeToggle } from './ui/ThemeToggle';
 
 interface FullScreenLayoutProps {
@@ -23,7 +24,7 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({
       await signOut();
       navigate('/auth/login');
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out:', error);
     }
   };
 
@@ -44,7 +45,7 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({
                   <span className="hidden sm:inline text-sm font-medium">Home</span>
                 </button>
               )}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <img
                   src="/logo.png"
                   alt="Logo"
@@ -53,6 +54,13 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({
                 <h1 className="text-xl font-bold text-text-primary dark:text-text-primary-dark">
                   Inkuthazo Portal
                 </h1>
+                {/* Version Badge */}
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
+                  <Code className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                    v{import.meta.env.VITE_APP_VERSION}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">

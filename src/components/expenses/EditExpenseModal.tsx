@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Button from "../ui/Button";
 import type { Expense } from "../../types/expense";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
+import logger from "../../utils/logger";
 
 interface EditExpenseModalProps {
   isOpen: boolean;
@@ -64,7 +65,7 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
       await onSubmit(expense.id, data);
       onClose();
     } catch (error) {
-      console.error("Error updating expense:", error);
+      logger.error("Error updating expense:", error);
     }
   };
 

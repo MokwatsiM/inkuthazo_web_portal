@@ -17,6 +17,7 @@ import AddExpenseModal from "../components/expenses/AddExpenseModal";
 import EditExpenseModal from "../components/expenses/EditExpenseModal";
 import PayExpenseModal from "../components/expenses/PayExpenseModal";
 import type { Expense } from "../types/expense";
+import logger from "../utils/logger";
 
 const Expenses: React.FC = () => {
   const { userDetails } = useAuth();
@@ -46,7 +47,7 @@ const Expenses: React.FC = () => {
 
       setExpenses(expensesData);
     } catch (error) {
-      console.error("Error fetching expenses:", error);
+      logger.error("Error fetching expenses:", error);
     } finally {
       setLoading(false);
     }
@@ -60,11 +61,12 @@ const Expenses: React.FC = () => {
       await addExpense({
         ...data,
         created_by: userDetails.id,
-      });
+        status: 'pending', // Default status for new expenses
+      }, userDetails.id);
       await fetchExpenses();
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error("Error adding expense:", error);
+      logger.error("Error adding expense:", error);
     }
   };
 
@@ -75,7 +77,7 @@ const Expenses: React.FC = () => {
       setIsEditModalOpen(false);
       setSelectedExpense(null);
     } catch (error) {
-      console.error("Error updating expense:", error);
+      logger.error("Error updating expense:", error);
     }
   };
 
@@ -87,7 +89,7 @@ const Expenses: React.FC = () => {
       await deleteExpense(id);
       await fetchExpenses();
     } catch (error) {
-      console.error("Error deleting expense:", error);
+      logger.error("Error deleting expense:", error);
     }
   };
 
@@ -98,7 +100,7 @@ const Expenses: React.FC = () => {
       setIsPayModalOpen(false);
       setSelectedExpense(null);
     } catch (error) {
-      console.error("Error marking expense as paid:", error);
+      logger.error("Error marking expense as paid:", error);
     }
   };
 

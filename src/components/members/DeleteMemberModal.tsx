@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from '../ui/Button';
 import type { Member } from '../../types';
+import logger from '../../utils/logger';
 
 interface DeleteMemberModalProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
       await onConfirm();
       onClose();
     } catch (error) {
-      console.error('Error deleting member:', error);
+      logger.error('Error deleting member:', error);
     }
   };
 

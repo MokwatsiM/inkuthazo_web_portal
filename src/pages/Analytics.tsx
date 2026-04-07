@@ -22,6 +22,7 @@ import type { Claim } from "../types/claim";
 import type { Payout } from "../types/payout";
 import { Expense } from "../types/expense";
 import type { Donation } from "../types/donation";
+import logger from "../utils/logger";
 
 const Analytics: React.FC = () => {
   const { theme } = useTheme();
@@ -155,7 +156,7 @@ const Analytics: React.FC = () => {
         // Calculate penalty analysis
         await calculatePenaltyAnalysis(contributions);
       } catch (error) {
-        console.error("Error fetching analytics data:", error);
+        logger.error("Error fetching analytics data:", error);
       } finally {
         setLoading(false);
       }
@@ -247,7 +248,7 @@ const Analytics: React.FC = () => {
           ),
         });
       } catch (error) {
-        console.error("Error calculating penalty analysis:", error);
+        logger.error("Error calculating penalty analysis:", error);
       }
     };
 

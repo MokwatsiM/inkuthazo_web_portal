@@ -30,6 +30,7 @@ import Avatar from "./avatar/Avatar";
 import { ThemeToggle } from "./ui/ThemeToggle";
 import TopBar from "./layout/TopBar";
 import ProfileSummary from "./layout/ProfileSummary";
+import logger from "../utils/logger";
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const Layout: React.FC = () => {
       await signOut();
       navigate("/auth/login");
     } catch (error) {
-      console.error("Error signing out:", error);
+      logger.error("Error signing out:", error);
     }
   };
 

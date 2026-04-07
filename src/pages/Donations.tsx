@@ -31,6 +31,7 @@ import {
 import type { Donation, DonationFilter, DonationSummary } from '../types/donation';
 import DonationFormModal from '../components/donations/DonationFormModal';
 import DonationDetailModal from '../components/donations/DonationDetailModal';
+import logger from '../utils/logger';
 
 const Donations: React.FC = () => {
   const { user } = useAuth();
@@ -58,7 +59,7 @@ const Donations: React.FC = () => {
       setDonations(donationsData.donations);
       setSummary(summaryData);
     } catch (error) {
-      console.error('Error fetching donations:', error);
+      logger.error('Error fetching donations:', error);
     } finally {
       setLoading(false);
     }
@@ -82,7 +83,7 @@ const Donations: React.FC = () => {
 
       await fetchData();
     } catch (error) {
-      console.error('Error reviewing donation:', error);
+      logger.error('Error reviewing donation:', error);
       alert('Failed to review donation');
     }
   };
@@ -95,7 +96,7 @@ const Donations: React.FC = () => {
       await deleteDonation(donationId, user.uid, user.email || undefined);
       await fetchData();
     } catch (error) {
-      console.error('Error deleting donation:', error);
+      logger.error('Error deleting donation:', error);
       alert('Failed to delete donation');
     }
   };

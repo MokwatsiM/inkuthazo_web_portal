@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Button from "../ui/Button";
 import type { DisciplinaryRecord } from "../../types";
+import logger from "../../utils/logger";
 
 interface ResolveDisciplinaryModalProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ const ResolveDisciplinaryModal: React.FC<ResolveDisciplinaryModalProps> = ({
       await onSubmit(record.id, notes);
       onClose();
     } catch (error) {
-      console.error("Error resolving disciplinary record:", error);
+      logger.error("Error resolving disciplinary record:", error);
     } finally {
       setLoading(false);
     }

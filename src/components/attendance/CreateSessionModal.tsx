@@ -10,6 +10,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
 import type { AttendanceSession } from "../../types";
 import type { Event } from "../../types/event";
+import logger from "../../utils/logger";
 
 interface CreateSessionModalProps {
     isOpen: boolean;
@@ -74,7 +75,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
 
             setUpcomingEvents(events);
         } catch (error) {
-            console.error("Error fetching events:", error);
+            logger.error("Error fetching events:", error);
         } finally {
             setLoadingEvents(false);
         }
@@ -142,7 +143,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
             onSessionCreated(session);
             onClose();
         } catch (error) {
-            console.error("Error creating session:", error);
+            logger.error("Error creating session:", error);
             showError("Failed to create attendance session");
         } finally {
             setIsSubmitting(false);

@@ -7,6 +7,7 @@ import { createCredit, getMemberActiveCredit } from '../../services/creditServic
 import { getDocs, collection, query, where } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import type { Member } from '../../types';
+import logger from '../../utils/logger';
 
 interface CreateCreditModalProps {
   onClose: () => void;
@@ -42,7 +43,7 @@ const CreateCreditModal: React.FC<CreateCreditModalProps> = ({ onClose, onSucces
       })) as Member[];
       setMembers(membersList);
     } catch (error) {
-      console.error('Error fetching members:', error);
+      logger.error('Error fetching members:', error);
     }
   };
 
@@ -124,7 +125,7 @@ const CreateCreditModal: React.FC<CreateCreditModalProps> = ({ onClose, onSucces
       alert('Credit created successfully and sent for chairperson review!');
       onSuccess();
     } catch (error) {
-      console.error('Error creating credit:', error);
+      logger.error('Error creating credit:', error);
       alert('Failed to create credit. Please try again.');
     } finally {
       setLoading(false);

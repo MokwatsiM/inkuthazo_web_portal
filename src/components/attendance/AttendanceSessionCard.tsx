@@ -6,6 +6,7 @@ import { db } from "../../config/firebase";
 import Button from "../ui/Button";
 import type { AttendanceSessionSummary } from "../../types";
 import type { Event } from "../../types/event";
+import logger from "../../utils/logger";
 
 interface AttendanceSessionCardProps {
     session: AttendanceSessionSummary;
@@ -35,7 +36,7 @@ const AttendanceSessionCard: React.FC<AttendanceSessionCardProps> = ({
                         setLinkedEvent({ id: eventDoc.id, ...eventDoc.data() } as Event);
                     }
                 } catch (error) {
-                    console.error("Error fetching linked event:", error);
+                    logger.error("Error fetching linked event:", error);
                 }
             }
         };

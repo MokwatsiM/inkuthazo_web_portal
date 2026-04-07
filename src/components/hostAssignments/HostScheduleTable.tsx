@@ -3,6 +3,7 @@ import { Calendar, User, ArrowUpDown, Edit2 } from "lucide-react";
 import { formatDate } from "../../utils/dateUtils";
 import type { HostSchedule, HostAssignment } from "../../types";
 import EditAssignmentModal from "./EditAssignmentModal";
+import logger from "../../utils/logger";
 
 interface HostScheduleTableProps {
   schedule: HostSchedule;
@@ -39,7 +40,7 @@ const HostScheduleTable: React.FC<HostScheduleTableProps> = ({
     try {
       await onSwapAssignments(draggedAssignment.id, targetAssignment.id);
     } catch (error) {
-      console.error("Error swapping assignments:", error);
+      logger.error("Error swapping assignments:", error);
     } finally {
       setDraggedAssignment(null);
     }
@@ -163,7 +164,9 @@ const HostScheduleTable: React.FC<HostScheduleTableProps> = ({
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
-                    <ArrowUpDown className="h-4 w-4 text-text-tertiary dark:text-text-tertiary-dark" title="Drag to reorder" />
+                    <span title="Drag to reorder">
+                      <ArrowUpDown className="h-4 w-4 text-text-tertiary dark:text-text-tertiary-dark" />
+                    </span>
                   </td>
                 )}
               </tr>

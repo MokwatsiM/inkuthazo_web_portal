@@ -5,6 +5,7 @@ import { generateInvoiceDetails } from "../../utils/invoice/calculator";
 import { generateInvoicePDF } from "../../utils/invoice/generator";
 import type { Contribution } from "../../types/contribution";
 import type { Member } from "../../types";
+import logger from "../../utils/logger";
 
 interface InvoiceGeneratorProps {
   member: Member;
@@ -26,7 +27,7 @@ const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
 
     try {
       // Show loading state immediately
-      console.log('Generating invoice for:', member.full_name);
+      logger.debug('Generating invoice for:', member.full_name);
 
       // Calculate invoice details
       const invoiceDetails = await generateInvoiceDetails(
@@ -42,10 +43,10 @@ const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
         onSuccess();
       }
 
-      console.log('Invoice generated successfully');
+      logger.debug('Invoice generated successfully');
 
     } catch (error) {
-      console.error('Error generating invoice:', error);
+      logger.error('Error generating invoice:', error);
 
       const errorMessage = error instanceof Error
         ? error.message
@@ -118,7 +119,7 @@ export const InvoiceGeneratorWithProgress: React.FC<InvoiceGeneratorProps & {
       }
 
     } catch (error) {
-      console.error('Error generating invoice:', error);
+      logger.error('Error generating invoice:', error);
 
       const errorMessage = error instanceof Error
         ? error.message

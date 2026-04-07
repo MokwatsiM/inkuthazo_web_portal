@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Filter, X, ChevronDown } from "lucide-react";
 import { StatusPill } from "../ui/Badge";
 import Button from "../ui/Button";
+import logger from "../../utils/logger";
 
 export interface FilterOptions {
   status: string[];
@@ -203,7 +204,7 @@ const MemberFilters: React.FC<MemberFiltersProps> = ({
                   fullWidth
                   onClick={() => {
                     // Export filtered members
-                    console.log('Export filtered members');
+                    logger.debug('Export filtered members');
                   }}
                 >
                   Export Filtered

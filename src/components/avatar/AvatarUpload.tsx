@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import Button from "../ui/Button";
 import type { Member } from "../../types";
+import logger from "../../utils/logger";
 
 interface AvatarUploadProps {
   member: Member;
@@ -18,7 +19,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ member, onUpload }) => {
         setIsUploading(true);
         await onUpload(e.target.files[0]);
       } catch (error) {
-        console.error("Error uploading avatar:", error);
+        logger.error("Error uploading avatar:", error);
       } finally {
         setIsUploading(false);
       }

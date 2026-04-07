@@ -4,6 +4,7 @@ import { db } from "../../config/firebase";
 import { Users, CalendarCheck, TrendingUp, Award } from "lucide-react";
 import StatCard from "../stats/StatCard";
 import type { AttendanceRecord, AttendanceSession } from "../../types";
+import logger from "../../utils/logger";
 
 interface AttendanceStatsData {
   totalCheckIns: number;
@@ -122,7 +123,7 @@ const AttendanceStats: React.FC = () => {
         growthRate: Math.round(growthRate * 10) / 10, // Round to 1 decimal
       });
     } catch (error) {
-      console.error("Error fetching attendance stats:", error);
+      logger.error("Error fetching attendance stats:", error);
     } finally {
       setLoading(false);
     }

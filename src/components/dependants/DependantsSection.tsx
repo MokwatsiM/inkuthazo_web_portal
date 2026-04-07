@@ -4,6 +4,7 @@ import DependantsList from "./DependantsList";
 import AddDependantModal from "./AddDependantModal";
 import { addDependant, removeDependant } from "../../services/dependantService";
 import type { Member, Dependant } from "../../types";
+import logger from "../../utils/logger";
 
 interface DependantsSectionProps {
   member: Member;
@@ -30,7 +31,7 @@ const DependantsSection: React.FC<DependantsSectionProps> = ({
       await onUpdate();
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error("Error adding dependant:", error);
+      logger.error("Error adding dependant:", error);
     }
   };
 
@@ -40,7 +41,7 @@ const DependantsSection: React.FC<DependantsSectionProps> = ({
         await removeDependant(member.id, dependant);
         await onUpdate();
       } catch (error) {
-        console.error("Error removing dependant:", error);
+        logger.error("Error removing dependant:", error);
       }
     }
   };

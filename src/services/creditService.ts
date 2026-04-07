@@ -22,6 +22,7 @@ import type {
   CreditSummary,
 } from '../types/credit';
 import { addExpense } from './expenseService';
+import logger from '../utils/logger';
 
 const COLLECTION_NAME = 'credits';
 
@@ -78,7 +79,7 @@ export const createCredit = async (
 
     return docRef.id;
   } catch (error) {
-    console.error('Error creating credit:', error);
+    logger.error('Error creating credit:', error);
     throw error;
   }
 };
@@ -96,7 +97,7 @@ export const getCredit = async (creditId: string): Promise<Credit | null> => {
     }
     return null;
   } catch (error) {
-    console.error('Error getting credit:', error);
+    logger.error('Error getting credit:', error);
     throw error;
   }
 };
@@ -140,7 +141,7 @@ export const getCredits = async (filter?: CreditFilter): Promise<Credit[]> => {
 
     return filteredCredits;
   } catch (error) {
-    console.error('Error getting credits:', error);
+    logger.error('Error getting credits:', error);
     throw error;
   }
 };
@@ -162,7 +163,7 @@ export const getPendingCredits = async (): Promise<Credit[]> => {
       ...doc.data(),
     })) as Credit[];
   } catch (error) {
-    console.error('Error getting pending credits:', error);
+    logger.error('Error getting pending credits:', error);
     throw error;
   }
 };
@@ -182,16 +183,16 @@ export const getMemberActiveCredit = async (
 
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
-      console.log(`No active credit found for member: ${memberId}`);
+      logger.debug(`No active credit found for member: ${memberId}`);
       return null;
     }
 
     const doc = snapshot.docs[0];
     const credit = { id: doc.id, ...doc.data() } as Credit;
-    console.log(`Active credit found for member ${memberId}:`, credit);
+    logger.debug(`Active credit found for member ${memberId}:`, credit);
     return credit;
   } catch (error) {
-    console.error('Error getting member active credit:', error);
+    logger.error('Error getting member active credit:', error);
     // Return null instead of throwing to prevent breaking the UI
     return null;
   }
@@ -294,7 +295,7 @@ export const reviewCredit = async (
     //   reviewerName
     // );
   } catch (error) {
-    console.error('Error reviewing credit:', error);
+    logger.error('Error reviewing credit:', error);
     throw error;
   }
 };
@@ -339,7 +340,7 @@ export const provideAdditionalInfo = async (
     //   }
     // );
   } catch (error) {
-    console.error('Error providing additional info:', error);
+    logger.error('Error providing additional info:', error);
     throw error;
   }
 };
@@ -414,7 +415,7 @@ export const recordCreditPayment = async (
     //   }
     // );
   } catch (error) {
-    console.error('Error recording credit payment:', error);
+    logger.error('Error recording credit payment:', error);
     throw error;
   }
 };
@@ -444,7 +445,7 @@ export const getCreditSummary = async (): Promise<CreditSummary> => {
 
     return summary;
   } catch (error) {
-    console.error('Error getting credit summary:', error);
+    logger.error('Error getting credit summary:', error);
     throw error;
   }
 };
@@ -482,7 +483,7 @@ export const deleteCredit = async (creditId: string, userId: string): Promise<vo
     //   }
     // );
   } catch (error) {
-    console.error('Error deleting credit:', error);
+    logger.error('Error deleting credit:', error);
     throw error;
   }
 };

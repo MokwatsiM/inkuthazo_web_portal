@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import Button from './ui/Button';
 import Avatar from './avatar/Avatar';
 import { ThemeToggle } from './ui/ThemeToggle';
+import logger from '../utils/logger';
 
 interface FullScreenLayoutProps {
   children: React.ReactNode;
@@ -23,7 +24,7 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({
       await signOut();
       navigate('/auth/login');
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out:', error);
     }
   };
 

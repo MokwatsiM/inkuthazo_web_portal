@@ -8,6 +8,7 @@ import { validateQRCode, recordAttendance } from "../../services/attendanceServi
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
 import type { AttendanceSession } from "../../types";
+import logger from "../../utils/logger";
 
 interface QRScannerProps {
     onSuccess?: (session: AttendanceSession) => void;
@@ -52,7 +53,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
         } catch (error: any) {
             // Ignore all stop errors - these are common during unmount
             if (error?.name !== 'NotFoundError' && error?.name !== 'AbortError') {
-                console.warn('Scanner stop error:', error);
+                logger.warn('Scanner stop error:', error);
             }
         }
 
@@ -150,7 +151,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
                 return;
             }
 
-            console.error("Failed to start scanner:", error);
+            logger.error("Failed to start scanner:", error);
             showError(
                 error.message || "Unable to access camera. Please check permissions or use manual entry."
             );
@@ -200,6 +201,8 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
                 member_name: userDetails.full_name,
                 checked_in_at: Timestamp.now(),
                 check_in_method: "qr_scan",
+                is_late: false, // Will be calculated in service based on meeting start time
+                status: "present",
             });
 
             setResult({
@@ -211,7 +214,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess, onCancel }) => {
             showSuccess("Your attendance has been recorded");
             onSuccess?.(validation.session!);
         } catch (error: any) {
-            console.error("Error processing QR code:", error);
+            logger.error("Error processing QR code:", error);
             setResult({
                 success: false,
                 message: error.message || "Failed to record attendance",

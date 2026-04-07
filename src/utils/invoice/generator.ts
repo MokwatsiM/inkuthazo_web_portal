@@ -3,6 +3,7 @@ import autoTable, { UserOptions } from "jspdf-autotable";
 import { format } from "date-fns";
 import type { Member } from "../../types";
 import type { InvoiceDetails } from "./types";
+import logger from "../logger";
 
 // Cache the logo to avoid repeated loading
 let logoCache: HTMLImageElement | null = null;
@@ -32,7 +33,7 @@ const loadLogo = async (): Promise<HTMLImageElement> => {
 
     img.onerror = (e) => {
       clearTimeout(timeout);
-      console.error("Error loading logo:", e);
+      logger.error("Error loading logo:", e);
       reject(e);
     };
 
@@ -75,7 +76,7 @@ const addLogo = async (doc: jsPDF): Promise<void> => {
     // Add logo to document
     doc.addImage(img, "PNG", x, y, width, height);
   } catch (error) {
-    console.error("Error adding logo to invoice:", error);
+    logger.error("Error adding logo to invoice:", error);
     // Continue without logo if it fails to load
   }
 };

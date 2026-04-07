@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 import { getWeekOfMonth } from "date-fns";
 import type { EventInput, RecurrenceType } from "../../types/event";
+import logger from "../../utils/logger";
 
 interface AddEventModalProps {
   isOpen: boolean;
@@ -117,7 +118,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
         recurrenceType: "none",
       });
     } catch (error) {
-      console.error("Error adding event:", error);
+      logger.error("Error adding event:", error);
     }
   };
 

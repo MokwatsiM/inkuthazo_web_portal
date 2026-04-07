@@ -1,5 +1,6 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../../config/firebase';
+import logger from '../../utils/logger';
 
 export const uploadProofOfPayment = async (file: File,memberId: string): Promise<string> => {
   const storageRef = ref(storage, `proof_of_payments/${memberId}/${Date.now()}_${file.name}`);
@@ -12,7 +13,7 @@ export const deleteProofOfPayment = async (url: string): Promise<void> => {
     const fileRef = ref(storage, url);
     await deleteObject(fileRef);
   } catch (error) {
-    console.error('Error deleting proof of payment file:', error);
+    logger.error('Error deleting proof of payment file:', error);
     throw error;
   }
 };

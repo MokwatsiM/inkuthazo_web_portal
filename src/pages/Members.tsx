@@ -22,12 +22,16 @@ import InviteMemberModal from "../components/members/InviteMemberModal";
 import { useAuth } from "../hooks/useAuth";
 import { inviteMember } from "../services/invitationService";
 import { LoadingSkeleton, LoadingCard } from "../components/ui/LoadingOverlay";
+import PermissionGate from "../components/permissions/PermissionGate";
+import { usePermissionStates } from "../hooks/usePermissionState";
+import logger from "../utils/logger";
 // import { useAnalytics } from "../hooks/useAnalytics";
 
 const Members: React.FC = () => {
   const { members, loading, addMember, deleteMember, updateMember } =
     useMembers();
   const { userDetails } = useAuth();
+  const permissions = usePermissionStates('members', ['create', 'edit', 'delete', 'export']);
 
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -103,7 +107,7 @@ const Members: React.FC = () => {
     try {
       await inviteMember(data, userDetails.id);
     } catch (error) {
-      console.error("Error inviting member:", error);
+      logger.error("Error inviting member:", error);
       throw error;
     }
   };
@@ -114,7 +118,7 @@ const Members: React.FC = () => {
       setIsAddModalOpen(false);
       // analytics.trackMemberAdded(data);
     } catch (error) {
-      console.error("Error adding member:", error);
+      logger.error("Error adding member:", error);
       // analytics.trackError("ADD_MEMBER_ERROR", error.message);
     }
   };
@@ -187,13 +191,13 @@ const Members: React.FC = () => {
 
   const handleBulkEmail = (memberIds: string[]) => {
     const selectedMembersData = members.filter(m => memberIds.includes(m.id));
-    console.log('Bulk email to:', selectedMembersData.map(m => m.email));
+    logger.debug('Bulk email to:', selectedMembersData.map(m => m.email));
     // Implement bulk email functionality
   };
 
   const handleBulkExport = (memberIds: string[]) => {
     const selectedMembersData = members.filter(m => memberIds.includes(m.id));
-    console.log('Bulk export:', selectedMembersData);
+    logger.debug('Bulk export:', selectedMembersData);
     // Implement bulk export functionality
   };
 
@@ -208,9 +212,11 @@ const Members: React.FC = () => {
               currentView={currentView}
               onViewChange={setCurrentView}
             />
-            <Button icon={Mail} onClick={() => setIsInviteModalOpen(true)}>
-              Invite Member
-            </Button>
+            <PermissionGate resource="members" action="create">
+              <Button icon={Mail} onClick={() => setIsInviteModalOpen(true)}>
+                Invite Member
+              </Button>
+            </PermissionGate>
           </div>
         }
       />
@@ -366,13 +372,15 @@ const Members: React.FC = () => {
                         <CheckCircle className="h-4 w-4" />
                       </button>
                     )}
-                    <button
-                      onClick={() => handleDeleteClick(member)}
-                      className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <PermissionGate resource="members" action="delete">
+                      <button
+                        onClick={() => handleDeleteClick(member)}
+                        className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </PermissionGate>
                   </div>
                 </td>
               </tr>

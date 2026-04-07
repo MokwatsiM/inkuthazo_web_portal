@@ -3,6 +3,7 @@ import { ExternalLink } from "lucide-react";
 import Button from "../ui/Button";
 import { formatDate } from "../../utils/dateUtils";
 import type { Claim, ClaimStatus } from "../../types/claim";
+import logger from "../../utils/logger";
 
 interface ReviewClaimModalProps {
   isOpen: boolean;
@@ -30,7 +31,7 @@ const ReviewClaimModal: React.FC<ReviewClaimModalProps> = ({
       await onSubmit(claim.id, status, notes);
       onClose();
     } catch (error) {
-      console.error("Error reviewing claim:", error);
+      logger.error("Error reviewing claim:", error);
     } finally {
       setLoading(false);
     }

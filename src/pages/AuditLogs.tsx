@@ -3,6 +3,7 @@ import AuditLogVisualizer from '../components/audit/AuditLogVisualizer';
 import AuditLogCharts from '../components/audit/AuditLogCharts';
 import { getAuditStats } from '../services/auditService';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import logger from '../utils/logger';
 
 const AuditLogs: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
@@ -14,7 +15,7 @@ const AuditLogs: React.FC = () => {
                 const result = await getAuditStats(30); // Last 30 days
                 setStats(result);
             } catch (error) {
-                console.error('Error fetching audit stats:', error);
+                logger.error('Error fetching audit stats:', error);
             } finally {
                 setLoading(false);
             }

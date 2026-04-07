@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import type { MemberDetail } from "../types";
 import { formatDate } from "./dateUtils";
+import logger from "./logger";
 const addLogo = async (doc: jsPDF): Promise<void> => {
   try {
     // Load logo image
@@ -30,7 +31,7 @@ const addLogo = async (doc: jsPDF): Promise<void> => {
     // Add logo to document
     doc.addImage(img, "PNG", x, y, width, height);
   } catch (error) {
-    console.error("Error adding logo to invoice:", error);
+    logger.error("Error adding logo to invoice:", error);
   }
 };
 

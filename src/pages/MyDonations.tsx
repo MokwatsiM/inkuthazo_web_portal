@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getMemberDonations } from '../services/donationService';
 import type { Donation } from '../types/donation';
 import DonationDetailModal from '../components/donations/DonationDetailModal';
+import logger from '../utils/logger';
 
 const MyDonations: React.FC = () => {
   const { user } = useAuth();
@@ -38,7 +39,7 @@ const MyDonations: React.FC = () => {
       const memberDonations = await getMemberDonations(user.uid);
       setDonations(memberDonations);
     } catch (error) {
-      console.error('Error fetching my donations:', error);
+      logger.error('Error fetching my donations:', error);
     } finally {
       setLoading(false);
     }

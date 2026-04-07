@@ -7,6 +7,7 @@ import { getMemberAttendanceHistory, getAttendanceSession } from "../../services
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
 import type { AttendanceRecord, AttendanceSession } from "../../types";
+import logger from "../../utils/logger";
 
 interface AttendanceHistoryRecord extends AttendanceRecord {
     session?: AttendanceSession;
@@ -57,7 +58,7 @@ const AttendanceHistory: React.FC = () => {
             setRecords(recordsWithSessions);
             setFilteredRecords(recordsWithSessions);
         } catch (error) {
-            console.error("Error loading attendance history:", error);
+            logger.error("Error loading attendance history:", error);
             showError("Failed to load attendance history");
         } finally {
             setLoading(false);

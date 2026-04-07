@@ -19,6 +19,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { useNotifications } from "../hooks/useNotifications";
 import type { AttendanceSession, AttendanceSessionSummary } from "../types";
+import { logger } from "../utils/logger";
 
 type Tab = "sessions" | "scan" | "history" | "manual";
 
@@ -53,7 +54,7 @@ const Attendance: React.FC = () => {
             });
             setSessions(data);
         } catch (error) {
-            console.error("Error loading sessions:", error);
+            logger.error("Error loading sessions:", error);
             showError("Failed to load attendance sessions");
         } finally {
             setLoadingSessions(false);
@@ -75,7 +76,7 @@ const Attendance: React.FC = () => {
             showSuccess("Session closed successfully");
             loadSessions();
         } catch (error) {
-            console.error("Error closing session:", error);
+            logger.error("Error closing session:", error);
             showError("Failed to close session");
         }
     };

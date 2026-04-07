@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import jsPDF from "jspdf";
 import type { Member } from "../../types";
 import Button from "../ui/Button";
+import logger from "../../utils/logger";
 
 interface MembershipCardProps {
     member: Member;
@@ -38,7 +39,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     });
 
                     if (!response.ok) {
-                        console.warn('Failed to fetch image:', response.status);
+                        logger.warn('Failed to fetch image:', response.status);
                         continue;
                     }
 
@@ -55,7 +56,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     // Replace image src with base64
                     img.src = base64;
                 } catch (e) {
-                    console.warn('Failed to convert image to base64:', e);
+                    logger.warn('Failed to convert image to base64:', e);
                 }
             }
 
@@ -123,7 +124,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
             // Download the PDF
             pdf.save(`inkuthazo-membership-${member.full_name.replace(/\s+/g, "-").toLowerCase()}.pdf`);
         } catch (error) {
-            console.error("Error generating membership card PDF:", error);
+            logger.error("Error generating membership card PDF:", error);
         } finally {
             setIsDownloading(false);
         }
@@ -153,7 +154,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     });
 
                     if (!response.ok) {
-                        console.warn('Failed to fetch image:', response.status);
+                        logger.warn('Failed to fetch image:', response.status);
                         continue;
                     }
 
@@ -170,7 +171,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     // Replace image src with base64
                     img.src = base64;
                 } catch (e) {
-                    console.warn('Failed to convert image to base64:', e);
+                    logger.warn('Failed to convert image to base64:', e);
                     // Continue without converting this image
                 }
             }
@@ -231,7 +232,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
             link.href = image;
             link.click();
         } catch (error) {
-            console.error("Error generating membership card image:", error);
+            logger.error("Error generating membership card image:", error);
         } finally {
             setIsDownloading(false);
         }

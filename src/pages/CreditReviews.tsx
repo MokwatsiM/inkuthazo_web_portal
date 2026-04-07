@@ -5,11 +5,15 @@ import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 import { getPendingCredits } from '../services/creditService';
 import ReviewCreditModal from '../components/credits/ReviewCreditModal';
+import PermissionGate from '../components/permissions/PermissionGate';
+import { usePermissionState } from '../hooks/usePermissionState';
 import { format } from 'date-fns';
 import type { Credit } from '../types/credit';
+import logger from '../utils/logger';
 
 const CreditReviews: React.FC = () => {
   const { user } = useAuth();
+  const approvePermission = usePermissionState('credit_reviews', 'approve');
   const [loading, setLoading] = useState(true);
   const [pendingCredits, setPendingCredits] = useState<Credit[]>([]);
   const [selectedCredit, setSelectedCredit] = useState<Credit | null>(null);
@@ -24,7 +28,7 @@ const CreditReviews: React.FC = () => {
       const credits = await getPendingCredits();
       setPendingCredits(credits);
     } catch (error) {
-      console.error('Error fetching pending credits:', error);
+      logger.error('Error fetching pending credits:', error);
     } finally {
       setLoading(false);
     }
@@ -205,7 +209,9 @@ const CreditReviews: React.FC = () => {
                   </div>
 
                   <div className="ml-6">
-                    <Button onClick={() => setSelectedCredit(credit)}>Review Credit</Button>
+                    <PermissionGate resource="credit_reviews" action="approve">
+                      <Button onClick={() => setSelectedCredit(credit)}>Review Credit</Button>
+                    </PermissionGate>
                   </div>
                 </div>
               </div>

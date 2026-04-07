@@ -9,6 +9,8 @@ import type { Contribution } from "../../types/contribution";
 import type { Credit } from "../../types/credit";
 import { toFirestoreTimestamp } from "../../utils/dateUtils";
 import Button from "../ui/Button";
+import logger from "../../utils/logger";
+
 
 interface AddContributionModalProps {
   isOpen: boolean;
@@ -58,28 +60,28 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
       const memberIdToCheck = memberId || (isAdmin ? formData.member_id : user?.uid);
 
       if (!memberIdToCheck) {
-        console.log('No member_id available, skipping credit check');
+        logger.debug('No member_id available, skipping credit check');
         setActiveCredit(null);
         setMemberHasCredit(false);
         return;
       }
 
-      console.log('Checking for active credit for member:', memberIdToCheck);
+      logger.debug('Checking for active credit for member:', memberIdToCheck);
       setLoadingCredit(true);
       try {
         const credit = await getMemberActiveCredit(memberIdToCheck);
-        console.log('Credit fetch result:', credit);
+        logger.debug('Credit fetch result:', credit);
         setActiveCredit(credit);
         setMemberHasCredit(!!credit);
       } catch (error) {
-        console.error('Error fetching active credit:', error);
+        logger.error('Error fetching active credit:', error);
         setActiveCredit(null);
         setMemberHasCredit(false);
       } finally {
         setLoadingCredit(false);
       }
 
-      console.log('Checking for pending disciplinary penalties for member:', memberIdToCheck);
+      logger.debug('Checking for pending disciplinary penalties for member:', memberIdToCheck);
       setLoadingPenalties(true);
       try {
         const records = await getMemberDisciplinaryRecords(memberIdToCheck);
@@ -91,7 +93,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
           setSelectedPenaltyId(""); // reset if multiple or 0
         }
       } catch (error) {
-        console.error('Error fetching disciplinary records:', error);
+        logger.error('Error fetching disciplinary records:', error);
         setPendingPenalties([]);
       } finally {
         setLoadingPenalties(false);
@@ -108,7 +110,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
         activeCredit.terms.installment_amount,
         activeCredit.remaining_balance
       );
-      console.log('Auto-setting suggested amount:', suggestedAmount);
+      logger.debug('Auto-setting suggested amount:', suggestedAmount);
       setFormData((prev) => ({
         ...prev,
         amount: suggestedAmount.toFixed(2)

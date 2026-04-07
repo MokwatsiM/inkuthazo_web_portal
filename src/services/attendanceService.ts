@@ -21,6 +21,7 @@ import type {
   AttendanceSessionFilters,
   QRValidationResult,
 } from "../types";
+import logger from "../utils/logger";
 
 const SESSIONS_COLLECTION = "attendance_sessions";
 const RECORDS_COLLECTION = "attendance_records";
@@ -151,7 +152,7 @@ export const validateQRCode = async (
     
     return { valid: true, session };
   } catch (error) {
-    console.error("Error validating QR code:", error);
+    logger.error("Error validating QR code:", error);
     return { valid: false, error: "An error occurred while validating the QR code." };
   }
 };

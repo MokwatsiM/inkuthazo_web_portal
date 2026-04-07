@@ -16,10 +16,11 @@ import {
   comparePeriodsAnalysis,
 } from '../services/predictiveAnalyticsService';
 import { Contribution } from '../types/contribution';
-import { Member } from '../types/member';
+import { Member } from '../types/index';
 import { Payout } from '../types/payout';
 import { Expense } from '../types/expense';
 import { Claim } from '../types/claim';
+import logger from '../utils/logger';
 
 interface PredictiveAnalyticsState {
   // Data
@@ -141,7 +142,7 @@ export function usePredictiveAnalytics(): UsePredictiveAnalyticsResult {
         isLoadingBaseData: false,
       }));
     } catch (error) {
-      console.error('Error fetching base data:', error);
+      logger.error('Error fetching base data:', error);
       setState((prev) => ({ ...prev, isLoadingBaseData: false }));
     }
   }, []);

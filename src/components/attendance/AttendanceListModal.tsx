@@ -7,6 +7,7 @@ import { getSessionAttendees, markAbsentMembers, updateAbsenceReason } from "../
 import type { AttendanceSession, AttendanceRecord } from "../../types";
 import { useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
+import logger from "../../utils/logger";
 
 interface AttendanceListModalProps {
     session: AttendanceSession;
@@ -65,7 +66,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
             setAttendees(sorted);
             setFilteredAttendees(sorted);
         } catch (error) {
-            console.error("Error loading attendees:", error);
+            logger.error("Error loading attendees:", error);
             showError("Failed to load attendees");
         } finally {
             setLoading(false);
@@ -79,7 +80,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
             showSuccess(`Marked ${absentRecords.length} members as absent`);
             await loadAttendees(); // Reload to show new records
         } catch (error) {
-            console.error("Error marking absent members:", error);
+            logger.error("Error marking absent members:", error);
             showError("Failed to mark absent members");
         } finally {
             setMarkingAbsent(false);
@@ -92,7 +93,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
             showSuccess("Absence reason updated");
             await loadAttendees(); // Reload to show updated reason
         } catch (error) {
-            console.error("Error updating absence reason:", error);
+            logger.error("Error updating absence reason:", error);
             showError("Failed to update absence reason");
         }
     };

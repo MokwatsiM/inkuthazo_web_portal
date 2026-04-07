@@ -3,6 +3,7 @@ import { db } from '../config/firebase';
 import type { Contribution } from '../types/contribution';
 import type {Member} from '../types'
 import type { ArchivedContribution } from '../types/archived';
+import logger from './logger';
 
 export const archiveMemberContributions = async (memberId: string): Promise<void> => {
   try {
@@ -52,7 +53,7 @@ export const archiveMemberContributions = async (memberId: string): Promise<void
     // Wait for all archiving operations to complete
     await Promise.all(archivePromises);
   } catch (error) {
-    console.error('Error archiving member contributions:', error);
+    logger.error('Error archiving member contributions:', error);
     throw error;
   }
 };

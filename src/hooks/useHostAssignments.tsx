@@ -14,6 +14,7 @@ import type {
   HostAssignment,
   GenerateHostScheduleParams,
 } from "../types";
+import logger from "../utils/logger";
 
 interface UseHostAssignmentsReturn {
   schedule: HostSchedule | null;
@@ -41,7 +42,7 @@ export const useHostAssignments = (year: number): UseHostAssignmentsReturn => {
       setSchedule(fetchedSchedule);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
-      console.error("Error fetching host schedule:", err);
+      logger.error("Error fetching host schedule:", err);
     } finally {
       setLoading(false);
     }
@@ -199,7 +200,7 @@ export const useMemberHostAssignments = (memberId?: string) => {
         setAssignments(memberAssignments);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch assignments");
-        console.error("Error fetching member assignments:", err);
+        logger.error("Error fetching member assignments:", err);
       } finally {
         setLoading(false);
       }

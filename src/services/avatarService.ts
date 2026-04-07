@@ -1,6 +1,7 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { doc, updateDoc } from 'firebase/firestore';
 import { storage, db } from '../config/firebase';
+import logger from '../utils/logger';
 
 export const uploadAvatar = async (userId: string, file: File): Promise<string> => {
   try {
@@ -21,7 +22,7 @@ export const uploadAvatar = async (userId: string, file: File): Promise<string> 
 
     return downloadURL;
   } catch (error) {
-    console.error('Error uploading avatar:', error);
+    logger.error('Error uploading avatar:', error);
     throw error;
   }
 };
@@ -38,7 +39,7 @@ export const deleteAvatar = async (userId: string, avatarUrl: string): Promise<v
       avatar_url: null
     });
   } catch (error) {
-    console.error('Error deleting avatar:', error);
+    logger.error('Error deleting avatar:', error);
     throw error;
   }
 };

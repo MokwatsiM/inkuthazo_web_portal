@@ -1,5 +1,6 @@
 import { Timestamp } from 'firebase/firestore';
 import type { MemberStatus } from './index';
+import type { ContributionType } from './contribution';
 
 export interface ArchivedContribution {
   id: string;
@@ -14,7 +15,7 @@ export interface ArchivedContribution {
   contribution: {
     amount: number;
     date: Timestamp;
-    type: 'monthly' | 'registration' | 'other';
+    type: ContributionType;
     proof_of_payment?: string;
   };
   archived_at: Timestamp;

@@ -9,6 +9,7 @@ import {
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { db } from "../config/firebase";
 import type { Member } from "../types";
+import logger from "../utils/logger";
 
 interface InvitationData {
   email: string;
@@ -85,7 +86,7 @@ export const inviteMember = async (
       invitationToken,
     });
   } catch (error) {
-    console.error("Error sending invitation:", error);
+    logger.error("Error sending invitation:", error);
     throw error;
   }
 };
@@ -116,7 +117,7 @@ export const validateInvitation = async (
 
     return invitation;
   } catch (error) {
-    console.error("Error validating invitation:", error);
+    logger.error("Error validating invitation:", error);
     return null;
   }
 };

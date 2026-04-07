@@ -7,6 +7,7 @@ import type {
   Configuration,
   ConfigurationType,
 } from "../../types/configuration";
+import logger from "../../utils/logger";
 
 interface ConfigurationHistoryModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ const ConfigurationHistoryModal: React.FC<ConfigurationHistoryModalProps> = ({
       const historyData = await getConfigurationHistory(configurationType);
       setHistory(historyData);
     } catch (error) {
-      console.error("Error fetching configuration history:", error);
+      logger.error("Error fetching configuration history:", error);
     } finally {
       setLoading(false);
     }

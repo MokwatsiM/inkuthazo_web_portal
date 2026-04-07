@@ -2,6 +2,7 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { storage, db } from '../config/firebase';
 import type { Dependant } from '../types';
+import logger from '../utils/logger';
 
 export const uploadDependantDocument = async (
   memberId: string,
@@ -21,7 +22,7 @@ export const deleteDependantDocument = async (documentUrl: string): Promise<void
     const fileRef = ref(storage, documentUrl);
     await deleteObject(fileRef);
   } catch (error) {
-    console.error('Error deleting dependant document:', error);
+    logger.error('Error deleting dependant document:', error);
     throw error;
   }
 };
@@ -47,7 +48,7 @@ export const addDependant = async (
       dependants: arrayUnion(dependant)
     });
   } catch (error) {
-    console.error('Error adding dependant:', error);
+    logger.error('Error adding dependant:', error);
     throw error;
   }
 };
@@ -66,7 +67,7 @@ export const removeDependant = async (
       dependants: arrayRemove(dependant)
     });
   } catch (error) {
-    console.error('Error removing dependant:', error);
+    logger.error('Error removing dependant:', error);
     throw error;
   }
 };

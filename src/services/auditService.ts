@@ -14,6 +14,7 @@ import {
   doc
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { logger } from '../utils/logger';
 
 export interface AuditLog {
   id: string;
@@ -49,7 +50,7 @@ export const logAuditTrail = async (
       timestamp: Timestamp.now()
     });
   } catch (error) {
-    console.error('Error logging audit trail:', error);
+    logger.error('Error logging audit trail:', error);
     throw error;
   }
 };
@@ -93,7 +94,7 @@ export const getAuditLogs = async (filters: AuditFilter = {}) => {
       lastDoc: snapshot.docs[snapshot.docs.length - 1]
     };
   } catch (error) {
-    console.error('Error fetching audit logs:', error);
+    logger.error('Error fetching audit logs:', error);
     throw error;
   }
 };
@@ -131,7 +132,7 @@ export const getAuditStats = async (days: number = 7) => {
       totalCount: logs.length
     };
   } catch (error) {
-    console.error('Error fetching audit stats:', error);
+    logger.error('Error fetching audit stats:', error);
     throw error;
   }
 };
@@ -151,7 +152,7 @@ export const getOldLogsCount = async (months: number = 3) => {
     const snapshot = await getDocs(q);
     return snapshot.size;
   } catch (error) {
-    console.error('Error counting old logs:', error);
+    logger.error('Error counting old logs:', error);
     throw error;
   }
 };
@@ -184,7 +185,7 @@ export const bulkDeleteOldLogs = async (months: number = 3) => {
 
     return snapshot.size;
   } catch (error) {
-    console.error('Error deleting old logs:', error);
+    logger.error('Error deleting old logs:', error);
     throw error;
   }
 };

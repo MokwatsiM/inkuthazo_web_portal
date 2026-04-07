@@ -30,6 +30,7 @@ import EmptyState from "../components/ui/EmptyState";
 import PageHeader from "../components/ui/PageHeader";
 import Badge from "../components/ui/Badge";
 import DeleteContributionModal from "../components/contributions/DeleteContributionModal";
+import { logger } from "../utils/logger";
 
 const Contributions: React.FC = () => {
   const {
@@ -120,7 +121,7 @@ const Contributions: React.FC = () => {
       await addContribution(data, file);
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error("Error adding contribution:", error);
+      logger.error("Error adding contribution:", error);
     }
   };
 
@@ -134,7 +135,7 @@ const Contributions: React.FC = () => {
       setIsEditModalOpen(false);
       setSelectedContribution(null);
     } catch (error) {
-      console.error("Error updating contribution:", error);
+      logger.error("Error updating contribution:", error);
     }
   };
 
@@ -148,7 +149,7 @@ const Contributions: React.FC = () => {
         setIsDeleteModalOpen(false);
         setSelectedContribution(null);
       } catch (error) {
-        console.error("Error deleting contribution:", error);
+        logger.error("Error deleting contribution:", error);
       }
     }
   };
@@ -164,7 +165,7 @@ const Contributions: React.FC = () => {
       setIsReviewModalOpen(false);
       setSelectedContribution(null);
     } catch (error) {
-      console.error("Error reviewing contribution:", error);
+      logger.error("Error reviewing contribution:", error);
     }
   };
 

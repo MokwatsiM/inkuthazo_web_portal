@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import type { HostSchedule } from '../types';
+import logger from '../utils/logger';
 
 export const exportHostScheduleToExcel = (schedule: HostSchedule): void => {
   try {
@@ -67,7 +68,7 @@ export const exportHostScheduleToExcel = (schedule: HostSchedule): void => {
     const fileName = `Host_Schedule_${schedule.year}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   } catch (error) {
-    console.error('Error exporting to Excel:', error);
+    logger.error('Error exporting to Excel:', error);
     throw new Error('Failed to export to Excel');
   }
 };
@@ -82,12 +83,12 @@ export const exportHostScheduleToPDF = (schedule: HostSchedule): void => {
 
     // Title
     doc.setFontSize(20);
-    doc.setFont(undefined, 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.text(`${schedule.year} Host Assignment Schedule`, pageWidth / 2, 20, { align: 'center' });
 
     // Subtitle
     doc.setFontSize(12);
-    doc.setFont(undefined, 'normal');
+    doc.setFont('helvetica', 'normal');
     doc.text('Social Society Meeting Host Schedule', pageWidth / 2, 30, { align: 'center' });
 
     // Schedule info
@@ -150,11 +151,11 @@ export const exportHostScheduleToPDF = (schedule: HostSchedule): void => {
     if (finalY > 250) {
       doc.addPage();
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('Status Summary', margin, 30);
     } else {
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('Status Summary', margin, finalY + 20);
     }
 
@@ -178,7 +179,7 @@ export const exportHostScheduleToPDF = (schedule: HostSchedule): void => {
     });
 
     // Footer
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = (doc as any).internal.pages.length - 1; // Subtract 1 for the internal counter page
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
@@ -194,7 +195,7 @@ export const exportHostScheduleToPDF = (schedule: HostSchedule): void => {
     const fileName = `Host_Schedule_${schedule.year}_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
     doc.save(fileName);
   } catch (error) {
-    console.error('Error exporting to PDF:', error);
+    logger.error('Error exporting to PDF:', error);
     throw new Error('Failed to export to PDF');
   }
 };

@@ -3,6 +3,7 @@ import { Download, FileSpreadsheet, FileText, ChevronDown } from "lucide-react";
 import Button from "../ui/Button";
 import { exportHostScheduleToExcel, exportHostScheduleToPDF } from "../../services/hostAssignmentExportService";
 import type { HostSchedule } from "../../types";
+import logger from "../../utils/logger";
 
 interface ExportButtonsProps {
   schedule: HostSchedule;
@@ -23,7 +24,7 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({
       setIsExporting(true);
       await exportHostScheduleToExcel(schedule);
     } catch (error) {
-      console.error('Export to Excel failed:', error);
+      logger.error('Export to Excel failed:', error);
       alert('Failed to export to Excel. Please try again.');
     } finally {
       setIsExporting(false);
@@ -36,7 +37,7 @@ const ExportButtons: React.FC<ExportButtonsProps> = ({
       setIsExporting(true);
       await exportHostScheduleToPDF(schedule);
     } catch (error) {
-      console.error('Export to PDF failed:', error);
+      logger.error('Export to PDF failed:', error);
       alert('Failed to export to PDF. Please try again.');
     } finally {
       setIsExporting(false);

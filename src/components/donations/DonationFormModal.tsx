@@ -9,6 +9,7 @@ import { getDocs, collection } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import type { DonationType, DonationSource } from '../../types/donation';
 import type { Member } from '../../types';
+import logger from '../../utils/logger';
 
 interface DonationFormModalProps {
   onClose: () => void;
@@ -52,7 +53,7 @@ const DonationFormModal: React.FC<DonationFormModalProps> = ({ onClose }) => {
       );
       setMembers(membersList.filter((m) => m.status === 'approved'));
     } catch (error) {
-      console.error('Error fetching members:', error);
+      logger.error('Error fetching members:', error);
     }
   };
 
@@ -122,7 +123,7 @@ const DonationFormModal: React.FC<DonationFormModalProps> = ({ onClose }) => {
       alert('Donation added successfully!');
       onClose();
     } catch (error) {
-      console.error('Error creating donation:', error);
+      logger.error('Error creating donation:', error);
       alert('Failed to add donation. Please try again.');
     } finally {
       setLoading(false);

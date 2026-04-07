@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Button from '../ui/Button';
 import type { Member } from '../../types';
+import logger from '../../utils/logger';
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onSubm
         role: 'member'
       });
     } catch (error) {
-      console.error('Error adding member:', error);
+      logger.error('Error adding member:', error);
     }
   };
 

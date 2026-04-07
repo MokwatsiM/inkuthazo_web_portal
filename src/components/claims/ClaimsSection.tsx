@@ -11,6 +11,7 @@ import type { Member } from "../../types";
 import type { Claim } from "../../types/claim";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import Badge from "../ui/Badge";
+import logger from "../../utils/logger";
 
 interface ClaimsSectionProps {
   member: Member;
@@ -31,7 +32,7 @@ const ClaimsSection: React.FC<ClaimsSectionProps> = ({ member }) => {
       await submitClaim(data, files);
       setIsAddModalOpen(false);
     } catch (error) {
-      console.error("Error submitting claim:", error);
+      logger.error("Error submitting claim:", error);
     }
   };
 
@@ -46,7 +47,7 @@ const ClaimsSection: React.FC<ClaimsSectionProps> = ({ member }) => {
       setIsReviewModalOpen(false);
       setSelectedClaim(null);
     } catch (error) {
-      console.error("Error reviewing claim:", error);
+      logger.error("Error reviewing claim:", error);
     }
   };
 

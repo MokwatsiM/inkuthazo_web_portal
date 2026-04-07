@@ -6,6 +6,7 @@ import Button from '../ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { reviewCredit } from '../../services/creditService';
 import type { Credit, CreditReviewAction } from '../../types/credit';
+import logger from '../../utils/logger';
 
 interface ReviewCreditModalProps {
   credit: Credit;
@@ -71,7 +72,7 @@ const ReviewCreditModal: React.FC<ReviewCreditModalProps> = ({ credit, onClose, 
       alert(`Credit ${actionText} successfully!`);
       onSuccess();
     } catch (error) {
-      console.error('Error reviewing credit:', error);
+      logger.error('Error reviewing credit:', error);
       alert('Failed to review credit. Please try again.');
     } finally {
       setLoading(false);

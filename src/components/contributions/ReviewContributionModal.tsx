@@ -6,6 +6,7 @@ import type {
   Contribution,
   ContributionStatus,
 } from "../../types/contribution";
+import logger from "../../utils/logger";
 
 interface ReviewContributionModalProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ const ReviewContributionModal: React.FC<ReviewContributionModalProps> = ({
       await onSubmit(contribution.id, status, notes);
       onClose();
     } catch (error) {
-      console.error("Error reviewing contribution:", error);
+      logger.error("Error reviewing contribution:", error);
     } finally {
       setLoading(false);
     }

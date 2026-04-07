@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { DisciplinaryRecord, Member } from "../types";
+import { logger } from "../utils/logger";
 
 export const addDisciplinaryRecord = async (
   data: Omit<DisciplinaryRecord, "id" | "status" | "created_at">
@@ -36,7 +37,7 @@ export const addDisciplinaryRecord = async (
       memberName: memberData.full_name,
     } as DisciplinaryRecord & { memberName: string };
   } catch (error) {
-    console.error("Error adding disciplinary record:", error);
+    logger.error("Error adding disciplinary record:", error);
     throw error;
   }
 };
@@ -52,7 +53,7 @@ export const updateDisciplinaryRecord = async (
       updated_at: Timestamp.now(),
     });
   } catch (error) {
-    console.error("Error updating disciplinary record:", error);
+    logger.error("Error updating disciplinary record:", error);
     throw error;
   }
 };
@@ -61,7 +62,7 @@ export const deleteDisciplinaryRecord = async (id: string): Promise<void> => {
   try {
     await deleteDoc(doc(db, "disciplinary_records", id));
   } catch (error) {
-    console.error("Error deleting disciplinary record:", error);
+    logger.error("Error deleting disciplinary record:", error);
     throw error;
   }
 };
@@ -80,7 +81,7 @@ export const resolveDisciplinaryRecord = async (
       resolution_notes: resolutionNotes,
     });
   } catch (error) {
-    console.error("Error resolving disciplinary record:", error);
+    logger.error("Error resolving disciplinary record:", error);
     throw error;
   }
 };
@@ -112,7 +113,7 @@ export const getMemberDisciplinaryRecords = async (
       memberName: memberData.full_name,
     }));
   } catch (error) {
-    console.error("Error fetching disciplinary records:", error);
+    logger.error("Error fetching disciplinary records:", error);
     throw error;
   }
 };
@@ -144,7 +145,7 @@ export const getAllDisciplinaryRecords = async (): Promise<
 
     return enrichedRecords;
   } catch (error) {
-    console.error("Error fetching all disciplinary records:", error);
+    logger.error("Error fetching all disciplinary records:", error);
     throw error;
   }
 };

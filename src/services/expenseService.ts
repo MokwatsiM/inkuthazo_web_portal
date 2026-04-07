@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Expense, ExpenseStatus } from "../types/expense";
+import logger from "../utils/logger";
 
 export const addExpense = async (
   data: Omit<Expense, "id" | "created_at" | "updated_at"> & { status?: ExpenseStatus },
@@ -39,12 +40,12 @@ export const addExpense = async (
         }
       );
     } catch (auditError) {
-      console.error("Failed to log expense creation audit trail:", auditError);
+      logger.error("Failed to log expense creation audit trail:", auditError);
     }
 
     return docRef.id;
   } catch (error) {
-    console.error("Error adding expense:", error);
+    logger.error("Error adding expense:", error);
     throw error;
   }
 };
@@ -64,7 +65,7 @@ export const updateExpense = async (
         previousExpense = docSnap.data();
       }
     } catch (err) {
-      console.error("Failed to fetch previous expense state:", err);
+      logger.error("Failed to fetch previous expense state:", err);
     }
 
     await updateDoc(expenseRef, {
@@ -98,10 +99,10 @@ export const updateExpense = async (
         }
       );
     } catch (auditError) {
-      console.error("Failed to log expense update audit trail:", auditError);
+      logger.error("Failed to log expense update audit trail:", auditError);
     }
   } catch (error) {
-    console.error("Error updating expense:", error);
+    logger.error("Error updating expense:", error);
     throw error;
   }
 };
@@ -121,10 +122,10 @@ export const deleteExpense = async (id: string): Promise<void> => {
         }
       );
     } catch (auditError) {
-      console.error("Failed to log expense deletion audit trail:", auditError);
+      logger.error("Failed to log expense deletion audit trail:", auditError);
     }
   } catch (error) {
-    console.error("Error deleting expense:", error);
+    logger.error("Error deleting expense:", error);
     throw error;
   }
 };
@@ -154,10 +155,10 @@ export const markExpenseAsPaid = async (
         }
       );
     } catch (auditError) {
-      console.error("Failed to log expense payment audit trail:", auditError);
+      logger.error("Failed to log expense payment audit trail:", auditError);
     }
   } catch (error) {
-    console.error("Error marking expense as paid:", error);
+    logger.error("Error marking expense as paid:", error);
     throw error;
   }
 };
@@ -226,7 +227,7 @@ export const generateRecurringExpenses = async (): Promise<void> => {
       }
     }
   } catch (error) {
-    console.error("Error generating recurring expenses:", error);
+    logger.error("Error generating recurring expenses:", error);
     throw error;
   }
 };

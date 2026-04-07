@@ -8,6 +8,7 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import type { CashFlowForecast, ContributionPatternAnalysis, FinancialHealthScore, ComparativeAnalysis } from '../types/predictiveAnalytics';
+import logger from '../utils/logger';
 
 // ==================== TYPES ====================
 
@@ -23,6 +24,13 @@ export interface ReportParams {
   format: 'pdf' | 'excel' | 'csv';
   customMetrics?: string[];
   periodDescription?: string; // For comparative reports: e.g., "This Quarter vs Last Quarter"
+  // For comparative reports - custom period comparison
+  comparisonPeriods?: {
+    period1Start: Date;
+    period1End: Date;
+    period2Start: Date;
+    period2End: Date;
+  };
 }
 
 export interface MemberArrears {
@@ -1957,7 +1965,7 @@ export async function collectArrearsData(
         });
       }
     } catch (error) {
-      console.error(`Error calculating arrears for member ${member.id}:`, error);
+      logger.error(`Error calculating arrears for member ${member.id}:`, error);
       // Continue with next member
     }
   }

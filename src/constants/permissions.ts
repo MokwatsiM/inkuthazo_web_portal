@@ -91,6 +91,13 @@ export const PERMISSIONS_CATALOG: Permission[] = [
   { id: "credits.edit", resource: "credits", action: "edit", category: "Financial", description: "Edit credit applications" },
   { id: "credits.delete", resource: "credits", action: "delete", category: "Financial", description: "Delete credit applications" },
 
+  // Financial - Contributions
+  { id: "contributions.view", resource: "contributions", action: "view", category: "Financial", description: "View all member contributions" },
+  { id: "contributions.create", resource: "contributions", action: "create", category: "Financial", description: "Create contributions for members" },
+  { id: "contributions.edit", resource: "contributions", action: "edit", category: "Financial", description: "Edit contribution records" },
+  { id: "contributions.delete", resource: "contributions", action: "delete", category: "Financial", description: "Delete contributions" },
+  { id: "contributions.export", resource: "contributions", action: "export", category: "Financial", description: "Export contribution data" },
+
   // Financial - Credit Reviews
   { id: "credit_reviews.view", resource: "credit_reviews", action: "view", category: "Financial", description: "View credit review queue" },
   { id: "credit_reviews.approve", resource: "credit_reviews", action: "approve", category: "Financial", description: "Approve/reject credit applications", requiresApproval: true },
@@ -154,6 +161,7 @@ export const ADMIN_PERMISSIONS: RolePermissions = {
   donations: FULL_PERMISSIONS,
   credits: FULL_PERMISSIONS,
   credit_reviews: FULL_PERMISSIONS,
+  contributions: FULL_PERMISSIONS,
   disciplinary: FULL_PERMISSIONS,
   calendar: FULL_PERMISSIONS,
   host_assignments: FULL_PERMISSIONS,

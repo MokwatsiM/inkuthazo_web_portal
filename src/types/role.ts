@@ -30,6 +30,7 @@ export type ResourceType =
   | "donations"
   | "credits"
   | "credit_reviews"
+  | "contributions"
   | "disciplinary"
   | "calendar"
   | "host_assignments"

@@ -389,16 +389,16 @@ service cloud.firestore {
       allow read: if isSignedIn();
 
       // Users with create permission can create new roles
-      // MIGRATION: Also allow isAdmin() for migration purposes (can be removed after migration)
-      allow create: if canCreate('role_management') || isAdmin();
+      allow create: if canCreate('role_management') &&
+        request.resource.data.keys().hasAll(['name', 'description', 'permissions', 'isSystemRole', 'createdAt', 'createdBy']) &&
+        request.resource.data.createdBy == request.auth.uid;
 
       // Users with edit permission can update roles
       allow update: if canEdit('role_management') &&
         request.resource.data.keys().hasAny(['description', 'permissions', 'updatedAt', 'updatedBy']);
 
       // Users with delete permission can delete roles (system roles are protected in app logic)
-      // MIGRATION: Also allow isAdmin() for migration purposes (can be removed after migration)
-      allow delete: if canDelete('role_management') || isAdmin();
+      allow delete: if canDelete('role_management');
     }
   }
 }

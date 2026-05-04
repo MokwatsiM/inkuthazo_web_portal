@@ -230,11 +230,11 @@ export const generateInvoicePDF = async (
   doc.setFontSize(10);
   const instructions = [
     "Please make payment within 7 days",
-    "Bank: First National Bank",
-    "Account Name: Inkuthazo Social Club",
+    "Bank: Standard Bank",
+    "Account Name: Inkuthazo Burial Club",
     "Account Type: Cheque",
-    "Branch Code: 250655",
-    "Account#: 63050597279",
+    "Branch Code: 051001",
+    "Account#: 1027428057",
     "Reference: " + member.full_name,
     "",
     "Note: Monthly contributions must be paid by the 7th of each month.",

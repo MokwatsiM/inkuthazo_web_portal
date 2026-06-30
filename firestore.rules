@@ -342,7 +342,8 @@ service cloud.firestore {
     match /audit_logs/{logId} {
       allow read: if canView('audit_logs');
       allow create: if isSignedIn(); // Allow all members to log their actions
-      allow update, delete: if false; // Logs must be immutable
+      allow update: if false; // Logs must never be updated (immutable)
+      allow delete: if canDelete('audit_logs'); // Admins can delete old logs for maintenance
     }
     // Donations collection
  		match /donations/{donationId} {

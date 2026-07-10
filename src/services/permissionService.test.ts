@@ -1,5 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Timestamp } from 'firebase/firestore';
+
+// permissionService re-exports role lookups from roleService, which pulls in
+// the live Firebase app config; mock it so these pure permission checks run
+// without env vars (e.g. in CI, where no .env exists).
+vi.mock('./roleService', () => ({
+  getRoleById: vi.fn(),
+  getRoleByName: vi.fn(),
+}));
+
 import {
   hasPermission,
   hasAnyPermission,

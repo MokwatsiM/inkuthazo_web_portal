@@ -51,7 +51,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (userDoc.exists()) {
         const memberData = userDoc.data() as Omit<Member, "id">;
-        setUserDetails({ id: user.uid, ...memberData } as Member);
+        const memberDetails = { id: user.uid, ...memberData } as Member;
+        setUserDetails(memberDetails);
       } else {
         setUserDetails(null);
       }
@@ -161,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await firebaseSignOut(auth);
       setUserDetails(null);
+
       showSuccess("Successfully signed out");
     } catch (error: unknown) {
       logger.error("Sign out error:", error);

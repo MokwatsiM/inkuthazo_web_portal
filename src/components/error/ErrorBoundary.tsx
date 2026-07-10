@@ -45,9 +45,6 @@ class ErrorBoundary extends Component<Props, State> {
     // Call custom error handler if provided
     this.props.onError?.(error, errorInfo);
 
-    // TODO: Log to error reporting service (e.g., Sentry, LogRocket)
-    // logErrorToService(error, errorInfo);
-
     this.setState({
       errorInfo,
     });

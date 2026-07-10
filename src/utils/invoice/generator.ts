@@ -231,8 +231,10 @@ export const generateInvoicePDF = async (
   const instructions = [
     "Please make payment within 7 days",
     "Bank: Standard Bank",
-    "Account Name: Inkuthazo Burial Club",
+    "Account Name: Inkuthazo Social Club",
     "Account Type: Cheque",
+    "Branch Code: 051001",
+    "Account#: 1027428057",
     "Branch Code: 051001",
     "Account#: 1027428057",
     "Reference: " + member.full_name,

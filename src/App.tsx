@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
-import { NotificationProvider } from "./context/NotificationContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import NotificationContainer from "./components/notifications/NotificationContainer";
 import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
@@ -14,35 +15,41 @@ import AuthLayout from "./components/auth/AuthLayout";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import ForgotPassword from "./components/auth/ForgotPassword";
-import LandingPage from "./pages/LandingPage";
-import Dashboard from "./pages/Dashboard";
-import Members from "./pages/Members";
-import MemberDetail from "./pages/MemberDetail";
-import MyContributions from "./pages/MyContributions";
-import Reports from "./pages/Reports";
-import Payouts from "./pages/Payouts";
-import Analytics from "./pages/Analytics";
-import AdvancedAnalytics from "./pages/AdvancedAnalytics";
+import ResetPassword from "./components/auth/ResetPassword";
 import PermissionBasedRoute from "./components/PermissionBasedRoute";
-import DeletionRequests from "./pages/DeletionRequests";
-import Claims from "./pages/Claims";
 import SessionProvider from "./components/session/SessionProvider";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
-import Calendar from "./pages/Calendar";
-import Expenses from "./pages/Expenses";
-import Disciplinary from "./pages/Disciplinary";
-import ResetPassword from "./components/auth/ResetPassword";
-import Configuration from "./pages/Configuration";
-import HostAssignments from "./pages/HostAssignments";
-import MemberHostView from "./components/hostAssignments/MemberHostView";
-import Attendance from "./pages/Attendance";
-import AuditLogs from "./pages/AuditLogs";
-import Donations from "./pages/Donations";
-import MyDonations from "./pages/MyDonations";
-import Credits from "./pages/Credits";
-import CreditReviews from "./pages/CreditReviews";
-import MyCredit from "./pages/MyCredit";
-import RoleManagement from "./pages/RoleManagement";
+
+// Pages are lazy-loaded so each route becomes its own chunk and heavy
+// dependencies (charts, PDF/Excel exports, QR scanning) are only downloaded
+// when the page that needs them is opened.
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Members = lazy(() => import("./pages/Members"));
+const MemberDetail = lazy(() => import("./pages/MemberDetail"));
+const MyContributions = lazy(() => import("./pages/MyContributions"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Payouts = lazy(() => import("./pages/Payouts"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const AdvancedAnalytics = lazy(() => import("./pages/AdvancedAnalytics"));
+const DeletionRequests = lazy(() => import("./pages/DeletionRequests"));
+const Claims = lazy(() => import("./pages/Claims"));
+const Calendar = lazy(() => import("./pages/Calendar"));
+const Expenses = lazy(() => import("./pages/Expenses"));
+const Disciplinary = lazy(() => import("./pages/Disciplinary"));
+const Configuration = lazy(() => import("./pages/Configuration"));
+const HostAssignments = lazy(() => import("./pages/HostAssignments"));
+const MemberHostView = lazy(
+  () => import("./components/hostAssignments/MemberHostView")
+);
+const Attendance = lazy(() => import("./pages/Attendance"));
+const AuditLogs = lazy(() => import("./pages/AuditLogs"));
+const Donations = lazy(() => import("./pages/Donations"));
+const MyDonations = lazy(() => import("./pages/MyDonations"));
+const Credits = lazy(() => import("./pages/Credits"));
+const CreditReviews = lazy(() => import("./pages/CreditReviews"));
+const MyCredit = lazy(() => import("./pages/MyCredit"));
+const RoleManagement = lazy(() => import("./pages/RoleManagement"));
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -64,6 +71,7 @@ const AppRoutes: React.FC = () => {
   const { user } = useAuth();
 
   return (
+    <Suspense fallback={<LoadingSpinner />}>
     <Routes>
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={<Login />} />
@@ -399,8 +407,20 @@ const AppRoutes: React.FC = () => {
         }
       />
     </Routes>
+    </Suspense>
   );
 };
+
+// Server-state cache: queries stay fresh for a minute and are shared
+// across pages, replacing per-hook manual fetch/refetch state
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      retry: 1,
+    },
+  },
+});
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -409,6 +429,7 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <NotificationProvider>
           <AuthProvider>
@@ -424,6 +445,7 @@ const App: React.FC = () => {
           </AuthProvider>
         </NotificationProvider>
       </ThemeProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 };

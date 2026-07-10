@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   collection,
   query,
@@ -9,7 +8,9 @@ import {
   doc,
   Timestamp,
 } from "firebase/firestore";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { db } from "../config/firebase";
+import { converter } from "../utils/firestoreConverter";
 import { toFirestoreTimestamp } from "../utils/dateUtils";
 import { deleteMemberWithAuth } from "../services/memberService";
 import { useAuth } from "./useAuth";
@@ -26,49 +27,40 @@ interface UseMembersReturn {
   deleteMember: (id: string) => Promise<void>;
 }
 
+const membersCollection = () =>
+  collection(db, "members").withConverter(converter<Member>());
+
+const fetchMembers = async (): Promise<Member[]> => {
+  const snapshot = await getDocs(query(membersCollection(), orderBy("full_name")));
+  return snapshot.docs.map((docSnapshot) => docSnapshot.data());
+};
+
 export const useMembers = (): UseMembersReturn => {
   const { userDetails } = useAuth();
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchMembers = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      const membersRef = collection(db, "members");
-      const q = query(membersRef, orderBy("full_name"));
-      const querySnapshot = await getDocs(q);
+  const {
+    data: members = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["members"],
+    queryFn: fetchMembers,
+  });
 
-      const membersData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Member[];
+  const invalidateMembers = () =>
+    queryClient.invalidateQueries({ queryKey: ["members"] });
 
-      setMembers(membersData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addMember = async (
-    member: Omit<Member, "id" | "join_date">
-  ): Promise<Member> => {
-    try {
-      const membersRef = collection(db, "members");
-      const docRef = await addDoc(membersRef, {
+  const addMemberMutation = useMutation({
+    mutationFn: async (
+      member: Omit<Member, "id" | "join_date">
+    ): Promise<Member> => {
+      const join_date = Timestamp.now();
+      const docRef = await addDoc(collection(db, "members"), {
         ...member,
-        join_date: Timestamp.now(),
+        join_date,
       });
-
-      const newMember = {
-        id: docRef.id,
-        ...member,
-        join_date: Timestamp.now(),
-      } as Member;
-
-      setMembers((prev) => [...prev, newMember]);
 
       // Log audit trail
       try {
@@ -80,7 +72,7 @@ export const useMembers = (): UseMembersReturn => {
             member_id: docRef.id,
             member_name: member.full_name,
             email: member.email,
-            role: member.role
+            role: member.role,
           },
           userDetails?.full_name || "Admin"
         );
@@ -88,20 +80,21 @@ export const useMembers = (): UseMembersReturn => {
         logger.error("Failed to log member creation audit trail:", auditError);
       }
 
-      return newMember;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      throw err;
-    }
-  };
+      return { id: docRef.id, ...member, join_date } as Member;
+    },
+    onSuccess: invalidateMembers,
+  });
 
-  const updateMember = async (
-    id: string,
-    member: Partial<Member>
-  ): Promise<void> => {
-    try {
+  const updateMemberMutation = useMutation({
+    mutationFn: async ({
+      id,
+      member,
+    }: {
+      id: string;
+      member: Partial<Member>;
+    }): Promise<void> => {
       const memberRef = doc(db, "members", id);
-      const previousMember = members.find(m => m.id === id);
+      const previousMember = members.find((m) => m.id === id);
 
       const updateData = {
         ...member,
@@ -120,15 +113,16 @@ export const useMembers = (): UseMembersReturn => {
         const { logAuditTrail } = await import("../services/auditService");
 
         // Extract only the fields that changed for the audit log
-        const changes: Record<string, { old: any; new: any }> = {};
+        const changes: Record<string, { old: unknown; new: unknown }> = {};
         if (previousMember) {
-          Object.keys(updateData).forEach((key) => {
-            const field = key as keyof Member;
-            // Simple comparison for primitive types
-            if (JSON.stringify(previousMember[field]) !== JSON.stringify((updateData as any)[key])) {
-              changes[key] = {
+          (Object.keys(updateData) as (keyof Member)[]).forEach((field) => {
+            if (
+              JSON.stringify(previousMember[field]) !==
+              JSON.stringify(updateData[field])
+            ) {
+              changes[field] = {
                 old: previousMember[field],
-                new: (updateData as any)[key]
+                new: updateData[field],
               };
             }
           });
@@ -141,48 +135,37 @@ export const useMembers = (): UseMembersReturn => {
             target_member_id: id,
             target_member_name: previousMember?.full_name || "Unknown",
             changes,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           },
           userDetails?.full_name || "System"
         );
       } catch (auditError) {
         logger.error("Failed to log member update audit trail:", auditError);
       }
+    },
+    onSuccess: invalidateMembers,
+  });
 
-      setMembers((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, ...updateData } : m))
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      throw err;
-    }
-  };
-
-  const deleteMember = async (id: string): Promise<void> => {
-    if (!userDetails?.id) {
-      throw new Error("User not authenticated");
-    }
-
-    try {
+  const deleteMemberMutation = useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      if (!userDetails?.id) {
+        throw new Error("User not authenticated");
+      }
       await deleteMemberWithAuth(id, userDetails.id);
-      setMembers((prev) => prev.filter((member) => member.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      throw err;
-    }
-  };
-
-  useEffect(() => {
-    fetchMembers();
-  }, []);
+    },
+    onSuccess: invalidateMembers,
+  });
 
   return {
     members,
-    loading,
-    error,
-    refetch: fetchMembers,
-    addMember,
-    updateMember,
-    deleteMember,
+    loading: isLoading,
+    error: error instanceof Error ? error.message : null,
+    refetch: async () => {
+      await refetch();
+    },
+    addMember: (member) => addMemberMutation.mutateAsync(member),
+    updateMember: (id, member) =>
+      updateMemberMutation.mutateAsync({ id, member }),
+    deleteMember: (id) => deleteMemberMutation.mutateAsync(id),
   };
 };

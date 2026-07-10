@@ -1,14 +1,6 @@
 // src/components/analytics/ContributionTrends.tsx
 import React from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from "recharts";
+import { ResponsiveLine } from "@nivo/line";
 import { format } from "date-fns";
 import type { Contribution } from "../../types/contribution";
 
@@ -25,24 +17,47 @@ const ContributionTrends: React.FC<ContributionTrendsProps> = ({
     return acc;
   }, {} as Record<string, number>);
 
-  const data = Object.entries(monthlyData).map(([month, amount]) => ({
-    month,
-    amount,
-  }));
+  const chartData = [
+    {
+      id: "Contributions",
+      data: Object.entries(monthlyData).map(([month, amount]) => ({
+        x: month,
+        y: amount,
+      })),
+    },
+  ];
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-4">
         Monthly Contribution Trends
       </h3>
-      <LineChart width={600} height={300} data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="amount" stroke="#4F46E5" />
-      </LineChart>
+      <div className="h-[300px]">
+        <ResponsiveLine
+          data={chartData}
+          margin={{ top: 20, right: 30, bottom: 50, left: 60 }}
+          xScale={{ type: "point" }}
+          yScale={{ type: "linear", min: "auto", max: "auto" }}
+          curve="monotoneX"
+          colors={["#4F46E5"]}
+          pointSize={8}
+          pointBorderWidth={2}
+          useMesh
+          axisBottom={{ tickSize: 0, tickPadding: 8, tickRotation: -30 }}
+          axisLeft={{ tickSize: 0, tickPadding: 8 }}
+          theme={{
+            grid: { line: { stroke: "#eee", strokeWidth: 1 } },
+            tooltip: {
+              container: {
+                background: "white",
+                padding: "8px",
+                borderRadius: "4px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              },
+            },
+          }}
+        />
+      </div>
     </div>
   );
 };

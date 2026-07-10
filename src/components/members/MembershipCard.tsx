@@ -1,8 +1,6 @@
 import React, { useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import { Download, User, FileText } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { format } from "date-fns";
-import jsPDF from "jspdf";
 import type { Member } from "../../types";
 import Button from "../ui/Button";
 import logger from "../../utils/logger";
@@ -20,6 +18,10 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
 
         setIsDownloading(true);
         try {
+            // Loaded on demand — keeps the capture/PDF libraries out of the
+            // members page chunk until a card is actually downloaded
+            const [{ default: html2canvas }, { default: jsPDF }] =
+                await Promise.all([import("html2canvas"), import("jspdf")]);
             // Convert images to base64 using fetch and blob to avoid CORS/taint issues
             const imgElements = cardRef.current.querySelectorAll('img');
             const originalSrcs = new Map<HTMLImageElement, string>();
@@ -135,6 +137,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
 
         setIsDownloading(true);
         try {
+            const { default: html2canvas } = await import("html2canvas");
             // Convert images to base64 using fetch and blob to avoid CORS/taint issues
             const imgElements = cardRef.current.querySelectorAll('img');
             const originalSrcs = new Map<HTMLImageElement, string>();

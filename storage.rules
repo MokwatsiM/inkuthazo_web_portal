@@ -15,9 +15,13 @@ service firebase.storage {
     // (mirrors firestore.rules permission catalogue)
     // ========================================
 
+    /**
+     * Role from ID token custom claims (kept in sync with the member
+     * document by the syncMemberClaims Cloud Function). Zero reads.
+     */
     function getUserRole() {
-      return isSignedIn() && firestore.exists(/databases/(default)/documents/members/$(request.auth.uid))
-        ? firestore.get(/databases/(default)/documents/members/$(request.auth.uid)).data.role
+      return isSignedIn() && 'role' in request.auth.token
+        ? request.auth.token.role
         : null;
     }
 

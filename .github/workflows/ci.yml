@@ -32,8 +32,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npx tsc --noEmit
+      # The root tsconfig is solution-style ("files": []), so a plain
+      # `tsc --noEmit` checks nothing — point at the app project explicitly.
+      # TODO: remove continue-on-error once the ~90 pre-existing type errors
+      # are fixed, so the type check becomes a blocking gate.
+      - name: Type check (report only)
+        run: npx tsc --noEmit -p tsconfig.app.json
+        continue-on-error: true
 
       # TODO: remove continue-on-error once the existing lint errors are
       # fixed, so lint becomes a blocking check for new code.

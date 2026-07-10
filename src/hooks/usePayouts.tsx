@@ -1,5 +1,4 @@
 // src/hooks/usePayouts.tsx
-import { useState, useEffect } from 'react';
 import {
   collection,
   query,
@@ -9,9 +8,11 @@ import {
   deleteDoc,
   updateDoc,
   doc,
-  Timestamp
+  Timestamp,
 } from 'firebase/firestore';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '../config/firebase';
+import { converter } from '../utils/firestoreConverter';
 import { batchFetchMembers } from '../services/memberService';
 import type { Payout } from '../types';
 
@@ -25,94 +26,81 @@ interface UsePayoutsReturn {
   updatePayoutStatus: (id: string, status: Payout['status']) => Promise<void>;
 }
 
+const payoutsCollection = () =>
+  collection(db, 'payouts').withConverter(converter<Payout>());
+
+const fetchPayouts = async (): Promise<Payout[]> => {
+  const snapshot = await getDocs(query(payoutsCollection(), orderBy('date', 'desc')));
+  const payouts = snapshot.docs.map((docSnapshot) => docSnapshot.data());
+
+  // Batch fetch member details to avoid N+1 query problem
+  const memberIds = [...new Set(payouts.map((p) => p.member_id))];
+  const membersMap = await batchFetchMembers(memberIds);
+
+  return payouts.map((payout) => ({
+    ...payout,
+    members: {
+      full_name: membersMap.get(payout.member_id)?.full_name || 'Unknown Member',
+    },
+  }));
+};
+
 export const usePayouts = (): UsePayoutsReturn => {
-  const [payouts, setPayouts] = useState<Payout[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchPayouts = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      const payoutsRef = collection(db, 'payouts');
-      const q = query(payoutsRef, orderBy('date', 'desc'));
-      const querySnapshot = await getDocs(q);
+  const {
+    data: payouts = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['payouts'],
+    queryFn: fetchPayouts,
+  });
 
-      // Batch fetch member details to avoid N+1 query problem
-      const payoutsWithData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+  const invalidatePayouts = () =>
+    queryClient.invalidateQueries({ queryKey: ['payouts'] });
 
-      const memberIds = [...new Set(payoutsWithData.map((p: any) => p.member_id))];
-      const membersMap = await batchFetchMembers(memberIds);
-
-      const payoutsData = payoutsWithData.map((payout: any) => ({
+  const addPayoutMutation = useMutation({
+    mutationFn: async (payout: Omit<Payout, 'id' | 'date'>): Promise<void> => {
+      await addDoc(collection(db, 'payouts'), {
         ...payout,
-        date: payout.date,
-        members: {
-          full_name: membersMap.get(payout.member_id)?.full_name || 'Unknown Member'
-        }
-      })) as Payout[];
+        date: Timestamp.now(),
+      });
+    },
+    onSuccess: invalidatePayouts,
+  });
 
-      setPayouts(payoutsData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const deletePayoutMutation = useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      await deleteDoc(doc(db, 'payouts', id));
+    },
+    onSuccess: invalidatePayouts,
+  });
 
-  const addPayout = async (payout: Omit<Payout, 'id' | 'date'>): Promise<void> => {
-    try {
-      const payoutsRef = collection(db, 'payouts');
-      const newPayout = {
-        ...payout,
-        date: Timestamp.now()
-      };
-
-      await addDoc(payoutsRef, newPayout);
-      await fetchPayouts();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      throw err;
-    }
-  };
-
-  const deletePayout = async (id: string): Promise<void> => {
-    try {
-      const payoutRef = doc(db, 'payouts', id);
-      await deleteDoc(payoutRef);
-      setPayouts(prev => prev.filter(payout => payout.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      throw err;
-    }
-  };
-
-  const updatePayoutStatus = async (id: string, status: Payout['status']): Promise<void> => {
-    try {
-      const payoutRef = doc(db, 'payouts', id);
-      await updateDoc(payoutRef, { status });
-      setPayouts(prev => prev.map(payout => 
-        payout.id === id ? { ...payout, status } : payout
-      ));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      throw err;
-    }
-  };
-
-  useEffect(() => {
-    fetchPayouts();
-  }, []);
+  const updatePayoutStatusMutation = useMutation({
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: Payout['status'];
+    }): Promise<void> => {
+      await updateDoc(doc(db, 'payouts', id), { status });
+    },
+    onSuccess: invalidatePayouts,
+  });
 
   return {
     payouts,
-    loading,
-    error,
-    refetch: fetchPayouts,
-    addPayout,
-    deletePayout,
-    updatePayoutStatus
+    loading: isLoading,
+    error: error instanceof Error ? error.message : null,
+    refetch: async () => {
+      await refetch();
+    },
+    addPayout: (payout) => addPayoutMutation.mutateAsync(payout),
+    deletePayout: (id) => deletePayoutMutation.mutateAsync(id),
+    updatePayoutStatus: (id, status) =>
+      updatePayoutStatusMutation.mutateAsync({ id, status }),
   };
 };

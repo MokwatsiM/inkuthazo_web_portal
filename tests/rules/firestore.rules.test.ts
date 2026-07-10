@@ -109,17 +109,32 @@ afterAll(async () => {
   await testEnv.cleanup();
 });
 
+// Auth contexts carry the custom claims (role, status) that the
+// syncMemberClaims Cloud Function mirrors from the member document —
+// the rules authorize from these token claims, not from member doc reads
 const approvedDb = () =>
   testEnv
-    .authenticatedContext(APPROVED_UID, { email: 'approved@example.com' })
+    .authenticatedContext(APPROVED_UID, {
+      email: 'approved@example.com',
+      role: 'member',
+      status: 'approved',
+    })
     .firestore();
 const pendingDb = () =>
   testEnv
-    .authenticatedContext(PENDING_UID, { email: 'pending@example.com' })
+    .authenticatedContext(PENDING_UID, {
+      email: 'pending@example.com',
+      role: 'member',
+      status: 'pending',
+    })
     .firestore();
 const adminDb = () =>
   testEnv
-    .authenticatedContext(ADMIN_UID, { email: 'admin@example.com' })
+    .authenticatedContext(ADMIN_UID, {
+      email: 'admin@example.com',
+      role: 'admin',
+      status: 'active',
+    })
     .firestore();
 const anonDb = () => testEnv.unauthenticatedContext().firestore();
 

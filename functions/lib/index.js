@@ -1,12 +1,47 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendMemberInvitation = exports.cleanupDeletedUserData = exports.onDeletionRequestUpdated = void 0;
+exports.sendMemberInvitation = exports.cleanupDeletedUserData = exports.onDeletionRequestUpdated = exports.syncMemberClaims = void 0;
 const functions = require("firebase-functions");
 const app_1 = require("firebase-admin/app");
 const auth_1 = require("firebase-admin/auth");
 const storage_1 = require("firebase-admin/storage");
 const node_mailjet_1 = require("node-mailjet");
+const firebase_functions_1 = require("firebase-functions");
 (0, app_1.initializeApp)();
+// Keep Firebase Auth custom claims (role, status) in sync with the member
+// document. Security rules authorize from request.auth.token.role/status,
+// so this must run whenever either field changes. Existing sessions pick up
+// new claims when their ID token refreshes (up to ~1 hour) or on re-login.
+exports.syncMemberClaims = functions.firestore
+    .document("members/{memberId}")
+    .onWrite(async (change, context) => {
+    var _a, _b;
+    const memberId = context.params.memberId;
+    // Member deleted — auth account cleanup is handled elsewhere
+    if (!change.after.exists) {
+        return;
+    }
+    const after = change.after.data();
+    const before = change.before.exists
+        ? change.before.data()
+        : null;
+    if (before &&
+        before.role === after.role &&
+        before.status === after.status) {
+        return;
+    }
+    try {
+        await (0, auth_1.getAuth)().setCustomUserClaims(memberId, {
+            role: (_a = after.role) !== null && _a !== void 0 ? _a : null,
+            status: (_b = after.status) !== null && _b !== void 0 ? _b : null,
+        });
+        functions.logger.info(`Synced claims for ${memberId}: role=${after.role}, status=${after.status}`);
+    }
+    catch (error) {
+        const firebaseError = error;
+        functions.logger.error(`Error syncing claims for ${memberId}: ${firebaseError.message}`);
+    }
+});
 // Handle deletion request updates
 exports.onDeletionRequestUpdated = functions.firestore
     .document("deletion_requests/{requestId}")
@@ -27,7 +62,6 @@ exports.onDeletionRequestUpdated = functions.firestore
                 auth_deleted: true,
                 auth_deleted_at: new Date(),
             });
-            exports.cleanupDeletedUserData;
         }
         catch (error) {
             const firebaseError = error;
@@ -109,11 +143,11 @@ exports.sendMemberInvitation = functions.https.onCall(async (data, context) => {
             ],
         });
         const response = await request;
-        console.log("Email sent successfully:", response.body);
+        firebase_functions_1.logger.debug("Email sent successfully:", response.body);
         return { success: true, message: "Email sent successfully" };
     }
     catch (error) {
-        console.error("Error sending email:", error.message || error.response);
+        firebase_functions_1.logger.error("Error sending email:", error.message || error.response);
         throw new functions.https.HttpsError("internal", "Failed to send email", ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message);
     }
 });

@@ -14,7 +14,11 @@
       "Bash(tar:*)",
       "Bash(pkill:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(grep -A8 \"Could not resolve dependency:\" /Users/motebangmpmokwatsi/.npm/_logs/2026-07-10T14_33_24_627Z-eresolve-report.txt | head -12)",
+      "Read(//Users/motebangmpmokwatsi/.npm/_logs/**)",
+      "Bash(npx vitest *)",
+      "Bash(npm run *)"
     ],
     "deny": [],
     "ask": []

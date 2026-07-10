@@ -1,0 +1,88 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ========================================
+    // Permission-Based Helper Functions
+    // (mirrors firestore.rules permission catalogue)
+    // ========================================
+
+    function getUserRole() {
+      return isSignedIn() && firestore.exists(/databases/(default)/documents/members/$(request.auth.uid))
+        ? firestore.get(/databases/(default)/documents/members/$(request.auth.uid)).data.role
+        : null;
+    }
+
+    function hasPermission(resource, action) {
+      return isSignedIn() &&
+             getUserRole() != null &&
+             firestore.exists(/databases/(default)/documents/roles/$(getUserRole())) &&
+             resource in firestore.get(/databases/(default)/documents/roles/$(getUserRole())).data.permissions &&
+             action in firestore.get(/databases/(default)/documents/roles/$(getUserRole())).data.permissions[resource] &&
+             firestore.get(/databases/(default)/documents/roles/$(getUserRole())).data.permissions[resource][action] == true;
+    }
+
+    // ========================================
+    // Upload validation
+    // ========================================
+
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*') &&
+             request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Images or PDFs up to 10 MB (proof of payment, claim/dependant documents)
+    function isValidDocument() {
+      return (request.resource.contentType.matches('image/.*') ||
+              request.resource.contentType == 'application/pdf') &&
+             request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Avatars folder — profile pictures are visible across the app
+    match /avatars/{userId}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if (isOwner(userId) || hasPermission('members', 'edit')) &&
+        (request.resource == null || isValidImage());
+    }
+
+    // Proof of payments — bank slips contain personal banking details
+    match /proof_of_payments/{userId}/{fileName} {
+      allow read: if isOwner(userId) || hasPermission('contributions', 'view');
+      allow create: if (isOwner(userId) || hasPermission('contributions', 'create')) &&
+        isValidDocument();
+      allow delete: if hasPermission('contributions', 'edit') ||
+        hasPermission('contributions', 'delete');
+    }
+
+    // Dependant documents (IDs, certificates)
+    match /dependants/{userId}/{fileName} {
+      allow read: if isOwner(userId) || hasPermission('members', 'view');
+      allow create, update: if (isOwner(userId) || hasPermission('members', 'edit')) &&
+        isValidDocument();
+      allow delete: if isOwner(userId) || hasPermission('members', 'edit');
+    }
+
+    // Claim supporting documents
+    match /claim_documents/{userId}/{fileName} {
+      allow read: if isOwner(userId) || hasPermission('claims', 'view');
+      allow create: if (isOwner(userId) || hasPermission('claims', 'create')) &&
+        isValidDocument();
+      allow delete: if hasPermission('claims', 'edit') ||
+        hasPermission('claims', 'delete');
+    }
+
+    // Reports folder (reserved — no app code writes here today)
+    match /reports/{fileName} {
+      allow read: if hasPermission('reports', 'view');
+      allow write: if hasPermission('reports', 'create');
+    }
+  }
+}

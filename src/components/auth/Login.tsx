@@ -1,6 +1,6 @@
+import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 

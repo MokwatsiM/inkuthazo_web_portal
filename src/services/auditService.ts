@@ -13,7 +13,7 @@ import {
   writeBatch,
   doc
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db, auth } from '../config/firebase';
 import { logger } from '../utils/logger';
 
 export interface AuditLog {
@@ -22,6 +22,7 @@ export interface AuditLog {
   userId: string;
   userName?: string;
   details: Record<string, any>;
+  actor_id?: string;
   timestamp: Timestamp;
 }
 
@@ -47,6 +48,10 @@ export const logAuditTrail = async (
       userName: userName || 'Unknown',
       action,
       details,
+      // Authenticated user performing the action; security rules require
+      // this to match request.auth.uid so logs cannot be written on
+      // someone else's behalf
+      actor_id: auth.currentUser?.uid || userId,
       timestamp: Timestamp.now()
     });
   } catch (error) {

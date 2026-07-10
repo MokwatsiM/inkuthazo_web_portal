@@ -235,6 +235,8 @@ export const generateInvoicePDF = async (
     "Account Type: Cheque",
     "Branch Code: 051001",
     "Account#: 1027428057",
+    "Branch Code: 051001",
+    "Account#: 1027428057",
     "Reference: " + member.full_name,
     "",
     "Note: Monthly contributions must be paid by the 7th of each month.",

@@ -26,6 +26,8 @@ export interface Member {
   role: UserRole;
   avatar_url?: string;
   dependants?: Dependant[];
+  /** Lifecycle email notifications; undefined means opted in */
+  email_notifications?: boolean;
 }
 
 export interface MemberDetail extends Member {

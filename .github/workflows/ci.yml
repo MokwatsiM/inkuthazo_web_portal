@@ -49,6 +49,9 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: Functions unit tests
+        run: npm ci --prefix functions && npm test --prefix functions
+
       - name: Firestore rules tests
         run: npm run test:rules
 

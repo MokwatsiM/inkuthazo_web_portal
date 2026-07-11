@@ -294,6 +294,50 @@ const MemberDetail: React.FC = () => {
             </div>
           </section>
 
+          {/* Notification Settings (own profile only) */}
+          {userDetails?.id === member.id && (
+            <section id="notification-settings" className="pt-10">
+              <div className="bg-white dark:bg-surface-dark rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] p-6">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Notification settings
+                </h2>
+                <div className="mt-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      Email notifications
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+                      Receive an email when your contributions, claims, credits or
+                      donations are reviewed, and before your hosting month.
+                    </p>
+                  </div>
+                  <button
+                    role="switch"
+                    aria-checked={member.email_notifications !== false}
+                    onClick={() =>
+                      handleUpdateMember({
+                        email_notifications: member.email_notifications === false,
+                      })
+                    }
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                      member.email_notifications !== false
+                        ? 'bg-brand-600 dark:bg-brand-500'
+                        : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        member.email_notifications !== false
+                          ? 'translate-x-6'
+                          : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* Dependants */}
           <section id="dependants" className="pt-10">
             <DependantsSection member={member} onUpdate={fetchMemberData} />

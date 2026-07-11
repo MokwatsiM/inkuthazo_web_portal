@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import logger from '../utils/logger';
 import Avatar from './avatar/Avatar';
+import NotificationBell from './notifications/NotificationBell';
 import Button from './ui/Button';
 import { ThemeToggle } from './ui/ThemeToggle';
 
@@ -73,6 +74,7 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({
                   <Activity className="h-5 w-5" />
                 </Link>
               )}
+              {userDetails && <NotificationBell />}
               <ThemeToggle variant="button" />
               {userDetails && (
                 <div className="flex items-center space-x-3">

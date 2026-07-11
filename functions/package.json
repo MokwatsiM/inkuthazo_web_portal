@@ -3,6 +3,7 @@
   "scripts": {
     "lint": "eslint \"src/**/*\"",
     "build": "tsc",
+    "test": "vitest run",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
@@ -14,15 +15,17 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "axios": "^1.13.2",
     "firebase-admin": "^13.0.2",
-    "firebase-functions": "^4.9.0",
-    "node-mailjet": "^6.0.6"
+    "firebase-functions": "^7.2.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "globals": "^15.14.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vitest": "^4.1.10"
   },
-  "private": true
+  "private": true,
+  "optionalDependencies": {
+    "@rolldown/binding-darwin-arm64": "^1.1.5"
+  }
 }

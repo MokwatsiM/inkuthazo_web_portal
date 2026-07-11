@@ -394,6 +394,19 @@ service cloud.firestore {
       allow delete: if canDelete('credits');
     }
 
+    // In-app notifications: written ONLY by Cloud Functions (the Admin SDK
+    // bypasses rules, so create can be denied outright). Recipients may
+    // read, mark-as-read, and delete their own notifications.
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow create: if false; // server-only writes
+      allow update: if isSignedIn() &&
+        resource.data.user_id == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']) &&
+        request.resource.data.read == true;
+      allow delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+
     // Roles collection
     match /roles/{roleId} {
       // All authenticated users can read roles (needed to check their own permissions)

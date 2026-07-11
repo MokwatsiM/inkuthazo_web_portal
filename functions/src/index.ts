@@ -18,6 +18,49 @@ interface EmailData {
   invitationToken: string;
 }
 
+// Keep Firebase Auth custom claims (role, status) in sync with the member
+// document. Security rules authorize from request.auth.token.role/status,
+// so this must run whenever either field changes. Existing sessions pick up
+// new claims when their ID token refreshes (up to ~1 hour) or on re-login.
+export const syncMemberClaims = functions.firestore
+  .document("members/{memberId}")
+  .onWrite(async (change, context) => {
+    const memberId = context.params.memberId;
+
+    // Member deleted — auth account cleanup is handled elsewhere
+    if (!change.after.exists) {
+      return;
+    }
+
+    const after = change.after.data() as { role?: string; status?: string };
+    const before = change.before.exists
+      ? (change.before.data() as { role?: string; status?: string })
+      : null;
+
+    if (
+      before &&
+      before.role === after.role &&
+      before.status === after.status
+    ) {
+      return;
+    }
+
+    try {
+      await getAuth().setCustomUserClaims(memberId, {
+        role: after.role ?? null,
+        status: after.status ?? null,
+      });
+      functions.logger.info(
+        `Synced claims for ${memberId}: role=${after.role}, status=${after.status}`
+      );
+    } catch (error) {
+      const firebaseError = error as FirebaseError;
+      functions.logger.error(
+        `Error syncing claims for ${memberId}: ${firebaseError.message}`
+      );
+    }
+  });
+
 // Handle deletion request updates
 export const onDeletionRequestUpdated = functions.firestore
   .document("deletion_requests/{requestId}")
@@ -42,7 +85,6 @@ export const onDeletionRequestUpdated = functions.firestore
           auth_deleted: true,
           auth_deleted_at: new Date(),
         });
-        cleanupDeletedUserData;
       } catch (error) {
         const firebaseError = error as FirebaseError;
         const errorMessage = firebaseError.message || "Unknown error occurred";

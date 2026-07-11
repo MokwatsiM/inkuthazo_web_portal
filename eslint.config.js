@@ -26,7 +26,9 @@ export default [
         'warn',
         { allowConstantExport: true },
       ],
-      "@typescript-eslint/no-explicit-any": "off",
+      // Blocks new `any` usage; existing occurrences are being burned down
+      // via typed Firestore converters (src/utils/firestoreConverter.ts)
+      "@typescript-eslint/no-explicit-any": "error",
       '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_'

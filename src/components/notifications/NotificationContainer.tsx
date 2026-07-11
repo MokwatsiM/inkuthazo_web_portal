@@ -1,5 +1,5 @@
 import React from "react";
-import { useNotification } from "../../context/NotificationContext";
+import { useNotification } from "../../contexts/NotificationContext";
 import NotificationItem from "./NotificationItem";
 
 const NotificationContainer: React.FC = () => {

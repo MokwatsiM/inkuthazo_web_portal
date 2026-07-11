@@ -18,7 +18,17 @@
       "Bash(grep -A8 \"Could not resolve dependency:\" /Users/motebangmpmokwatsi/.npm/_logs/2026-07-10T14_33_24_627Z-eresolve-report.txt | head -12)",
       "Read(//Users/motebangmpmokwatsi/.npm/_logs/**)",
       "Bash(npx vitest *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(sed -n '46p;83p' src/services/reportGenerationService/comparativeAnalysisReport.ts)",
+      "Bash(sed -n '114p' src/services/reportGenerationService/financialHealthReport.ts)",
+      "Bash(sed -n '85p;125p' src/services/reportGenerationService/financialHealthReport.ts)",
+      "Bash(sed -i '' \"s/\\(doc as any\\).lastAutoTable.finalY/lastTableY\\(doc\\)/g\" cashFlowReport.ts contributionPatternsReport.ts financialHealthReport.ts arrearsReport.ts comparativeAnalysisReport.ts)",
+      "Bash(sed -i '' \"s/ } from '.\\\\/pdfHelpers';/, lastTableY } from '.\\\\/pdfHelpers';/\" cashFlowReport.ts contributionPatternsReport.ts financialHealthReport.ts arrearsReport.ts comparativeAnalysisReport.ts)",
+      "Bash(sed -i '' 's/\\(\\\\[key, metric\\\\]\\)/\\([, metric]\\)/g' financialHealthReport.ts)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(echo \"---touched-files errors done \\(exit $?\\)---\")",
+      "Bash(npm test *)"
     ],
     "deny": [],
     "ask": []

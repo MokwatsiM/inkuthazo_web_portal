@@ -4,6 +4,7 @@ import {
   query,
   orderBy,
   getDocs,
+  getCountFromServer,
   limit,
   startAfter,
   DocumentData,
@@ -63,8 +64,9 @@ export const useContributions = (): UseContributionsReturn => {
     try {
       setLoading(true);
       const contributionsRef = collection(db, "contributions");
-      const totalSnapshot = await getDocs(query(contributionsRef));
-      const total = totalSnapshot.size;
+      // Aggregation count instead of downloading the whole collection
+      const countSnapshot = await getCountFromServer(contributionsRef);
+      const total = countSnapshot.data().count;
       setTotalPages(Math.ceil(total / ITEMS_PER_PAGE));
 
       let q = query(

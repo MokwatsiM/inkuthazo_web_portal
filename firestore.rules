@@ -5,30 +5,7 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-    
-    function isAdmin() {
-      return isSignedIn() && 
-        exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'admin';
-    }
-    
-    function isMember() {
-      return isSignedIn() && 
-        exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'member';
-    }
-    
-     function isDCMember() {
-      return isSignedIn() && 
-        exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'dc_member';
-    }
 
-    function isChairperson() {
-      return isSignedIn() &&
-        exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'chairperson';
-    }
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
@@ -36,11 +13,12 @@ service cloud.firestore {
     /**
      * Check that the current user is an approved/active member.
      * Used to keep club-transparency data away from pending signups.
+     * Reads the custom claim set by the syncMemberClaims Cloud Function.
      */
     function isApprovedMember() {
       return isSignedIn() &&
-        exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/members/$(request.auth.uid)).data.status in ['approved', 'active'];
+        'status' in request.auth.token &&
+        request.auth.token.status in ['approved', 'active'];
     }
 
     // ========================================
@@ -48,11 +26,13 @@ service cloud.firestore {
     // ========================================
 
     /**
-     * Get the current user's role name from the members collection
+     * Get the current user's role name from the ID token custom claims
+     * (kept in sync with the member document by the syncMemberClaims
+     * Cloud Function). Zero document reads.
      */
     function getUserRole() {
-      return isSignedIn() && exists(/databases/$(database)/documents/members/$(request.auth.uid))
-        ? get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role
+      return isSignedIn() && 'role' in request.auth.token
+        ? request.auth.token.role
         : null;
     }
 

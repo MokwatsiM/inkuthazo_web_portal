@@ -6,7 +6,6 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import * as XLSX from 'xlsx';
 import { format, parse, isValid } from 'date-fns';
 import { ContributionStatus, ContributionType } from '../../types/contribution';
 import { Member } from '../../types';
@@ -35,6 +34,9 @@ export interface AggregatedContribution {
  * Parses CSV/Excel file and returns raw rows
  */
 export const parseImportFile = async (file: File): Promise<any[]> => {
+  // Loaded on demand so the spreadsheet library stays out of the chunks of
+  // pages that only import contributionService for CRUD operations
+  const XLSX = await import('xlsx');
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {

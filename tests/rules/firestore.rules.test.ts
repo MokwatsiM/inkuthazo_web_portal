@@ -88,6 +88,19 @@ const seedData = async () => {
       actor_id: 'someone',
       timestamp: new Date(),
     });
+
+    // In-app notifications (server-written)
+    await db.doc('notifications/notif-approved-member').set({
+      user_id: APPROVED_UID,
+      type: 'contribution_approved',
+      title: 'Contribution approved',
+      body: 'Your monthly contribution of R250.00 has been approved.',
+      link: '/my-contributions',
+      read: false,
+      created_at: new Date(),
+      expires_at: new Date(Date.now() + 90 * 24 * 3600 * 1000),
+      source: { collection: 'contributions', doc_id: 'own-pending' },
+    });
   });
 };
 
@@ -321,5 +334,57 @@ describe('audit_logs collection', () => {
     );
     await assertSucceeds(adminDb().doc('audit_logs/log1').get());
     await assertFails(approvedDb().doc('audit_logs/log1').get());
+  });
+});
+
+describe('notifications collection', () => {
+  const notifId = 'notifications/notif-approved-member';
+
+  it('lets the recipient read their own notifications', async () => {
+    await assertSucceeds(approvedDb().doc(notifId).get());
+    await assertSucceeds(
+      approvedDb()
+        .collection('notifications')
+        .where('user_id', '==', APPROVED_UID)
+        .get()
+    );
+  });
+
+  it('blocks other users (even admins) from reading them', async () => {
+    await assertFails(pendingDb().doc(notifId).get());
+    await assertFails(adminDb().doc(notifId).get());
+  });
+
+  it('denies all client-side creates (server-only writes)', async () => {
+    const doc = {
+      user_id: APPROVED_UID,
+      type: 'claim_approved',
+      title: 'x',
+      body: 'x',
+      link: '/claims',
+      read: false,
+      created_at: new Date(),
+      expires_at: new Date(),
+      source: { collection: 'claims', doc_id: 'c1' },
+    };
+    await assertFails(approvedDb().collection('notifications').add(doc));
+    await assertFails(adminDb().collection('notifications').add(doc));
+  });
+
+  it('lets the recipient mark as read, and nothing else', async () => {
+    await assertSucceeds(approvedDb().doc(notifId).update({ read: true }));
+    await assertFails(
+      approvedDb().doc(notifId).update({ read: false })
+    );
+    await assertFails(
+      approvedDb().doc(notifId).update({ read: true, title: 'TAMPERED' })
+    );
+    await assertFails(pendingDb().doc(notifId).update({ read: true }));
+  });
+
+  it('lets the recipient delete their own notification only', async () => {
+    await assertFails(pendingDb().doc(notifId).delete());
+    await assertFails(adminDb().doc(notifId).delete());
+    await assertSucceeds(approvedDb().doc(notifId).delete());
   });
 });

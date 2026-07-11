@@ -1,12 +1,25 @@
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
-import Mailjet from "node-mailjet";
-import { logger } from "firebase-functions";
-
+import { logger } from "firebase-functions/logger";
+import { sendBrevoEmail, BREVO_API_KEY, APP_URL } from "./notifications/brevo";
+import { emailLayout } from "./notifications/catalogue";
 
 initializeApp();
+
+// Lifecycle notification triggers (in-app + email)
+export {
+  onContributionReviewed,
+  onClaimReviewed,
+  onCreditStatusChanged,
+  onDonationReviewed,
+  onMemberApproved,
+  hostingReminder,
+} from "./notifications/triggers";
+
+// Admin-triggered arrears statement emails
+export { sendArrearsNotices } from "./notifications/arrearsNotice";
 
 interface FirebaseError extends Error {
   code?: string;
@@ -50,12 +63,12 @@ export const syncMemberClaims = functions.firestore
         role: after.role ?? null,
         status: after.status ?? null,
       });
-      functions.logger.info(
+      logger.info(
         `Synced claims for ${memberId}: role=${after.role}, status=${after.status}`
       );
     } catch (error) {
       const firebaseError = error as FirebaseError;
-      functions.logger.error(
+      logger.error(
         `Error syncing claims for ${memberId}: ${firebaseError.message}`
       );
     }
@@ -78,7 +91,7 @@ export const onDeletionRequestUpdated = functions.firestore
         await getAuth().deleteUser(memberId);
 
         // Log the successful deletion
-        functions.logger.info(`Successfully deleted auth user ${memberId}`);
+        logger.info(`Successfully deleted auth user ${memberId}`);
 
         // Update the deletion request with auth deletion status
         await change.after.ref.update({
@@ -88,7 +101,7 @@ export const onDeletionRequestUpdated = functions.firestore
       } catch (error) {
         const firebaseError = error as FirebaseError;
         const errorMessage = firebaseError.message || "Unknown error occurred";
-        functions.logger.error(`Error deleting auth user: ${errorMessage}`);
+        logger.error(`Error deleting auth user: ${errorMessage}`);
 
         // Update the request with the error
         await change.after.ref.update({
@@ -102,7 +115,7 @@ export const onDeletionRequestUpdated = functions.firestore
 // Clean up user data after deletion
 export const cleanupDeletedUserData = functions.auth
   .user()
-  .onDelete(async (user: any) => {
+  .onDelete(async (user) => {
     try {
       // Delete user's storage files
       const bucket = getStorage().bucket();
@@ -117,83 +130,68 @@ export const cleanupDeletedUserData = functions.auth
         prefix: `proof_of_payments/${user.uid}/`,
       });
 
-      functions.logger.info(
+      logger.info(
         `Successfully cleaned up data for user ${user.uid}`
       );
     } catch (error) {
       const firebaseError = error as FirebaseError;
       const errorMessage = firebaseError.message || "Unknown error occurred";
-      functions.logger.error(`Error cleaning up user data: ${errorMessage}`);
+      logger.error(`Error cleaning up user data: ${errorMessage}`);
     }
   });
 
-export const sendMemberInvitation = functions.https.onCall(
-  async (
-    data: EmailData,
-    context
-  ): Promise<{ success: boolean; message?: string }> => {
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "Must be authenticated to send invitations"
-      );
+export const sendMemberInvitation = functions
+  .runWith({ secrets: [BREVO_API_KEY] })
+  .https.onCall(
+    async (
+      data: EmailData,
+      context
+    ): Promise<{ success: boolean; message?: string }> => {
+      if (!context.auth) {
+        throw new functions.https.HttpsError(
+          "unauthenticated",
+          "Must be authenticated to send invitations"
+        );
+      }
+      const { email, fullName, invitationToken } = data;
+
+      // Validate input
+      if (!email || !fullName || !invitationToken) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Missing email, name, or invitationToken"
+        );
+      }
+
+      const registrationUrl =
+        `${APP_URL.value()}/auth/register?token=${invitationToken}`;
+
+      try {
+        await sendBrevoEmail({
+          to: email,
+          toName: fullName,
+          subject: "You are invited to join the Inkuthazo Social Club",
+          html: emailLayout(
+            "You're invited!",
+            `<p>Hi ${fullName},</p>
+             <p>You have been invited to join the Inkuthazo Social Club portal.
+             Click the button below to complete your registration.
+             This invitation expires in 7 days.</p>`,
+            "Complete your registration",
+            registrationUrl
+          ),
+        });
+
+        logger.info(`Invitation email sent to ${email}`);
+        return { success: true, message: "Email sent successfully" };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error("Error sending invitation email:", message);
+        throw new functions.https.HttpsError(
+          "internal",
+          "Failed to send email",
+          message
+        );
+      }
     }
-    const { email, fullName, invitationToken } = data;
-
-    // Validate input
-    if (!email || !fullName || !invitationToken) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "Missing email, name, or invitationToken"
-      );
-    }
-    const mailjet = new Mailjet({
-      apiKey: "1bbeb1984d50fff671202400e7d9e470",
-      apiSecret: "dda067ed5adde03719bc5d95b9ffe5b4",
-    });
-    // const mailjet = Mailjet.apiConnect({
-    //   apiKey: "1bbeb1984d50fff671202400e7d9e470", // Replace with your API key
-    //   apiSecret: "dda067ed5adde03719bc5d95b9ffe5b4", // Replace with your Secret key
-    // });
-
-    const deploymentUrl = functions.config().app.url;
-    const registrationUrl = `${deploymentUrl}/auth/register?token=${invitationToken}`;
-
-    try {
-      const request = mailjet.post("send", { version: "v3.1" }).request({
-        Messages: [
-          {
-            From: {
-              Email: "inkuthazoburialclub@gmail.com",
-              Name: "Inkuthazo Web Portal",
-            },
-            To: [
-              {
-                Email: email,
-                Name: fullName,
-              },
-            ],
-            // TemplateID: YOUR_TEMPLATE_ID, // Replace with your Mailjet template ID
-            // TemplateLanguage: true,
-            Variables: {
-              name: name,
-              registrationLink: registrationUrl,
-            },
-          },
-        ],
-      });
-
-      const response = await request;
-      logger.debug("Email sent successfully:", response.body);
-
-      return { success: true, message: "Email sent successfully" };
-    } catch (error: any) {
-      logger.error("Error sending email:", error.message || error.response);
-      throw new functions.https.HttpsError(
-        "internal",
-        "Failed to send email",
-        error.response?.data || error.message
-      );
-    }
-  }
-);
+  );

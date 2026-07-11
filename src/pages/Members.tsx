@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Trash2, CheckCircle, Mail, Plus } from "lucide-react";
+import { Trash2, CheckCircle, Mail, Plus, Receipt } from "lucide-react";
 import { Link } from "react-router-dom";
 import { isAfter, isBefore, subDays } from "date-fns";
 import Button from "../components/ui/Button";
@@ -19,11 +19,11 @@ import type { Member, MemberStatus } from "../types";
 import { StatusPill } from "../components/ui/Badge";
 import PageHeader from "../components/ui/PageHeader";
 import InviteMemberModal from "../components/members/InviteMemberModal";
+import ArrearsNoticeModal from "../components/members/ArrearsNoticeModal";
 import { useAuth } from "../hooks/useAuth";
 import { inviteMember } from "../services/invitationService";
 import { LoadingSkeleton, LoadingCard } from "../components/ui/LoadingOverlay";
 import PermissionGate from "../components/permissions/PermissionGate";
-import { usePermissionStates } from "../hooks/usePermissionState";
 import logger from "../utils/logger";
 // import { useAnalytics } from "../hooks/useAnalytics";
 
@@ -31,11 +31,11 @@ const Members: React.FC = () => {
   const { members, loading, addMember, deleteMember, updateMember } =
     useMembers();
   const { userDetails } = useAuth();
-  const permissions = usePermissionStates('members', ['create', 'edit', 'delete', 'export']);
 
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isArrearsModalOpen, setIsArrearsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -212,6 +212,15 @@ const Members: React.FC = () => {
               currentView={currentView}
               onViewChange={setCurrentView}
             />
+            <PermissionGate resource="members" action="view">
+              <Button
+                variant="secondary"
+                icon={Receipt}
+                onClick={() => setIsArrearsModalOpen(true)}
+              >
+                Arrears Notices
+              </Button>
+            </PermissionGate>
             <PermissionGate resource="members" action="create">
               <Button icon={Mail} onClick={() => setIsInviteModalOpen(true)}>
                 Invite Member
@@ -353,7 +362,7 @@ const Members: React.FC = () => {
                   {formatDate(member.join_date)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusPill status={member.status as any} />
+                  <StatusPill status={member.status} />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-2">
@@ -393,6 +402,11 @@ const Members: React.FC = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddMember}
+      />
+
+      <ArrearsNoticeModal
+        isOpen={isArrearsModalOpen}
+        onClose={() => setIsArrearsModalOpen(false)}
       />
 
       <InviteMemberModal

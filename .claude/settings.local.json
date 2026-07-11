@@ -28,7 +28,11 @@
       "Bash(sed -i '' 's/\\(\\\\[key, metric\\\\]\\)/\\([, metric]\\)/g' financialHealthReport.ts)",
       "Bash(echo \"exit: $?\")",
       "Bash(echo \"---touched-files errors done \\(exit $?\\)---\")",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(npm config *)",
+      "Bash(cp ~/.npmrc ~/.npmrc.backup)",
+      "Read(//Users/motebangmpmokwatsi/**)",
+      "Bash(sed -i '' '/^os[= ]/d' ~/.npmrc)"
     ],
     "deny": [],
     "ask": []

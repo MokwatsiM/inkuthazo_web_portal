@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { PlusCircle, ExternalLink, FileX } from "lucide-react";
+import { PlusCircle, ExternalLink, FileX, FileText } from "lucide-react";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../hooks/useAuth";
@@ -8,6 +8,7 @@ import Table from "../components/ui/Table";
 import PageHeader from "../components/ui/PageHeader";
 import SearchInput from "../components/ui/SearchInput";
 import AddContributionModal from "../components/contributions/AddContributionModal";
+import StatementModal from "../components/members/StatementModal";
 import StatCard from "../components/stats/StatCard";
 import { formatDate } from "../utils/dateUtils";
 import type { Contribution } from "../types/contribution";
@@ -28,6 +29,7 @@ const MyContributions: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // Number of items per page
   const { showError, showSuccess } = useNotifications();
@@ -130,10 +132,20 @@ const MyContributions: React.FC = () => {
           title="My Contributions"
           description="View and manage your contributions"
           actions={
-            <Button icon={PlusCircle} onClick={() => setIsAddModalOpen(true)}>
-              <span className="hidden md:inline">Add Contribution</span>
-              <span className="md:hidden sr-only">Add</span>
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="secondary"
+                icon={FileText}
+                onClick={() => setIsStatementModalOpen(true)}
+              >
+                <span className="hidden md:inline">Download Statement</span>
+                <span className="md:hidden sr-only">Statement</span>
+              </Button>
+              <Button icon={PlusCircle} onClick={() => setIsAddModalOpen(true)}>
+                <span className="hidden md:inline">Add Contribution</span>
+                <span className="md:hidden sr-only">Add</span>
+              </Button>
+            </div>
           }
         />
       ) : (
@@ -272,6 +284,15 @@ const MyContributions: React.FC = () => {
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddContribution}
           isAdmin={false}
+        />
+      )}
+
+      {isApproved && userDetails && (
+        <StatementModal
+          isOpen={isStatementModalOpen}
+          onClose={() => setIsStatementModalOpen(false)}
+          member={userDetails}
+          preloaded={{ contributions }}
         />
       )}
     </div>

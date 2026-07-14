@@ -18,7 +18,7 @@ import MemberStats from "../components/members/MemberStats";
 import ContributionsHistory from "../components/members/ContributionsHistoryStory";
 import PayoutsHistory from "../components/members/PayoutsHistoryStory";
 import DependantsSection from "../components/dependants/DependantsSection";
-import { generateMemberStatement } from "../utils/reportGenerator";
+import StatementModal from "../components/members/StatementModal";
 import type { MemberDetail as MemberDetailType } from "../types";
 import type { Contribution } from "../types/contribution";
 import type { Payout } from "../types/payout";
@@ -40,6 +40,7 @@ const MemberDetail: React.FC = () => {
   const [member, setMember] = useState<MemberDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
 
@@ -208,7 +209,7 @@ const MemberDetail: React.FC = () => {
                 <span className="sm:hidden">Edit</span>
               </Button>
               <button
-                onClick={() => generateMemberStatement(member)}
+                onClick={() => setIsStatementModalOpen(true)}
                 className="inline-flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-600/20 px-3.5 py-2 text-sm font-semibold text-indigo-700 dark:text-indigo-200 hover:bg-indigo-600/30 hover:ring-1 hover:ring-indigo-400/30 active:scale-[0.98] transition"
               >
                 <FileText className="h-5 w-5 shrink-0" />
@@ -369,6 +370,16 @@ const MemberDetail: React.FC = () => {
         onClose={() => setIsEditModalOpen(false)}
         onSubmit={handleUpdateMember}
         member={member}
+      />
+
+      <StatementModal
+        isOpen={isStatementModalOpen}
+        onClose={() => setIsStatementModalOpen(false)}
+        member={member}
+        preloaded={{
+          contributions: member.contributions,
+          payouts: member.payouts,
+        }}
       />
     </div>
   );

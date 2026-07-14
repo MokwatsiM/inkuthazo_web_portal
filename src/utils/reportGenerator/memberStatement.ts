@@ -1,121 +1,205 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
-import type { MemberDetail } from '../../types';
+import type { Member } from '../../types';
+import type { Contribution } from '../../types/contribution';
+import type { Payout } from '../../types/payout';
+import type { Credit } from '../../types/credit';
 import { formatDate } from '../dateUtils';
+import { addLogo } from '../pdf/logo';
+import {
+  StatementPeriod,
+  filterByPeriod,
+  computeStatementSummary,
+  isStatementCredit,
+  periodLabel,
+  periodFileSuffix,
+} from './statementHelpers';
 
-export const generateMemberStatement = (member: MemberDetail): void => {
+/**
+ * Member statement PDF: member details, period-scoped financial summary,
+ * contributions, payouts, credits, and dependants.
+ */
+
+export interface StatementData {
+  member: Member;
+  contributions: Contribution[];
+  payouts: Payout[];
+  credits: Credit[];
+}
+
+// jspdf-autotable attaches its state to the document at runtime
+type WithAutoTable = jsPDF & { lastAutoTable: { finalY: number } };
+const lastTableY = (doc: jsPDF): number =>
+  (doc as WithAutoTable).lastAutoTable.finalY;
+
+const INDIGO: [number, number, number] = [79, 70, 229];
+const rand = (amount: number) => `R ${amount.toFixed(2)}`;
+
+export const generateMemberStatement = async (
+  data: StatementData,
+  period: StatementPeriod
+): Promise<void> => {
+  const { member } = data;
+  const contributions = filterByPeriod(data.contributions, (c) => c.date, period);
+  const payouts = filterByPeriod(data.payouts, (p) => p.date, period);
+  const credits = filterByPeriod(
+    data.credits.filter(isStatementCredit),
+    (c) => c.created_at,
+    period
+  );
+  const summary = computeStatementSummary(contributions, payouts, credits);
+
   const doc = new jsPDF();
-  
+  const pageHeight = doc.internal.pageSize.height;
+
+  await addLogo(doc);
+
   // Header
   doc.setFontSize(20);
   doc.text('Member Statement', 20, 20);
-  
+  doc.setFontSize(11);
+  doc.setTextColor(107, 114, 128);
+  doc.text(`Period: ${periodLabel(period)}`, 20, 27);
+  doc.setTextColor(0, 0, 0);
+
   // Member Details
   doc.setFontSize(12);
-  doc.text(`Name: ${member.full_name}`, 20, 35);
-  doc.text(`Email: ${member.email}`, 20, 45);
-  doc.text(`Phone: ${member.phone}`, 20, 55);
-  doc.text(`Join Date: ${formatDate(member.join_date)}`, 20, 65);
-  doc.text(`Status: ${member.status}`, 20, 75);
+  doc.text(`Name: ${member.full_name}`, 20, 40);
+  doc.text(`Email: ${member.email}`, 20, 48);
+  doc.text(`Phone: ${member.phone}`, 20, 56);
+  doc.text(`Join Date: ${formatDate(member.join_date)}`, 20, 64);
+  doc.text(`Status: ${member.status}`, 20, 72);
 
-  // Contributions Summary
-  const approvedContributions = member.contributions.filter(c => c.status === 'approved');
-  const totalApproved = approvedContributions.reduce((sum, c) => sum + c.amount, 0);
-  const totalPending = member.contributions
-    .filter(c => c.status === 'pending')
-    .reduce((sum, c) => sum + c.amount, 0);
-  const totalRejected = member.contributions
-    .filter(c => c.status === 'rejected')
-    .reduce((sum, c) => sum + c.amount, 0);
-  const totalPayouts = member.payouts.reduce((sum, p) => sum + p.amount, 0);
-  const balance = totalApproved - totalPayouts;
+  // Starts a new page when there is no room left for a heading + a few rows
+  const sectionStart = (afterY: number): number => {
+    if (afterY > pageHeight - 50) {
+      doc.addPage();
+      return 20;
+    }
+    return afterY;
+  };
 
-  doc.text('Financial Summary', 20, 90);
-  const summaryData = [
-    ['Total Approved Contributions', `R ${totalApproved.toFixed(2)}`],
-    ['Pending Contributions', `R ${totalPending.toFixed(2)}`],
-    ['Rejected Contributions', `R ${totalRejected.toFixed(2)}`],
-    ['Total Payouts', `R ${totalPayouts.toFixed(2)}`],
-    ['Current Balance', `R ${balance.toFixed(2)}`]
+  const drawTable = (
+    title: string,
+    startAfterY: number,
+    head: string[],
+    body: (string | number)[][],
+    emptyMessage: string
+  ): void => {
+    const y = sectionStart(startAfterY);
+    doc.setFontSize(12);
+    doc.text(title, 20, y);
+    autoTable(doc, {
+      startY: y + 5,
+      head: [head],
+      body: body.length > 0 ? body : [[emptyMessage, ...head.slice(1).map(() => '')]],
+      theme: 'striped',
+      headStyles: { fillColor: INDIGO },
+    });
+  };
+
+  // Financial Summary (period-scoped)
+  const summaryRows: (string | number)[][] = [
+    ['Total Approved Contributions', rand(summary.totalApproved)],
+    ['Pending Contributions', rand(summary.totalPending)],
+    ['Rejected Contributions', rand(summary.totalRejected)],
+    ['Total Payouts', rand(summary.totalPayouts)],
+    ['Net Balance (approved − payouts)', rand(summary.netBalance)],
+    ['Credits Issued', rand(summary.totalCredited)],
+    ['Credit Repayments', rand(summary.totalCreditRepaid)],
+    ['Outstanding Credit Balance *', rand(summary.outstandingCreditBalance)],
   ];
-
-  autoTable(doc, {
-    startY: 95,
-    head: [['Description', 'Amount']],
-    body: summaryData,
-    theme: 'striped',
-    headStyles: { fillColor: [79, 70, 229] }
-  });
+  drawTable('Financial Summary', 85, ['Description', 'Amount'], summaryRows, '');
+  doc.setFontSize(8);
+  doc.setTextColor(107, 114, 128);
+  doc.text(
+    '* Current balance as of the statement date, not period-scoped.',
+    20,
+    lastTableY(doc) + 5
+  );
+  doc.setTextColor(0, 0, 0);
 
   // Contributions History
-  const contributionsY = (doc as any).lastAutoTable.finalY + 15;
-  doc.text('Contributions History', 20, contributionsY);
-
-  const contributionsData = member.contributions.map(contribution => [
-    formatDate(contribution.date),
-    contribution.type,
-    `R ${contribution.amount.toFixed(2)}`,
-    contribution.status,
-    contribution.review_notes || '-'
-  ]);
-
-  autoTable(doc, {
-    startY: contributionsY + 5,
-    head: [['Date', 'Type', 'Amount', 'Status', 'Notes']],
-    body: contributionsData,
-    theme: 'striped',
-    headStyles: { fillColor: [79, 70, 229] }
-  });
-
-  // Payouts History
-  const payoutsY = (doc as any).lastAutoTable.finalY + 15;
-  doc.text('Payouts History', 20, payoutsY);
-
-  const payoutsData = member.payouts.map(payout => [
-    formatDate(payout.date),
-    payout.reason,
-    payout.status,
-    `R ${payout.amount.toFixed(2)}`
-  ]);
-
-  autoTable(doc, {
-    startY: payoutsY + 5,
-    head: [['Date', 'Reason', 'Status', 'Amount']],
-    body: payoutsData,
-    theme: 'striped',
-    headStyles: { fillColor: [79, 70, 229] }
-  });
-
-  // Dependants Section
-  if (member.dependants && member.dependants.length > 0) {
-    const dependantsY = (doc as any).lastAutoTable.finalY + 15;
-    doc.text('Registered Dependants', 20, dependantsY);
-
-    const dependantsData = member.dependants.map(dependant => [
-      dependant.full_name,
-      dependant.relationship,
-      formatDate(dependant.date_of_birth),
-      dependant.id_number
-    ]);
-
-    autoTable(doc, {
-      startY: dependantsY + 5,
-      head: [['Name', 'Relationship', 'Date of Birth', 'ID Number']],
-      body: dependantsData,
-      theme: 'striped',
-      headStyles: { fillColor: [79, 70, 229] }
-    });
-  }
-
-  // Footer
-  doc.setFontSize(10);
-  doc.text(
-    `Generated on ${format(new Date(), 'dd MMM yyyy HH:mm')}`,
-    20,
-    doc.internal.pageSize.height - 10
+  drawTable(
+    'Contributions History',
+    lastTableY(doc) + 15,
+    ['Date', 'Type', 'Amount', 'Status', 'Notes'],
+    contributions.map((contribution) => [
+      formatDate(contribution.date),
+      contribution.type,
+      rand(contribution.amount),
+      contribution.status,
+      contribution.review_notes || '-',
+    ]),
+    'No contributions in selected period'
   );
 
-  // Save the PDF
-  doc.save(`${member.full_name.toLowerCase().replace(/\s+/g, '-')}-statement.pdf`);
+  // Payouts History
+  drawTable(
+    'Payouts History',
+    lastTableY(doc) + 15,
+    ['Date', 'Reason', 'Status', 'Amount'],
+    payouts.map((payout) => [
+      formatDate(payout.date),
+      payout.reason,
+      payout.status,
+      rand(payout.amount),
+    ]),
+    'No payouts in selected period'
+  );
+
+  // Credits
+  drawTable(
+    'Credits',
+    lastTableY(doc) + 15,
+    ['Date', 'Reason', 'Total', 'Paid', 'Balance', 'Status'],
+    credits.map((credit) => [
+      formatDate(credit.created_at),
+      credit.reason,
+      rand(credit.terms?.total_amount ?? 0),
+      rand(credit.total_paid ?? 0),
+      rand(credit.remaining_balance ?? 0),
+      credit.status,
+    ]),
+    'No credits in selected period'
+  );
+
+  // Dependants (current, not period-scoped)
+  if (member.dependants && member.dependants.length > 0) {
+    drawTable(
+      'Registered Dependants',
+      lastTableY(doc) + 15,
+      ['Name', 'Relationship', 'Date of Birth', 'ID Number'],
+      member.dependants.map((dependant) => [
+        dependant.full_name,
+        dependant.relationship,
+        formatDate(dependant.date_of_birth),
+        dependant.id_number,
+      ]),
+      ''
+    );
+  }
+
+  // Footer on every page
+  const totalPages = doc.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page++) {
+    doc.setPage(page);
+    doc.setFontSize(10);
+    doc.setTextColor(107, 114, 128);
+    doc.text(
+      `Generated on ${format(new Date(), 'dd MMM yyyy HH:mm')}`,
+      20,
+      pageHeight - 10
+    );
+    doc.text(
+      `Page ${page} of ${totalPages}`,
+      doc.internal.pageSize.width - 40,
+      pageHeight - 10
+    );
+    doc.setTextColor(0, 0, 0);
+  }
+
+  const name = member.full_name.toLowerCase().replace(/\s+/g, '-');
+  doc.save(`${name}-statement-${periodFileSuffix(period)}.pdf`);
 };

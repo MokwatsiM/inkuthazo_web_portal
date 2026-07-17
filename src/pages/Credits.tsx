@@ -1,23 +1,21 @@
 // src/pages/Credits.tsx
 import React, { useState, useEffect } from 'react';
-import { Plus, DollarSign, TrendingUp, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Plus, DollarSign, TrendingUp, CheckCircle, AlertCircle, Loader2, Mail } from 'lucide-react';
 import Button from '../components/ui/Button';
-import { useAuth } from '../hooks/useAuth';
 import { getCredits, getCreditSummary } from '../services/creditService';
 import CreateCreditModal from '../components/credits/CreateCreditModal';
 import CreditDetailModal from '../components/credits/CreditDetailModal';
+import CreditNoticeModal from '../components/credits/CreditNoticeModal';
 import PermissionGate from '../components/permissions/PermissionGate';
-import { usePermissionState } from '../hooks/usePermissionState';
 import type { Credit, CreditSummary as CreditSummaryType, CreditStatus } from '../types/credit';
 import logger from '../utils/logger';
 
 const Credits: React.FC = () => {
-  const { user } = useAuth();
-  const createPermission = usePermissionState('credits', 'create');
   const [loading, setLoading] = useState(true);
   const [credits, setCredits] = useState<Credit[]>([]);
   const [summary, setSummary] = useState<CreditSummaryType | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showNoticeModal, setShowNoticeModal] = useState(false);
   const [selectedCredit, setSelectedCredit] = useState<Credit | null>(null);
   const [statusFilter, setStatusFilter] = useState<CreditStatus | 'all'>('all');
 
@@ -84,12 +82,24 @@ const Credits: React.FC = () => {
               Manage member credits and loans
             </p>
           </div>
-          <PermissionGate resource="credits" action="create">
-            <Button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              Create Credit
-            </Button>
-          </PermissionGate>
+          <div className="flex items-center gap-3">
+            <PermissionGate resource="credits" action="view">
+              <Button
+                variant="secondary"
+                onClick={() => setShowNoticeModal(true)}
+                className="flex items-center gap-2"
+              >
+                <Mail className="w-5 h-5" />
+                Credit Notices
+              </Button>
+            </PermissionGate>
+            <PermissionGate resource="credits" action="create">
+              <Button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2">
+                <Plus className="w-5 h-5" />
+                Create Credit
+              </Button>
+            </PermissionGate>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -322,6 +332,11 @@ const Credits: React.FC = () => {
           onUpdate={fetchData}
         />
       )}
+
+      <CreditNoticeModal
+        isOpen={showNoticeModal}
+        onClose={() => setShowNoticeModal(false)}
+      />
     </div>
   );
 };

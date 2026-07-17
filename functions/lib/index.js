@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendMemberInvitation = exports.cleanupDeletedUserData = exports.onDeletionRequestUpdated = exports.syncMemberClaims = exports.sendArrearsNotices = exports.hostingReminder = exports.onMemberApproved = exports.onDonationReviewed = exports.onCreditStatusChanged = exports.onClaimReviewed = exports.onContributionReviewed = void 0;
+exports.sendMemberInvitation = exports.cleanupDeletedUserData = exports.onDeletionRequestUpdated = exports.syncMemberClaims = exports.sendCreditNotices = exports.sendArrearsNotices = exports.hostingReminder = exports.onMemberApproved = exports.onDonationReviewed = exports.onCreditStatusChanged = exports.onClaimReviewed = exports.onContributionReviewed = void 0;
 const functions = require("firebase-functions/v1");
 const app_1 = require("firebase-admin/app");
 const auth_1 = require("firebase-admin/auth");
@@ -20,6 +20,9 @@ Object.defineProperty(exports, "hostingReminder", { enumerable: true, get: funct
 // Admin-triggered arrears statement emails
 var arrearsNotice_1 = require("./notifications/arrearsNotice");
 Object.defineProperty(exports, "sendArrearsNotices", { enumerable: true, get: function () { return arrearsNotice_1.sendArrearsNotices; } });
+// Admin-triggered outstanding-credit statement emails
+var creditNotice_1 = require("./notifications/creditNotice");
+Object.defineProperty(exports, "sendCreditNotices", { enumerable: true, get: function () { return creditNotice_1.sendCreditNotices; } });
 // Keep Firebase Auth custom claims (role, status) in sync with the member
 // document. Security rules authorize from request.auth.token.role/status,
 // so this must run whenever either field changes. Existing sessions pick up

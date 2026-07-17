@@ -9,12 +9,13 @@ import QuickActions from "../components/dashboard/QuickActions";
 import UpcomingEvents from "../components/dashboard/UpcomingEvents";
 import AttendanceStats from "../components/dashboard/AttendanceStats";
 import BulkImportModal from "../components/contributions/BulkImportModal";
+import BankStatementImportModal from "../components/contributions/BankStatementImportModal";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import {
   Users, DollarSign, TrendingUp, Calendar, UserPlus,
   PlusCircle, BarChart3, Settings, Mail, Clock,
   AlertTriangle, Eye, Activity, ArrowUp, ArrowDown,
-  Database
+  Database, Landmark
 } from "lucide-react";
 
 const COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
@@ -31,6 +32,7 @@ const Dashboard: React.FC = () => {
     refetch,
   } = useDashboardData();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isBankImportOpen, setIsBankImportOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -90,6 +92,13 @@ const Dashboard: React.FC = () => {
       icon: Database,
       onClick: () => setIsImportModalOpen(true),
       color: 'indigo' as const
+    },
+    {
+      title: "Import Bank Statement",
+      description: "Match statement credits to member contributions",
+      icon: Landmark,
+      onClick: () => setIsBankImportOpen(true),
+      color: 'green' as const
     }
   ];
 
@@ -342,6 +351,12 @@ const Dashboard: React.FC = () => {
       <BulkImportModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => refetch()}
+      />
+
+      <BankStatementImportModal
+        isOpen={isBankImportOpen}
+        onClose={() => setIsBankImportOpen(false)}
         onSuccess={() => refetch()}
       />
     </div>

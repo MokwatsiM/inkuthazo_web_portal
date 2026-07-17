@@ -16,6 +16,7 @@ const ALL_TYPES: NotificationType[] = [
   "member_approved",
   "hosting_reminder",
   "arrears_notice",
+  "credit_notice",
 ];
 
 // Routes registered in src/App.tsx that notifications may deep-link to
@@ -103,6 +104,52 @@ describe("buildArrearsStatementHtml", () => {
     const { buildArrearsStatementHtml } = await import("./catalogue");
     const html = buildArrearsStatementHtml("<b>x</b>", [], 0);
     expect(html).not.toContain("<b>x</b>");
+    expect(html).toContain("&lt;b&gt;");
+  });
+});
+
+describe("buildCreditStatementHtml", () => {
+  it("renders a row per outstanding credit plus the total", async () => {
+    const { buildCreditStatementHtml } = await import("./catalogue");
+    const html = buildCreditStatementHtml(
+      "Thabo Mokoena",
+      [
+        {
+          reason: "Emergency loan",
+          issuedDate: "10 Jan 2026",
+          totalAmount: 1000,
+          totalPaid: 400,
+          remainingBalance: 600,
+        },
+      ],
+      600
+    );
+    expect(html).toContain("Thabo Mokoena");
+    expect(html).toContain("Emergency loan");
+    expect(html).toContain("10 Jan 2026");
+    expect(html).toContain("R1000.00");
+    expect(html).toContain("R400.00");
+    expect(html).toContain("R600.00");
+    expect(html).toContain("Total outstanding");
+  });
+
+  it("escapes HTML in reasons and names", async () => {
+    const { buildCreditStatementHtml } = await import("./catalogue");
+    const html = buildCreditStatementHtml(
+      "<b>x</b>",
+      [
+        {
+          reason: "<script>bad</script>",
+          issuedDate: "x",
+          totalAmount: 0,
+          totalPaid: 0,
+          remainingBalance: 0,
+        },
+      ],
+      0
+    );
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&lt;script&gt;");
     expect(html).toContain("&lt;b&gt;");
   });
 });

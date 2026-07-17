@@ -135,6 +135,13 @@ export function renderNotification(
         link: "/my-contributions",
         ctaLabel: "View my contributions",
       });
+    case "credit_notice":
+      return finalize({
+        title: "Outstanding credit notice",
+        body: `You have an outstanding credit balance of ${amount}. Please continue your repayments to settle it.`,
+        link: "/my-credit",
+        ctaLabel: "View my credit",
+      });
   }
 }
 
@@ -184,6 +191,57 @@ export function buildArrearsStatementHtml(
     <p>Please settle the outstanding amount at your earliest convenience.
     If you believe this is incorrect or have already paid, please contact
     the treasurer.</p>`;
+}
+
+export interface CreditNoticeLine {
+  reason: string;
+  issuedDate: string;
+  totalAmount: number;
+  totalPaid: number;
+  remainingBalance: number;
+}
+
+/**
+ * Statement table for outstanding-credit notice emails: one row per
+ * unsettled credit plus a total row. Pure — unit-testable.
+ */
+export function buildCreditStatementHtml(
+  memberName: string,
+  credits: CreditNoticeLine[],
+  totalOutstanding: number
+): string {
+  const rows = credits
+    .map(
+      (credit) => `<tr>
+        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${escapeHtml(credit.issuedDate)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;">${escapeHtml(credit.reason)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;">R${credit.totalAmount.toFixed(2)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;">R${credit.totalPaid.toFixed(2)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;text-align:right;">R${credit.remainingBalance.toFixed(2)}</td>
+      </tr>`
+    )
+    .join("");
+
+  return `<p>Dear ${escapeHtml(memberName)},</p>
+    <p>According to our records, you have credit that has not yet been
+    settled. Below is a statement of your outstanding credit:</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;border-collapse:collapse;margin:16px 0;">
+      <tr style="background-color:#f9fafb;">
+        <th style="padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;">Issued</th>
+        <th style="padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;">Reason</th>
+        <th style="padding:8px 12px;text-align:right;border-bottom:1px solid #e5e7eb;">Total</th>
+        <th style="padding:8px 12px;text-align:right;border-bottom:1px solid #e5e7eb;">Paid</th>
+        <th style="padding:8px 12px;text-align:right;border-bottom:1px solid #e5e7eb;">Balance</th>
+      </tr>
+      ${rows}
+      <tr style="background-color:#fef2f2;">
+        <td colspan="4" style="padding:10px 12px;font-weight:bold;">Total outstanding</td>
+        <td style="padding:10px 12px;text-align:right;font-weight:bold;color:#dc2626;">R${totalOutstanding.toFixed(2)}</td>
+      </tr>
+    </table>
+    <p>Please continue your repayments to settle the balance. If you believe
+    this is incorrect or have recently made a payment, please contact the
+    treasurer.</p>`;
 }
 
 /**

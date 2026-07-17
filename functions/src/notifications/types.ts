@@ -11,7 +11,8 @@ export type NotificationType =
   | "donation_rejected"
   | "member_approved"
   | "hosting_reminder"
-  | "arrears_notice";
+  | "arrears_notice"
+  | "credit_notice";
 
 export interface NotificationEvent {
   type: NotificationType;

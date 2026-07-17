@@ -78,6 +78,19 @@ day). Statements are account notices and are sent regardless of the
 member's `email_notifications` preference. Per-member failures are
 reported back in the modal; max 100 notices per call.
 
+## Credit notices (admin-triggered)
+
+Credits page → **Credit Notices** button (requires the `credits.view`
+permission — the same one that grants access to the page). The modal lists
+members with unsettled credit (status `active`/`defaulted` with a
+remaining balance, grouped per member), lets the admin select recipients,
+and calls the `sendCreditNotices` callable. Same guarantees as arrears
+notices: permission re-checked server-side against `roles/{token.role}`,
+recipient emails resolved from member documents, statement email (one row
+per credit: issued date, reason, total, paid, balance) plus an in-app
+`credit_notice` notification deduped per member per day, sent regardless
+of the `email_notifications` preference; max 100 notices per call.
+
 ## Limits & notes
 
 - Brevo free tier: 300/day. Bulk donation approvals send one email per

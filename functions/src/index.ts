@@ -21,6 +21,9 @@ export {
 // Admin-triggered arrears statement emails
 export { sendArrearsNotices } from "./notifications/arrearsNotice";
 
+// Admin-triggered outstanding-credit statement emails
+export { sendCreditNotices } from "./notifications/creditNotice";
+
 interface FirebaseError extends Error {
   code?: string;
   message: string;

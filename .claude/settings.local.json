@@ -32,7 +32,9 @@
       "Bash(npm config *)",
       "Bash(cp ~/.npmrc ~/.npmrc.backup)",
       "Read(//Users/motebangmpmokwatsi/**)",
-      "Bash(sed -i '' '/^os[= ]/d' ~/.npmrc)"
+      "Bash(sed -i '' '/^os[= ]/d' ~/.npmrc)",
+      "Bash(sed -n '44,120p' src/utils/initializeRoles.ts)",
+      "Bash(sed -n '80,95p' src/pages/LandingPage.tsx)"
     ],
     "deny": [],
     "ask": []

@@ -91,6 +91,33 @@ per credit: issued date, reason, total, paid, balance) plus an in-app
 `credit_notice` notification deduped per member per day, sent regardless
 of the `email_notifications` preference; max 100 notices per call.
 
+## Registration & email verification
+
+New signups now receive a **branded** verification email (Brevo, same
+template as notices) instead of Firebase's default. The client calls the
+`sendBrandedVerificationEmail` callable after creating the member doc; it
+mints the link with the Admin SDK's `generateEmailVerificationLink` and
+sends it via `sendBrevoEmail`. If the callable fails, the client falls
+back to Firebase's built-in `sendEmailVerification`, so signup is never
+blocked.
+
+**Access lifecycle (enforced by `ApprovedRoute`):**
+- signed in but email **not verified** → `/auth/verify-email` (resend +
+  "I've verified" continue)
+- verified but **pending** admin approval → can only reach their own
+  profile (`/members/{id}`); every other route redirects there, with an
+  "awaiting approval" banner and money sections/actions suppressed
+- **approved/active** → full access
+
+This closes the previous gap where a verified-but-unapproved member could
+open most feature pages. `PermissionBasedRoute` also no longer renders
+gated pages while permissions load (it shows a spinner).
+
+**Firebase console step:** ensure the portal origin is an *authorized
+domain* (Auth → Settings) so the verification link resolves; optionally
+disable the default Firebase verification template once the branded one is
+live.
+
 ## Limits & notes
 
 - Brevo free tier: 300/day. Bulk donation approvals send one email per

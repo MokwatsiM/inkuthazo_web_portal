@@ -23,7 +23,7 @@ import {
   Users,
   UserX,
 } from 'lucide-react';
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../components/avatar/Avatar';
 import Button from '../components/ui/Button';
@@ -33,26 +33,11 @@ import { usePermissions } from '../hooks/usePermissions';
 import { ResourceType } from '../types/role';
 import logger from '../utils/logger';
 
-const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { signOut, userDetails } = useAuth();
-  const { canView } = usePermissions();
-
-  useEffect(() => {
-    // Add external scripts for fonts if needed
-  }, []);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/auth/login');
-    } catch (error) {
-      logger.error('Error signing out:', error);
-    }
-  };
-
-  // All available navigation tiles with their resource permissions
-  const allNavigationTiles = [
+// All available navigation tiles with their resource permissions.
+// Defined at module scope so it is a stable reference across renders
+// (rebuilding it each render defeats the useMemo below and can feed render
+// loops in consumers).
+const allNavigationTiles = [
     { title: 'Home', description: 'Overview and quick insights', icon: Home, iconBg: 'bg-slate-50 dark:bg-slate-700', iconColor: 'text-slate-700 dark:text-slate-200', badge: null, link: '/home', resource: 'home' as ResourceType },
     { title: 'Members', description: 'Manage member records', icon: Users, iconBg: 'bg-indigo-50 dark:bg-indigo-900/50', iconColor: 'text-indigo-600 dark:text-indigo-300', badge: null, link: '/members', resource: 'members' as ResourceType },
     { title: 'Payouts', description: 'Disbursements and status', icon: Banknote, iconBg: 'bg-green-50 dark:bg-green-900/50', iconColor: 'text-green-600 dark:text-green-300', badge: null, link: '/payouts', resource: 'payouts' as ResourceType },
@@ -75,13 +60,27 @@ const LandingPage: React.FC = () => {
     { title: 'My Contributions', description: 'View your payment history', icon: CreditCard, iconBg: 'bg-emerald-50 dark:bg-emerald-900/50', iconColor: 'text-emerald-600 dark:text-emerald-300', badge: null, link: '/my-contributions', resource: 'my_contributions' as ResourceType },
     { title: 'My Donations', description: 'My Investments & contributions', icon: Gift, iconBg: 'bg-purple-50 dark:bg-purple-900/50', iconColor: 'text-purple-600 dark:text-purple-300', badge: null, link: '/my-donations', resource: 'my_donations' as ResourceType },
     { title: 'My Credit', description: 'View your credit & payments', icon: HandCoins, iconBg: 'bg-green-50 dark:bg-green-900/50', iconColor: 'text-green-600 dark:text-green-300', badge: null, link: '/my-credit', resource: 'my_credit' as ResourceType },
-    { title: 'My Hosting Schedule', description: 'View your hosting duties', icon: CalendarClock, iconBg: 'bg-cyan-50 dark:bg-cyan-900/50', iconColor: 'text-cyan-600 dark:text-cyan-300', badge: null, link: '/my-hosting-schedule', resource: 'my_hosting_schedule' as ResourceType },
-  ];
+  { title: 'My Hosting Schedule', description: 'View your hosting duties', icon: CalendarClock, iconBg: 'bg-cyan-50 dark:bg-cyan-900/50', iconColor: 'text-cyan-600 dark:text-cyan-300', badge: null, link: '/my-hosting-schedule', resource: 'my_hosting_schedule' as ResourceType },
+];
+
+const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { signOut, userDetails } = useAuth();
+  const { canView } = usePermissions();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/auth/login');
+    } catch (error) {
+      logger.error('Error signing out:', error);
+    }
+  };
 
   // Filter tiles based on user's permissions
   const navigationTiles = useMemo(() => {
     return allNavigationTiles.filter(tile => canView(tile.resource));
-  }, [allNavigationTiles, canView]);
+  }, [canView]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

@@ -24,6 +24,9 @@ export { sendArrearsNotices } from "./notifications/arrearsNotice";
 // Admin-triggered outstanding-credit statement emails
 export { sendCreditNotices } from "./notifications/creditNotice";
 
+// Branded (Brevo) email-verification message for new signups
+export { sendBrandedVerificationEmail } from "./notifications/verificationEmail";
+
 interface FirebaseError extends Error {
   code?: string;
   message: string;

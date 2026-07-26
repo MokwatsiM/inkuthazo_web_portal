@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { auth, db } from "../config/firebase";
 import type { Member } from "../types";
 import { useNotifications } from "./useNotifications";
@@ -35,6 +36,21 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+/**
+ * Send a branded (Brevo) verification email via the Cloud Function, falling
+ * back to Firebase's default email if the function is unavailable — signup
+ * must never be blocked by the branded path failing.
+ */
+const sendVerificationEmail = async (user: User): Promise<void> => {
+  try {
+    const callable = httpsCallable(getFunctions(), "sendBrandedVerificationEmail");
+    await callable();
+  } catch (error) {
+    logger.error("Branded verification email failed, using default:", error);
+    await sendEmailVerification(user);
+  }
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -105,11 +121,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         password
       );
 
-      // Send email verification
-      if (result.user) {
-        await sendEmailVerification(result.user);
-      }
-
       const newMember: Omit<Member, "id"> = {
         full_name: fullName,
         email,
@@ -121,6 +132,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const userDocRef = doc(db, "members", result.user.uid);
       await setDoc(userDocRef, newMember);
+
+      // Send branded email verification (after the member doc exists, since
+      // the function reads the account). Falls back to the default email.
+      if (result.user) {
+        await sendVerificationEmail(result.user);
+      }
 
       // Fetch the newly created user details
       await fetchUserDetails(result.user);
@@ -184,7 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const resendVerificationEmail = async (): Promise<void> => {
     if (user) {
       try {
-        await sendEmailVerification(user);
+        await sendVerificationEmail(user);
         showSuccess("Verification email sent");
       } catch (error: unknown) {
         if (error instanceof FirebaseError) {

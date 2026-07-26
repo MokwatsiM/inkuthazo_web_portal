@@ -27,7 +27,7 @@ import ClaimsSection from "../components/claims/ClaimsSection";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import EmptyState from "../components/ui/EmptyState";
 import Button from "../components/ui/Button";
-import { Ghost, Edit, FileText, ChevronRight, CreditCard } from "lucide-react";
+import { Ghost, Edit, FileText, ChevronRight, CreditCard, Clock, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import MembershipCard from "../components/members/MembershipCard";
 import logger from "../utils/logger";
@@ -35,7 +35,7 @@ import logger from "../utils/logger";
 const MemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userDetails, isAdmin } = useAuth();
+  const { userDetails, isAdmin, signOut, refreshUserDetails } = useAuth();
   const { updateMember } = useMembers();
   const [member, setMember] = useState<MemberDetailType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,31 +57,49 @@ const MemberDetail: React.FC = () => {
         throw new Error("Member not found");
       }
 
-      // Fetch contributions
-      const contributionsRef = collection(db, "contributions");
-      const contributionsQuery = query(
-        contributionsRef,
-        where("member_id", "==", id)
-      );
-      const contributionsSnapshot = await getDocs(contributionsQuery);
-      const contributions = contributionsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Contribution[];
+      const memberData = memberDoc.data();
+      const isApprovedMember =
+        memberData.status === "approved" || memberData.status === "active";
 
-      // Fetch payouts
-      const payoutsRef = collection(db, "payouts");
-      const payoutsQuery = query(payoutsRef, where("member_id", "==", id));
-      const payoutsSnapshot = await getDocs(payoutsQuery);
-      const payouts = payoutsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Payout[];
+      // Financial reads are gated: contributions have an owner clause, but
+      // payouts are readable only by approved members / permission holders.
+      // A pending member viewing their own profile can read neither section
+      // (and doesn't see it), so skip these reads for that case and degrade
+      // gracefully on any permission error rather than failing the page.
+      let contributions: Contribution[] = [];
+      let payouts: Payout[] = [];
+
+      const canSeeFinancials = isAdmin || isApprovedMember;
+      if (canSeeFinancials) {
+        try {
+          const contributionsSnapshot = await getDocs(
+            query(collection(db, "contributions"), where("member_id", "==", id))
+          );
+          contributions = contributionsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Contribution[];
+        } catch (financialError) {
+          logger.error("Could not load contributions:", financialError);
+        }
+
+        try {
+          const payoutsSnapshot = await getDocs(
+            query(collection(db, "payouts"), where("member_id", "==", id))
+          );
+          payouts = payoutsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Payout[];
+        } catch (financialError) {
+          logger.error("Could not load payouts:", financialError);
+        }
+      }
 
       // Combine all data
       setMember({
         id: memberDoc.id,
-        ...memberDoc.data(),
+        ...memberData,
         contributions,
         payouts,
       } as MemberDetailType);
@@ -102,7 +120,11 @@ const MemberDetail: React.FC = () => {
     }
 
     fetchMemberData();
-  }, [id, isAdmin, userDetails]);
+    // Depend on the primitive id, not the userDetails object — the object is
+    // a fresh reference on every auth refresh, which would re-run this effect
+    // (and re-navigate) on each render and can trigger an update loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isAdmin, userDetails?.id]);
 
   const handleUpdateMember = async (data: Partial<MemberDetailType>) => {
     if (!member) return;
@@ -147,18 +169,59 @@ const MemberDetail: React.FC = () => {
     // <div className="p-8">Member not found</div>;
   }
 
+  const isOwnProfile = userDetails?.id === member.id;
+  const isPendingSelf =
+    isOwnProfile &&
+    member.status !== "approved" &&
+    member.status !== "active";
+
   return (
     <div className="min-h-screen">
+      {isPendingSelf && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-start gap-3">
+            <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-amber-800 dark:text-amber-200">
+                Your account is awaiting approval
+              </p>
+              <p className="text-amber-700 dark:text-amber-300 mt-0.5">
+                An administrator needs to approve your membership before you can
+                access the rest of the portal. You can review your details below
+                in the meantime.
+              </p>
+              <button
+                onClick={async () => {
+                  await refreshUserDetails();
+                  await fetchMemberData();
+                }}
+                className="mt-2 text-xs font-medium text-amber-800 dark:text-amber-200 underline hover:no-underline"
+              >
+                Already approved? Refresh status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sticky Header */}
       <header className="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-surface-dark/70 bg-white/80 dark:bg-surface-dark/80 border-b border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumbs */}
           <nav className="flex items-center h-12 text-sm text-text-secondary dark:text-text-secondary-dark overflow-x-auto" aria-label="Breadcrumb">
-            <Link to="/" className="hover:text-text-primary dark:hover:text-text-primary-dark transition-colors">Dashboard</Link>
-            <ChevronRight className="mx-2 h-4 w-4 text-text-tertiary dark:text-text-tertiary-dark shrink-0" />
-            <Link to="/members" className="hover:text-text-primary dark:hover:text-text-primary-dark transition-colors">Members</Link>
-            <ChevronRight className="mx-2 h-4 w-4 text-text-tertiary dark:text-text-tertiary-dark shrink-0" />
-            <span className="text-text-primary dark:text-text-primary-dark truncate">{member.full_name}</span>
+            {isPendingSelf ? (
+              <span className="text-text-primary dark:text-text-primary-dark truncate">
+                My Profile
+              </span>
+            ) : (
+              <>
+                <Link to="/" className="hover:text-text-primary dark:hover:text-text-primary-dark transition-colors">Dashboard</Link>
+                <ChevronRight className="mx-2 h-4 w-4 text-text-tertiary dark:text-text-tertiary-dark shrink-0" />
+                <Link to="/members" className="hover:text-text-primary dark:hover:text-text-primary-dark transition-colors">Members</Link>
+                <ChevronRight className="mx-2 h-4 w-4 text-text-tertiary dark:text-text-tertiary-dark shrink-0" />
+                <span className="text-text-primary dark:text-text-primary-dark truncate">{member.full_name}</span>
+              </>
+            )}
           </nav>
 
           {/* Title Row + Actions */}
@@ -208,23 +271,41 @@ const MemberDetail: React.FC = () => {
                 <span className="hidden sm:inline">Edit Member</span>
                 <span className="sm:hidden">Edit</span>
               </Button>
-              <button
-                onClick={() => setIsStatementModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-600/20 px-3.5 py-2 text-sm font-semibold text-indigo-700 dark:text-indigo-200 hover:bg-indigo-600/30 hover:ring-1 hover:ring-indigo-400/30 active:scale-[0.98] transition"
-              >
-                <FileText className="h-5 w-5 shrink-0" />
-                <span className="hidden sm:inline">Generate Statement</span>
-                <span className="sm:hidden">Statement</span>
-              </button>
-              <InvoiceGeneratorWithProgress
-                member={member}
-                contributions={member.contributions}
-                showProgress={true}
-              />
+              {isPendingSelf ? (
+                <Button
+                  variant="secondary"
+                  icon={LogOut}
+                  size="medium"
+                  onClick={async () => {
+                    await signOut();
+                    navigate("/auth/login");
+                  }}
+                >
+                  Sign out
+                </Button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsStatementModalOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-600/20 px-3.5 py-2 text-sm font-semibold text-indigo-700 dark:text-indigo-200 hover:bg-indigo-600/30 hover:ring-1 hover:ring-indigo-400/30 active:scale-[0.98] transition"
+                  >
+                    <FileText className="h-5 w-5 shrink-0" />
+                    <span className="hidden sm:inline">Generate Statement</span>
+                    <span className="sm:hidden">Statement</span>
+                  </button>
+                  <InvoiceGeneratorWithProgress
+                    member={member}
+                    contributions={member.contributions}
+                    showProgress={true}
+                  />
+                </>
+              )}
             </div>
           </div>
 
-          {/* Section Anchor Nav */}
+          {/* Section Anchor Nav — hidden for pending members (money
+              sections are suppressed for them) */}
+          {!isPendingSelf && (
           <div className="flex gap-2 pb-3 -mb-px overflow-x-auto">
             <button onClick={() => scrollToSection('profile')} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-dark px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition">
               Profile
@@ -248,6 +329,7 @@ const MemberDetail: React.FC = () => {
               Membership Card
             </button>
           </div>
+          )}
         </div>
       </header>
 
@@ -276,6 +358,7 @@ const MemberDetail: React.FC = () => {
           </section>
 
           {/* Membership Card Section */}
+          {!isPendingSelf && (
           <section id="membership-card" className="pt-10">
             <div className="bg-white dark:bg-surface-dark rounded-[20px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
               <div className="p-6 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-purple-50 to-teal-50 dark:from-purple-900/20 dark:to-teal-900/20">
@@ -294,6 +377,7 @@ const MemberDetail: React.FC = () => {
               </div>
             </div>
           </section>
+          )}
 
           {/* Notification Settings (own profile only) */}
           {userDetails?.id === member.id && (
@@ -339,17 +423,22 @@ const MemberDetail: React.FC = () => {
             </section>
           )}
 
-          {/* Dependants */}
+          {/* Dependants — hidden for pending members */}
+          {!isPendingSelf && (
           <section id="dependants" className="pt-10">
             <DependantsSection member={member} onUpdate={fetchMemberData} />
           </section>
+          )}
 
-          {/* Claims */}
+          {/* Claims — hidden for pending members */}
+          {!isPendingSelf && (
           <section id="claims" className="pt-10">
             <ClaimsSection member={member} />
           </section>
+          )}
 
-          {/* Contributions */}
+          {/* Contributions — hidden for pending members */}
+          {!isPendingSelf && (
           <section id="contributions" className="pt-10">
             <ContributionsHistory
               contributions={member.contributions}
@@ -357,11 +446,14 @@ const MemberDetail: React.FC = () => {
               onContributionAdded={fetchMemberData}
             />
           </section>
+          )}
 
-          {/* Payouts */}
+          {/* Payouts — hidden for pending members */}
+          {!isPendingSelf && (
           <section id="payouts" className="pt-10">
             <PayoutsHistory payouts={member.payouts} />
           </section>
+          )}
         </div>
       </main>
 

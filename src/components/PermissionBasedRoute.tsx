@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { usePermissions } from '../hooks/usePermissions';
 import type { PermissionAction, ResourceType } from '../types/role';
 import { logger } from "../utils/logger";
+import LoadingSpinner from './ui/LoadingSpinner';
 
 
 interface PermissionBasedRouteProps {
@@ -30,10 +31,10 @@ const PermissionBasedRoute: React.FC<PermissionBasedRouteProps> = ({
     hasPermission: hasPermission(resource, action)
   });
 
-  // Wait for permissions to load before making decision
+  // Wait for permissions to load before making a decision. Rendering the
+  // children here would briefly flash gated pages open, so show a spinner.
   if (loading) {
-    logger.debug('[PermissionBasedRoute] Still loading permissions, allowing access temporarily');
-    return <>{children}</>;
+    return <LoadingSpinner />;
   }
 
   const permitted = hasPermission(resource, action);

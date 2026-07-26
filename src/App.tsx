@@ -16,7 +16,9 @@ import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import ForgotPassword from "./components/auth/ForgotPassword";
 import ResetPassword from "./components/auth/ResetPassword";
+import VerifyEmail from "./components/auth/VerifyEmail";
 import PermissionBasedRoute from "./components/PermissionBasedRoute";
+import ApprovedRoute from "./components/ApprovedRoute";
 import SessionProvider from "./components/session/SessionProvider";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 
@@ -51,9 +53,11 @@ const CreditReviews = lazy(() => import("./pages/CreditReviews"));
 const MyCredit = lazy(() => import("./pages/MyCredit"));
 const RoleManagement = lazy(() => import("./pages/RoleManagement"));
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+const ProtectedRoute: React.FC<{
+  children: React.ReactNode;
+  /** Routes a signed-in user may reach before email verification / approval */
+  allowUnapproved?: boolean;
+}> = ({ children, allowUnapproved = false }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -64,7 +68,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
     return <Navigate to="/auth/login" replace />;
   }
 
-  return <>{children}</>;
+  // Feature routes additionally require a verified, approved account.
+  if (allowUnapproved) {
+    return <>{children}</>;
+  }
+
+  return <ApprovedRoute>{children}</ApprovedRoute>;
 };
 
 const AppRoutes: React.FC = () => {
@@ -78,6 +87,14 @@ const AppRoutes: React.FC = () => {
         <Route path="register" element={<Register />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="reset-password" element={<ResetPassword />} />
+        <Route
+          path="verify-email"
+          element={
+            <ProtectedRoute allowUnapproved>
+              <VerifyEmail />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       {/* Landing Page - Full Screen */}

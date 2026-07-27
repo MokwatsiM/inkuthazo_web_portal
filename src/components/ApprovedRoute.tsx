@@ -20,7 +20,8 @@ import LoadingSpinner from "./ui/LoadingSpinner";
 const ApprovedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user, userDetails, loading } = useAuth();
+  const { user, userDetails, loading, detailsLoaded, signupInProgress } =
+    useAuth();
   const params = useParams();
 
   if (loading) {
@@ -36,12 +37,19 @@ const ApprovedRoute: React.FC<{ children: React.ReactNode }> = ({
     return <Navigate to="/auth/verify-email" replace />;
   }
 
-  // The member document is still loading (auth resolved but details not yet
-  // fetched). Wait rather than making an approval decision on incomplete
-  // data — deciding now would redirect, then redirect again once details
-  // arrive, which can trip React's update-depth guard.
-  if (!userDetails) {
+  // Member details still resolving, or an email/password signup is mid-flight
+  // (its member doc is about to be written). Wait rather than deciding on
+  // incomplete data — that would flip-flop redirects and trip React's
+  // update-depth guard.
+  if (!detailsLoaded || signupInProgress) {
     return <LoadingSpinner />;
+  }
+
+  // The fetch completed and there is genuinely no member document — a Google
+  // user who authenticated but hasn't supplied their profile yet. Send them
+  // to complete it.
+  if (!userDetails) {
+    return <Navigate to="/auth/complete-profile" replace />;
   }
 
   const isApproved =

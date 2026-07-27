@@ -17,6 +17,7 @@ import Register from "./components/auth/Register";
 import ForgotPassword from "./components/auth/ForgotPassword";
 import ResetPassword from "./components/auth/ResetPassword";
 import VerifyEmail from "./components/auth/VerifyEmail";
+import CompleteProfile from "./components/auth/CompleteProfile";
 import PermissionBasedRoute from "./components/PermissionBasedRoute";
 import ApprovedRoute from "./components/ApprovedRoute";
 import SessionProvider from "./components/session/SessionProvider";
@@ -87,15 +88,28 @@ const AppRoutes: React.FC = () => {
         <Route path="register" element={<Register />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="reset-password" element={<ResetPassword />} />
-        <Route
-          path="verify-email"
-          element={
-            <ProtectedRoute allowUnapproved>
-              <VerifyEmail />
-            </ProtectedRoute>
-          }
-        />
       </Route>
+
+      {/* Post-signup screens for users who ARE signed in but not yet fully
+          onboarded (unverified email, or Google user with no member doc).
+          These MUST live outside AuthLayout, which redirects any signed-in
+          user to "/". */}
+      <Route
+        path="/auth/verify-email"
+        element={
+          <ProtectedRoute allowUnapproved>
+            <VerifyEmail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/auth/complete-profile"
+        element={
+          <ProtectedRoute allowUnapproved>
+            <CompleteProfile />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Landing Page - Full Screen */}
       <Route

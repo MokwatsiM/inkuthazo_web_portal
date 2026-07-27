@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
+import GoogleAuthButton from "./GoogleAuthButton";
 
 const Login: React.FC = () => {
   const { signIn } = useAuth();
@@ -107,6 +108,8 @@ const Login: React.FC = () => {
           {loading ? "Signing in..." : "Sign in"}
         </Button>
       </div>
+
+      <GoogleAuthButton />
 
       <div className="text-sm text-center">
         <Link

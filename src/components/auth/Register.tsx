@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { validateInvitation } from "../../services/invitationService";
 import Button from "../ui/Button";
+import GoogleAuthButton from "./GoogleAuthButton";
 
 const Register: React.FC = () => {
   const { signUp } = useAuth();
@@ -40,7 +41,7 @@ const Register: React.FC = () => {
           } else {
             setError("Invalid or expired invitation token");
           }
-        } catch (error) {
+        } catch {
           setError("Error validating invitation");
         } finally {
           setValidatingInvitation(false);
@@ -243,6 +244,18 @@ const Register: React.FC = () => {
           {loading ? "Creating account..." : "Create account"}
         </Button>
       </div>
+
+      <GoogleAuthButton
+        invitation={
+          invitationToken
+            ? {
+                full_name: formData.fullName,
+                email: formData.email,
+                phone: formData.phone,
+              }
+            : undefined
+        }
+      />
 
       <div className="text-sm text-center">
         <Link

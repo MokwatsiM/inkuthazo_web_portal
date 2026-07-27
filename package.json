@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:emulators": "VITE_USE_EMULATORS=true vite",
+    "emulators": "firebase emulators:start --import=./.emulator-data --export-on-exit=./.emulator-data",
+    "seed:emulator": "FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 tsx scripts/seedEmulator.ts",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -60,6 +63,7 @@
     "jsdom": "^29.1.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.1",
     "typescript": "^5.7.2",
     "vite": "^6.2.1",
     "vitest": "^4.1.10"

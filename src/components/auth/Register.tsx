@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import { validateInvitation } from "../../services/invitationService";
 import Button from "../ui/Button";
 import GoogleAuthButton from "./GoogleAuthButton";
@@ -72,7 +73,7 @@ const Register: React.FC = () => {
       );
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create account");
+      setError(getFriendlyErrorMessage(err, "Failed to create account"));
     } finally {
       setLoading(false);
     }

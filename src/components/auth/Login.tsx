@@ -2,6 +2,7 @@ import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import Button from "../ui/Button";
 import GoogleAuthButton from "./GoogleAuthButton";
 
@@ -21,7 +22,7 @@ const Login: React.FC = () => {
     try {
       await signIn(email, password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sign in");
+      setError(getFriendlyErrorMessage(err, "Failed to sign in"));
     } finally {
       setLoading(false);
     }

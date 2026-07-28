@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import { Upload } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
 import Button from "../ui/Button";
@@ -84,7 +85,7 @@ const AddDependantModal: React.FC<AddDependantModalProps> = ({
       onClose();
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Failed to add dependant"
+        getFriendlyErrorMessage(error, "Failed to add dependant")
       );
     }
   };

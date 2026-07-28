@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import Button from "../ui/Button";
 import logger from "../../utils/logger";
@@ -56,7 +57,7 @@ const CompleteProfile: React.FC = () => {
     } catch (err) {
       logger.error("Failed to complete profile:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to complete your profile"
+        getFriendlyErrorMessage(err, "Failed to complete your profile")
       );
     } finally {
       setLoading(false);

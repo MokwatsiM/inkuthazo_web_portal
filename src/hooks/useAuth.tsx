@@ -20,6 +20,7 @@ import type { GoogleSignInResult } from "../types/auth";
 import { useNotifications } from "./useNotifications";
 import { FirebaseError } from "firebase/app";
 import logger from "../utils/logger";
+import { getFriendlyErrorMessage } from "../utils/errorMessages";
 
 interface AuthContextType {
   user: User | null;
@@ -152,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (error: unknown) {
       logger.error("Sign in error:", error);
       if (error instanceof FirebaseError) {
-        showError(error.message || "Failed to sign in");
+        showError(getFriendlyErrorMessage(error, "Failed to sign in"));
       }
       throw error;
     }
@@ -208,7 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         await auth.currentUser.delete();
       }
       if (error instanceof FirebaseError) {
-        showError(error.message || "Failed to create account");
+        showError(getFriendlyErrorMessage(error, "Failed to create account"));
         throw error;
       } else {
         throw error;
@@ -246,7 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       logger.error("Google sign-in error:", error);
       if (error instanceof FirebaseError) {
-        showError(error.message || "Google sign-in failed");
+        showError(getFriendlyErrorMessage(error, "Google sign-in failed"));
       }
       throw error;
     }
@@ -274,7 +275,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (error: unknown) {
       logger.error("Account linking error:", error);
       if (error instanceof FirebaseError) {
-        showError(error.message || "Failed to link Google account");
+        showError(getFriendlyErrorMessage(error, "Failed to link Google account"));
       }
       throw error;
     }
@@ -323,7 +324,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (error: unknown) {
       logger.error("Sign out error:", error);
       if (error instanceof FirebaseError) {
-        showError(error.message || "Failed to sign out");
+        showError(getFriendlyErrorMessage(error, "Failed to sign out"));
         throw error;
       } else {
         throw error;
@@ -344,7 +345,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         showSuccess("Verification email sent");
       } catch (error: unknown) {
         if (error instanceof FirebaseError) {
-          showError(error.message || "Failed to send verification email");
+          showError(getFriendlyErrorMessage(error, "Failed to send verification email"));
           throw error;
         } else {
           throw error;
@@ -358,7 +359,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       showSuccess("Password reset email sent");
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {
-        showError(error.message || "Failed to send password reset email");
+        showError(getFriendlyErrorMessage(error, "Failed to send password reset email"));
 
         throw error;
       } else {

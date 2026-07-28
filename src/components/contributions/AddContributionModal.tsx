@@ -1,4 +1,5 @@
 import { AlertCircle, Upload } from "lucide-react";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -169,7 +170,14 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
 
     try {
       // Build contribution data object
-      const contributionData: any = {
+      const contributionData: {
+        member_id: string;
+        amount: number;
+        type: string;
+        date: ReturnType<typeof toFirestoreTimestamp>;
+        credit_id?: string;
+        disciplinary_record_id?: string;
+      } = {
         member_id: memberIdToSubmit,
         amount: parseFloat(formData.amount),
         type: formData.type,
@@ -203,7 +211,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
       setSelectedPenaltyId("");
     } catch (error) {
       showError(
-        error instanceof Error ? error.message : "Failed to add contribution"
+        getFriendlyErrorMessage(error, "Failed to add contribution")
       );
     }
   };

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getActionableErrorMessage } from "../../utils/errorMessages";
 import { Upload, FileText, CheckCircle, AlertCircle, ArrowRight, Loader2, Save } from "lucide-react";
 import Button from "../ui/Button";
 import {
@@ -82,7 +83,7 @@ const BulkImportModal: React.FC<BulkImportModalProps> = ({ isOpen, onClose, onSu
             setProcessingResult(result);
             setStep('preview');
         } catch (err) {
-            showError("Error processing data: " + (err instanceof Error ? err.message : String(err)));
+            showError(getActionableErrorMessage(err, "Error processing data. Please check the file and try again."));
         } finally {
             setLoading(false);
         }
@@ -102,7 +103,7 @@ const BulkImportModal: React.FC<BulkImportModalProps> = ({ isOpen, onClose, onSu
             onSuccess();
             onClose();
         } catch (err) {
-            showError("Import failed: " + (err instanceof Error ? err.message : String(err)));
+            showError(getActionableErrorMessage(err, "Import failed. Please try again."));
         } finally {
             setLoading(false);
         }

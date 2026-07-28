@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import Button from "../ui/Button";
 import { UserPlus } from "lucide-react";
 import type { Member } from "../../types";
@@ -37,7 +38,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       setFormData({ full_name: "", email: "", phone: "" });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to send invitation"
+        getFriendlyErrorMessage(err, "Failed to send invitation")
       );
     } finally {
       setLoading(false);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import { AlertTriangle, CheckCircle2, Mail } from 'lucide-react';
 import Modal from '../ui/Modal';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -87,7 +88,7 @@ const CreditNoticeModal: React.FC<CreditNoticeModalProps> = ({
     } catch (error) {
       logger.error('Failed to send credit notices:', error);
       showError(
-        error instanceof Error ? error.message : 'Failed to send credit notices'
+        getFriendlyErrorMessage(error, 'Failed to send credit notices')
       );
     } finally {
       setSending(false);

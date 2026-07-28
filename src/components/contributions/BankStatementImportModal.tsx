@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { converter } from "../../utils/firestoreConverter";
@@ -201,9 +202,7 @@ const BankStatementImportModal: React.FC<BankStatementImportModalProps> = ({
       handleClose();
     } catch (error) {
       logger.error("Bank statement import failed:", error);
-      showError(
-        "Import failed: " + (error instanceof Error ? error.message : String(error))
-      );
+      showError(getFriendlyErrorMessage(error, "Import failed. Please try again."));
     } finally {
       setLoading(false);
     }

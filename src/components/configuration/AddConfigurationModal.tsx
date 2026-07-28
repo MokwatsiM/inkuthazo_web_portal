@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 import { addConfiguration } from "../../services/configurationService";
@@ -52,7 +53,7 @@ const AddConfigurationModal: React.FC<AddConfigurationModalProps> = ({
       });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to add configuration"
+        getFriendlyErrorMessage(err, "Failed to add configuration")
       );
     } finally {
       setLoading(false);

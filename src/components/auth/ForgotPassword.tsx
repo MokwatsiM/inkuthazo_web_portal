@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import Button from "../ui/Button";
 
 const ForgotPassword: React.FC = () => {
@@ -20,7 +21,7 @@ const ForgotPassword: React.FC = () => {
       await resetPassword(email);
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reset password");
+      setError(getFriendlyErrorMessage(err, "Failed to reset password"));
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import Button from "../ui/Button";
 import { formatDate } from "../../utils/dateUtils";
 import type {
@@ -73,7 +74,7 @@ const EditConfigurationModal: React.FC<EditConfigurationModalProps> = ({
       await onSubmit(configuration.id, updateData);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to update configuration"
+        getFriendlyErrorMessage(err, "Failed to update configuration")
       );
     } finally {
       setLoading(false);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import { AlertTriangle, CheckCircle2, Mail } from 'lucide-react';
 import Modal from '../ui/Modal';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -86,7 +87,7 @@ const ArrearsNoticeModal: React.FC<ArrearsNoticeModalProps> = ({
     } catch (error) {
       logger.error('Failed to send arrears notices:', error);
       showError(
-        error instanceof Error ? error.message : 'Failed to send arrears notices'
+        getFriendlyErrorMessage(error, 'Failed to send arrears notices')
       );
     } finally {
       setSending(false);

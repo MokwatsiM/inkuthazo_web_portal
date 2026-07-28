@@ -55,6 +55,7 @@ const MyCredit = lazy(() => import("./pages/MyCredit"));
 const RoleManagement = lazy(() => import("./pages/RoleManagement"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PublicHome = lazy(() => import("./pages/PublicHome"));
 
 const ProtectedRoute: React.FC<{
   children: React.ReactNode;
@@ -77,6 +78,26 @@ const ProtectedRoute: React.FC<{
   }
 
   return <ApprovedRoute>{children}</ApprovedRoute>;
+};
+
+/**
+ * The "/" route. Logged-out visitors (and Google's OAuth reviewer) get the
+ * public home page that names the app and explains its purpose; signed-in
+ * users get the authenticated member landing.
+ */
+const HomeGate: React.FC = () => {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+  if (!user) {
+    return <PublicHome />;
+  }
+  return (
+    <ApprovedRoute>
+      <LandingPage />
+    </ApprovedRoute>
+  );
 };
 
 const AppRoutes: React.FC = () => {
@@ -118,15 +139,9 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Landing Page - Full Screen */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <LandingPage />
-          </ProtectedRoute>
-        }
-      />
+      {/* Home: public landing for logged-out visitors, member landing for
+          signed-in users. */}
+      <Route path="/" element={<HomeGate />} />
 
       {/* Home/Dashboard - Full Screen */}
       <Route

@@ -53,6 +53,8 @@ const Credits = lazy(() => import("./pages/Credits"));
 const CreditReviews = lazy(() => import("./pages/CreditReviews"));
 const MyCredit = lazy(() => import("./pages/MyCredit"));
 const RoleManagement = lazy(() => import("./pages/RoleManagement"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 
 const ProtectedRoute: React.FC<{
   children: React.ReactNode;
@@ -83,6 +85,11 @@ const AppRoutes: React.FC = () => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
     <Routes>
+      {/* Public legal pages — no auth. Must be reachable by anyone, including
+          Google's OAuth verification review. */}
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
+
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />

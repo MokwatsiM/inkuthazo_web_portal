@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ThemeToggle } from "../ui/ThemeToggle";
 
@@ -42,9 +42,26 @@ const AuthLayout: React.FC = () => {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 text-center">
+      <div className="mt-8 text-center space-y-2">
+        <div className="text-xs">
+          <Link
+            to="/privacy"
+            className="text-text-secondary dark:text-text-secondary-dark hover:text-text-primary dark:hover:text-text-primary-dark"
+          >
+            Privacy Policy
+          </Link>
+          <span className="mx-2 text-text-tertiary dark:text-text-tertiary-dark">
+            ·
+          </span>
+          <Link
+            to="/terms"
+            className="text-text-secondary dark:text-text-secondary-dark hover:text-text-primary dark:hover:text-text-primary-dark"
+          >
+            Terms of Service
+          </Link>
+        </div>
         <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
-          © 2024 Inkuthazo Social Club. All rights reserved.
+          © 2026 Inkuthazo Social Club. All rights reserved.
         </p>
       </div>
     </div>

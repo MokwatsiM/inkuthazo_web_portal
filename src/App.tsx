@@ -48,6 +48,7 @@ const MemberHostView = lazy(
 const Attendance = lazy(() => import("./pages/Attendance"));
 const AuditLogs = lazy(() => import("./pages/AuditLogs"));
 const Donations = lazy(() => import("./pages/Donations"));
+const Assets = lazy(() => import("./pages/Assets"));
 const MyDonations = lazy(() => import("./pages/MyDonations"));
 const Credits = lazy(() => import("./pages/Credits"));
 const CreditReviews = lazy(() => import("./pages/CreditReviews"));
@@ -265,6 +266,19 @@ const AppRoutes: React.FC = () => {
             <FullScreenLayout>
               <PermissionBasedRoute resource="donations">
                 <Donations />
+              </PermissionBasedRoute>
+            </FullScreenLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/assets"
+        element={
+          <ProtectedRoute>
+            <FullScreenLayout>
+              <PermissionBasedRoute resource="assets">
+                <Assets />
               </PermissionBasedRoute>
             </FullScreenLayout>
           </ProtectedRoute>

@@ -1,8 +1,23 @@
 import { Timestamp } from 'firebase/firestore';
 
-export type DonationType = 'investment' | 'donation' | 'sponsorship' | 'grant' | 'other';
+export type DonationType =
+  | 'investment'
+  | 'donation'
+  | 'sponsorship'
+  | 'grant'
+  | 'in_kind'
+  | 'other';
 export type DonationSource = 'member' | 'outsider' | 'organization';
 export type DonationStatus = 'pending' | 'approved' | 'rejected';
+
+/**
+ * In-kind donations (goods, or buying/subscribing something on the club's
+ * behalf) are recorded but carry no cash value for the organisation. Their
+ * `amount` is only an OPTIONAL estimated worth for reporting and must be
+ * excluded from monetary totals and the org balance.
+ */
+export const isMonetaryDonation = (type: DonationType): boolean =>
+  type !== 'in_kind';
 
 export interface Donation {
   id: string;
@@ -69,7 +84,12 @@ export interface DonationFilter {
 
 export interface DonationSummary {
   totalDonations: number;
+  /** Sum of MONETARY donations only — excludes in-kind. */
   totalAmount: number;
+  /** Number of in-kind (non-cash) donations. */
+  inKindCount: number;
+  /** Sum of optional estimated values on in-kind donations (reporting only). */
+  inKindEstimatedValue: number;
   byType: Record<DonationType, { count: number; amount: number }>;
   bySource: Record<DonationSource, { count: number; amount: number }>;
   byStatus: Record<DonationStatus, { count: number; amount: number }>;

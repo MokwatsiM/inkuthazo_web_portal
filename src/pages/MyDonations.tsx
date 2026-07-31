@@ -11,11 +11,13 @@ import {
   FileText,
   Eye,
   AlertCircle,
+  Package,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { getMemberDonations } from '../services/donationService';
 import type { Donation } from '../types/donation';
 import DonationDetailModal from '../components/donations/DonationDetailModal';
+import { donationAmountDisplay, donationTypeLabel } from '../utils/donationDisplay';
 import logger from '../utils/logger';
 
 const MyDonations: React.FC = () => {
@@ -55,6 +57,8 @@ const MyDonations: React.FC = () => {
         return <Award className="w-5 h-5 text-white" />;
       case 'grant':
         return <Target className="w-5 h-5 text-white" />;
+      case 'in_kind':
+        return <Package className="w-5 h-5 text-white" />;
       default:
         return <DollarSign className="w-5 h-5 text-white" />;
     }
@@ -199,8 +203,8 @@ const MyDonations: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white capitalize">
-                          {donation.type}
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                          {donationTypeLabel(donation.type)}
                         </h3>
                         {getStatusBadge(donation.status)}
                       </div>
@@ -214,7 +218,7 @@ const MyDonations: React.FC = () => {
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Amount</p>
                       <p className="text-xl font-bold text-gray-900 dark:text-white">
-                        R {donation.amount.toFixed(2)}
+                        {donationAmountDisplay(donation)}
                       </p>
                     </div>
                     <div>

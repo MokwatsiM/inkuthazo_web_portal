@@ -22,6 +22,8 @@ import type { Claim } from "../types/claim";
 import type { Payout } from "../types/payout";
 import { Expense } from "../types/expense";
 import type { Donation } from "../types/donation";
+import { isMonetaryDonation } from "../types/donation";
+import type { AssetRental } from "../types/asset";
 import logger from "../utils/logger";
 
 const Analytics: React.FC = () => {
@@ -36,6 +38,7 @@ const Analytics: React.FC = () => {
     payouts: Payout[];
     expenses: Expense[];
     donations: Donation[];
+    rentals: AssetRental[];
   }>({
     members: [],
     contributions: [],
@@ -43,6 +46,7 @@ const Analytics: React.FC = () => {
     payouts: [],
     expenses: [],
     donations: [],
+    rentals: [],
   });
   const [penaltyAnalysis, setPenaltyAnalysis] = useState<{
     totalPremiums: number;
@@ -151,7 +155,28 @@ const Analytics: React.FC = () => {
           ...doc.data(),
         })) as Donation[];
 
-        setData({ members, contributions, claims, payouts, expenses, donations });
+        // Fetch asset rentals (low volume) and window them by start_date
+        // client-side to avoid needing a composite index.
+        const rentalsSnapshot = await getDocs(collection(db, "asset_rentals"));
+        const rentals = (
+          rentalsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as AssetRental[]
+        ).filter((r) => {
+          const d = r.start_date?.toDate?.();
+          return d ? d >= startDate && d <= endDate : false;
+        });
+
+        setData({
+          members,
+          contributions,
+          claims,
+          payouts,
+          expenses,
+          donations,
+          rentals,
+        });
 
         // Calculate penalty analysis
         await calculatePenaltyAnalysis(contributions);
@@ -268,8 +293,17 @@ const Analytics: React.FC = () => {
     totalClaims,
     totalPayouts: data.payouts.reduce((sum, p) => sum + p.amount, 0),
     totalExpenses: data.expenses.reduce((sum, e) => sum + e.amount, 0),
-    totalDonations: data.donations.reduce((sum, d) => sum + d.amount, 0),
+    // Only monetary donations add to the fund; in-kind donations are excluded.
+    totalDonations: data.donations.reduce(
+      (sum, d) => sum + (isMonetaryDonation(d.type) ? d.amount : 0),
+      0
+    ),
     donationCount: data.donations.length,
+    // Rental fees are realised income to the club.
+    totalRentalIncome: data.rentals.reduce(
+      (sum, r) => sum + (r.rental_fee || 0),
+      0
+    ),
     pendingClaims: data.claims.filter((c) => c.status === "pending").length,
     approvedClaims: data.claims.filter((c) => c.status === "approved").length,
     rejectedClaims: data.claims.filter((c) => c.status === "rejected").length,
@@ -292,9 +326,13 @@ const Analytics: React.FC = () => {
         : 0,
   };
 
-  // Calculate actual fund balance including expenses and donations
+  // Calculate actual fund balance including expenses, donations and rental income
   const fundBalance =
-    metrics.totalContributions + metrics.totalDonations - metrics.totalPayouts - metrics.totalExpenses;
+    metrics.totalContributions +
+    metrics.totalDonations +
+    metrics.totalRentalIncome -
+    metrics.totalPayouts -
+    metrics.totalExpenses;
 
   // Prepare cashflow data (contributions vs payouts + expenses)
   const cashflowData = Array.from({
@@ -313,7 +351,11 @@ const Analytics: React.FC = () => {
 
       const monthDonations = data.donations.filter((d) => {
         const donationDate = d.date.toDate();
-        return donationDate >= monthStart && donationDate <= monthEnd;
+        return (
+          isMonetaryDonation(d.type) &&
+          donationDate >= monthStart &&
+          donationDate <= monthEnd
+        );
       }).reduce((sum, d) => sum + d.amount, 0);
 
       const monthPayouts = data.payouts.filter((p) => {
@@ -326,7 +368,12 @@ const Analytics: React.FC = () => {
         return expenseDate >= monthStart && expenseDate <= monthEnd;
       }).reduce((sum, e) => sum + e.amount, 0);
 
-      const totalIncome = monthContributions + monthDonations;
+      const monthRentals = data.rentals.filter((r) => {
+        const rentalDate = r.start_date?.toDate?.();
+        return rentalDate ? rentalDate >= monthStart && rentalDate <= monthEnd : false;
+      }).reduce((sum, r) => sum + (r.rental_fee || 0), 0);
+
+      const totalIncome = monthContributions + monthDonations + monthRentals;
       const totalOutgoing = monthPayouts + monthExpenses;
 
       return {

@@ -1,9 +1,11 @@
 // src/components/donations/DonationDetailModal.tsx
 import React from 'react';
-import { X, Users, Building2, Gift, TrendingUp, Award, Target, DollarSign, Calendar, FileText, CreditCard, Hash, Check, Mail, Phone } from 'lucide-react';
+import { X, Users, Building2, Gift, TrendingUp, Award, Target, DollarSign, Calendar, FileText, CreditCard, Hash, Check, Mail, Phone, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import Button from '../ui/Button';
 import type { Donation } from '../../types/donation';
+import { isMonetaryDonation } from '../../types/donation';
+import { donationAmountDisplay, donationTypeLabel } from '../../utils/donationDisplay';
 
 interface DonationDetailModalProps {
   donation: Donation;
@@ -25,6 +27,8 @@ const DonationDetailModal: React.FC<DonationDetailModalProps> = ({
         return <Award className="w-5 h-5 text-white" />;
       case 'grant':
         return <Target className="w-5 h-5 text-white" />;
+      case 'in_kind':
+        return <Package className="w-5 h-5 text-white" />;
       default:
         return <DollarSign className="w-5 h-5 text-white" />;
     }
@@ -67,7 +71,7 @@ const DonationDetailModal: React.FC<DonationDetailModalProps> = ({
                   {donation.donor_name}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  {donation.type.charAt(0).toUpperCase() + donation.type.slice(1)} Details
+                  {donationTypeLabel(donation.type)} Details
                 </p>
               </div>
             </div>
@@ -99,8 +103,12 @@ const DonationDetailModal: React.FC<DonationDetailModalProps> = ({
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold">R {donation.amount.toFixed(2)}</p>
-                <p className="text-sm opacity-90">Total Amount</p>
+                <p className="text-3xl font-bold">{donationAmountDisplay(donation)}</p>
+                <p className="text-sm opacity-90">
+                  {isMonetaryDonation(donation.type)
+                    ? 'Total Amount'
+                    : 'Not added to balance'}
+                </p>
               </div>
             </div>
           </div>
@@ -158,8 +166,8 @@ const DonationDetailModal: React.FC<DonationDetailModalProps> = ({
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Type</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">
-                    {donation.type}
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {donationTypeLabel(donation.type)}
                   </p>
                 </div>
                 {donation.tax_deductible && (

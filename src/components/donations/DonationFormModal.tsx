@@ -108,7 +108,9 @@ const DonationFormModal: React.FC<DonationFormModalProps> = ({ onClose }) => {
         contact_email: formData.contact_email || undefined,
         contact_phone: formData.contact_phone || undefined,
         type: formData.type,
-        amount: parseFloat(formData.amount),
+        // In-kind donations may have no value; a blank estimate is recorded
+        // as 0 and is excluded from the org's monetary totals either way.
+        amount: parseFloat(formData.amount) || 0,
         date: Timestamp.fromDate(new Date(formData.date)),
         description: formData.description || undefined,
         purpose: formData.purpose || undefined,
@@ -129,6 +131,8 @@ const DonationFormModal: React.FC<DonationFormModalProps> = ({ onClose }) => {
       setLoading(false);
     }
   };
+
+  const isInKind = formData.type === 'in_kind';
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -273,26 +277,43 @@ const DonationFormModal: React.FC<DonationFormModalProps> = ({ onClose }) => {
                 <option value="donation">Donation</option>
                 <option value="sponsorship">Sponsorship</option>
                 <option value="grant">Grant</option>
+                <option value="in_kind">In-kind (goods / paid on our behalf)</option>
                 <option value="other">Other</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Amount (R) <span className="text-red-500">*</span>
+                {isInKind ? (
+                  <>Estimated value (R){" "}
+                    <span className="text-xs text-gray-400">(optional)</span>
+                  </>
+                ) : (
+                  <>Amount (R) <span className="text-red-500">*</span></>
+                )}
               </label>
               <input
                 type="number"
                 name="amount"
                 value={formData.amount}
                 onChange={handleChange}
-                required
+                required={!isInKind}
                 min="0"
                 step="0.01"
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-all dark:text-white"
-                placeholder="0.00"
+                placeholder={isInKind ? "e.g. 2000 (optional)" : "0.00"}
               />
             </div>
           </div>
+
+          {isInKind && (
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-xs text-amber-800 dark:text-amber-300">
+              In-kind donations (goods given, or something bought/subscribed on
+              the club's behalf) are recorded for the log but do{" "}
+              <strong>not</strong> add to the club's cash balance. Use the
+              description below to note what was contributed. The estimated
+              value is optional and for reporting only.
+            </div>
+          )}
 
           {/* Date */}
           <div>

@@ -28,6 +28,7 @@ export type ResourceType =
   | "claims"
   | "expenses"
   | "donations"
+  | "assets"
   | "credits"
   | "credit_reviews"
   | "contributions"

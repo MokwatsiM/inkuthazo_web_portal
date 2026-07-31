@@ -18,6 +18,7 @@ import {
   Gift,
   Target,
   Award,
+  Package,
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import KPICard from '../components/ui/KPICard';
@@ -31,6 +32,7 @@ import {
 import type { Donation, DonationFilter, DonationSummary } from '../types/donation';
 import DonationFormModal from '../components/donations/DonationFormModal';
 import DonationDetailModal from '../components/donations/DonationDetailModal';
+import { donationAmountDisplay, donationTypeLabel } from '../utils/donationDisplay';
 import logger from '../utils/logger';
 
 const Donations: React.FC = () => {
@@ -116,6 +118,8 @@ const Donations: React.FC = () => {
         return <Award className="w-4 h-4" />;
       case 'grant':
         return <Target className="w-4 h-4" />;
+      case 'in_kind':
+        return <Package className="w-4 h-4" />;
       default:
         return <DollarSign className="w-4 h-4" />;
     }
@@ -177,13 +181,24 @@ const Donations: React.FC = () => {
 
       {/* KPI Cards */}
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <KPICard
             title="Total Donations"
             value={summary.totalDonations.toString()}
-            subtitle={`R ${summary.totalAmount.toFixed(2)} total`}
+            subtitle={`R ${summary.totalAmount.toFixed(2)} cash`}
             icon={Gift}
             gradient="purple"
+          />
+          <KPICard
+            title="In-kind"
+            value={summary.inKindCount.toString()}
+            subtitle={
+              summary.inKindEstimatedValue > 0
+                ? `~R ${summary.inKindEstimatedValue.toFixed(2)} est. (not in balance)`
+                : 'Non-cash (not in balance)'
+            }
+            icon={Package}
+            gradient="teal"
           />
           <KPICard
             title="From Members"
@@ -255,6 +270,7 @@ const Donations: React.FC = () => {
             <option value="donation">Donation</option>
             <option value="sponsorship">Sponsorship</option>
             <option value="grant">Grant</option>
+            <option value="in_kind">In-kind</option>
             <option value="other">Other</option>
           </select>
 
@@ -318,15 +334,15 @@ const Donations: React.FC = () => {
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Amount</p>
                       <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        R {donation.amount.toFixed(2)}
+                        {donationAmountDisplay(donation)}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Type</p>
                       <div className="flex items-center gap-2">
                         {getDonationTypeIcon(donation.type)}
-                        <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">
-                          {donation.type}
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          {donationTypeLabel(donation.type)}
                         </span>
                       </div>
                     </div>

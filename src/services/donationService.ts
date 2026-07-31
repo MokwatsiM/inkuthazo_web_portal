@@ -18,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { logAuditTrail } from './auditService';
+import { isMonetaryDonation } from '../types/donation';
 import type {
   Donation,
   DonationReview,
@@ -328,11 +329,14 @@ export const getDonationSummary = async (
     const summary: DonationSummary = {
       totalDonations: donations.length,
       totalAmount: 0,
+      inKindCount: 0,
+      inKindEstimatedValue: 0,
       byType: {
         investment: { count: 0, amount: 0 },
         donation: { count: 0, amount: 0 },
         sponsorship: { count: 0, amount: 0 },
         grant: { count: 0, amount: 0 },
+        in_kind: { count: 0, amount: 0 },
         other: { count: 0, amount: 0 },
       },
       bySource: {
@@ -352,27 +356,37 @@ export const getDonationSummary = async (
     const donorMap = new Map<string, { amount: number; count: number }>();
 
     donations.forEach((donation) => {
-      summary.totalAmount += donation.amount;
+      // In-kind donations are recorded but carry no cash value for the org.
+      // Their optional `amount` is only an estimated worth for reporting and
+      // must never land in the monetary totals / balance.
+      const monetary = isMonetaryDonation(donation.type);
+      const cashAmount = monetary ? donation.amount : 0;
 
-      // By type
+      summary.totalAmount += cashAmount;
+      if (!monetary) {
+        summary.inKindCount++;
+        summary.inKindEstimatedValue += donation.amount || 0;
+      }
+
+      // By type (count everything; amount only for monetary)
       summary.byType[donation.type].count++;
-      summary.byType[donation.type].amount += donation.amount;
+      summary.byType[donation.type].amount += cashAmount;
 
       // By source
       summary.bySource[donation.source].count++;
-      summary.bySource[donation.source].amount += donation.amount;
+      summary.bySource[donation.source].amount += cashAmount;
 
       // By status
       summary.byStatus[donation.status].count++;
-      summary.byStatus[donation.status].amount += donation.amount;
+      summary.byStatus[donation.status].amount += cashAmount;
 
-      // Top donors
+      // Top donors (monetary contribution only)
       const donorKey = donation.donor_name;
       if (!donorMap.has(donorKey)) {
         donorMap.set(donorKey, { amount: 0, count: 0 });
       }
       const donor = donorMap.get(donorKey)!;
-      donor.amount += donation.amount;
+      donor.amount += cashAmount;
       donor.count++;
     });
 

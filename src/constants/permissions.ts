@@ -85,6 +85,13 @@ export const PERMISSIONS_CATALOG: Permission[] = [
   { id: "donations.delete", resource: "donations", action: "delete", category: "Financial", description: "Delete donations" },
   { id: "donations.export", resource: "donations", action: "export", category: "Financial", description: "Export donation data" },
 
+  // Assets
+  { id: "assets.view", resource: "assets", action: "view", category: "Financial", description: "View assets and rentals" },
+  { id: "assets.create", resource: "assets", action: "create", category: "Financial", description: "Add assets and record rentals" },
+  { id: "assets.edit", resource: "assets", action: "edit", category: "Financial", description: "Edit asset details" },
+  { id: "assets.delete", resource: "assets", action: "delete", category: "Financial", description: "Delete assets" },
+  { id: "assets.export", resource: "assets", action: "export", category: "Financial", description: "Export asset data" },
+
   // Financial - Credits
   { id: "credits.view", resource: "credits", action: "view", category: "Financial", description: "View credit applications" },
   { id: "credits.create", resource: "credits", action: "create", category: "Financial", description: "Apply for credit" },
@@ -159,6 +166,7 @@ export const ADMIN_PERMISSIONS: RolePermissions = {
   claims: FULL_PERMISSIONS,
   expenses: FULL_PERMISSIONS,
   donations: FULL_PERMISSIONS,
+  assets: FULL_PERMISSIONS,
   credits: FULL_PERMISSIONS,
   credit_reviews: FULL_PERMISSIONS,
   contributions: FULL_PERMISSIONS,

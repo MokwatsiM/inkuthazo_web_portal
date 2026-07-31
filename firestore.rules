@@ -172,6 +172,24 @@ service cloud.firestore {
       allow delete: if canDelete('expenses');
     }
 
+      // Assets collection (admin-managed movable assets)
+      match /assets/{assetId} {
+        allow read: if canView('assets');
+        allow create: if canCreate('assets');
+        // Renting/returning flips the asset status, so an 'edit' permission
+        // covers those updates as well as manual edits.
+        allow update: if canEdit('assets');
+        allow delete: if canDelete('assets');
+      }
+
+      // Asset rentals collection (rental events; created when renting out)
+      match /asset_rentals/{rentalId} {
+        allow read: if canView('assets');
+        allow create: if canCreate('assets');
+        allow update: if canEdit('assets');
+        allow delete: if canDelete('assets');
+      }
+
 		 // Deletion requests collection
     match /deletion_requests/{requestId} {
       allow read: if canView('deletion_requests');

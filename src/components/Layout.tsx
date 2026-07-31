@@ -18,6 +18,7 @@ import {
   Home,
   LogOut,
   Menu,
+  Package,
   Receipt,
   Settings,
   TrendingUp,
@@ -77,6 +78,12 @@ const Layout: React.FC = () => {
       icon: Gift,
       label: "Donations",
       color: "text-purple-500",
+    },
+    {
+      path: "/assets",
+      icon: Package,
+      label: "Assets",
+      color: "text-indigo-500",
     },
     {
       path: "/credits",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { PlusCircle, ExternalLink, FileX, FileText } from "lucide-react";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../config/firebase";
@@ -18,9 +18,9 @@ import Card, { CardBody, CardHeader } from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import { useContributions } from "../hooks/useContributions";
 import { useNotifications } from "../hooks/useNotifications";
-import { FirebaseError } from "firebase/app";
 import Pagination from "../components/ui/Pagination";
 import logger from "../utils/logger";
+import { getFriendlyErrorMessage } from "../utils/errorMessages";
 
 const MyContributions: React.FC = () => {
   const { userDetails, isApproved } = useAuth();
@@ -34,40 +34,42 @@ const MyContributions: React.FC = () => {
   const [itemsPerPage] = useState(10); // Number of items per page
   const { showError, showSuccess } = useNotifications();
 
+  const fetchMyContributions = useCallback(async () => {
+    if (!userDetails?.id) return;
+
+    try {
+      setLoading(true);
+      const contributionsRef = collection(db, "contributions");
+      const q = query(
+        contributionsRef,
+        where("member_id", "==", userDetails.id),
+        orderBy("date", "desc")
+      );
+
+      const snapshot = await getDocs(q);
+      const contributionsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        members: { full_name: userDetails.full_name },
+      })) as Contribution[];
+
+      setContributions(contributionsData);
+    } catch (error) {
+      logger.error("Error fetching contributions:", error);
+      showError(
+        getFriendlyErrorMessage(
+          error,
+          "An error occurred while fetching your contributions"
+        )
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [userDetails?.id, userDetails?.full_name, showError]);
+
   useEffect(() => {
-    const fetchMyContributions = async () => {
-      if (!userDetails?.id) return;
-
-      try {
-        setLoading(true);
-        const contributionsRef = collection(db, "contributions");
-        const q = query(
-          contributionsRef,
-          where("member_id", "==", userDetails.id),
-          orderBy("date", "desc")
-        );
-
-        const snapshot = await getDocs(q);
-        const contributionsData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          members: { full_name: userDetails.full_name },
-        })) as Contribution[];
-
-        setContributions(contributionsData);
-      } catch (error) {
-        logger.error("Error fetching contributions:", error);
-        if (error instanceof FirebaseError) {
-          showError(error.message || "Failed to fetch contributions");
-        }
-        showError("An error occured while fetching your contributions");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchMyContributions();
-  }, [userDetails?.id, userDetails?.full_name]);
+  }, [fetchMyContributions]);
 
   const filteredContributions = useMemo(() =>
     contributions.filter((contribution) =>
@@ -113,15 +115,16 @@ const MyContributions: React.FC = () => {
       }
       await addContribution(data, file);
 
-      // Add contribution logic here
       setIsAddModalOpen(false);
       showSuccess("Successfully recorded your: " + data.type + " contribution");
+      // Refresh this page's own list so the new pending record appears
+      // immediately (the hook keeps a separate state we don't render here).
+      await fetchMyContributions();
     } catch (error) {
       logger.error("Error adding contribution:", error);
-      if (error instanceof FirebaseError) {
-        showError(error.message || "Error adding contributions");
-      }
-      showError("An error occured while adding contribution");
+      showError(
+        getFriendlyErrorMessage(error, "An error occurred while adding your contribution")
+      );
     }
   };
 

@@ -1,5 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Timestamp } from "firebase/firestore";
+
+vi.mock("../config/firebase", () => ({
+  auth: {},
+  db: {},
+}));
+
 import { buildAssetSummary } from "./assetService";
 import {
   isAssetAvailable,

@@ -44,7 +44,14 @@ const NotificationBell: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+        <div
+          className="
+            fixed left-2 right-2 top-16 mt-0 w-auto
+            sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96
+            bg-white dark:bg-gray-800 rounded-xl shadow-lg
+            border border-gray-200 dark:border-gray-700 overflow-hidden z-50
+          "
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
               Notifications
@@ -60,7 +67,7 @@ const NotificationBell: React.FC = () => {
             )}
           </div>
 
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[70vh] sm:max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <Inbox className="h-10 w-10 text-gray-300 dark:text-gray-600 mb-2" />

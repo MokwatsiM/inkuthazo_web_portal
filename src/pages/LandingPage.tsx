@@ -29,6 +29,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../components/avatar/Avatar';
 import Button from '../components/ui/Button';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import NotificationBell from '../components/notifications/NotificationBell';
 import { useAuth } from '../hooks/useAuth';
 import { usePermissions } from '../hooks/usePermissions';
 import { ResourceType } from '../types/role';
@@ -112,6 +113,7 @@ const LandingPage: React.FC = () => {
 
             <div className="flex items-center space-x-4">
               <ThemeToggle variant="button" />
+              {userDetails && <NotificationBell />}
               {userDetails && (
                 <div className="flex items-center space-x-3">
                   <Link to={`/members/${userDetails.id}`} className="relative group">

@@ -1,7 +1,10 @@
 import { initializeApp } from "firebase/app";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getAuth, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import {
+  initializeFirestore,
+  connectFirestoreEmulator,
+} from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { getAnalytics } from "firebase/analytics";
@@ -44,7 +47,14 @@ if (recaptchaSiteKey && !useEmulators) {
   });
 }
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Auto-detect long-polling instead of the default WebChannel/QUIC stream.
+// Some networks (corporate proxies, certain ISPs, VPNs) break the HTTP/3
+// streaming transport with errors like ERR_QUIC_PROTOCOL_ERROR, which makes
+// onSnapshot listeners fail. This lets the SDK fall back to long-polling when
+// streaming can't be established, with no effect on networks where it works.
+export const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+});
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 export const analytics = getAnalytics(app);

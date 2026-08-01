@@ -1,10 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark' | 'system' | 'warm';
+
+/**
+ * The concrete look applied to the DOM. 'warm' is a warm-tinted variant of
+ * light mode, so it never turns on dark mode.
+ */
+export type EffectiveTheme = 'light' | 'dark' | 'warm';
+
+const THEMES: Theme[] = ['light', 'dark', 'system', 'warm'];
 
 interface ThemeContextType {
   theme: Theme;
-  effectiveTheme: 'light' | 'dark';
+  effectiveTheme: EffectiveTheme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
@@ -27,14 +35,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('theme') as Theme;
-      if (stored && ['light', 'dark', 'system'].includes(stored)) {
+      if (stored && THEMES.includes(stored)) {
         return stored;
       }
     }
     return 'system';
   });
 
-  const [effectiveTheme, setEffectiveTheme] = useState<'light' | 'dark'>('light');
+  const [effectiveTheme, setEffectiveTheme] = useState<EffectiveTheme>('light');
 
   useEffect(() => {
     const updateEffectiveTheme = () => {
@@ -57,11 +65,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    if (effectiveTheme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    // 'warm' is a light-family theme: apply .warm, never .dark.
+    root.classList.toggle('dark', effectiveTheme === 'dark');
+    root.classList.toggle('warm', effectiveTheme === 'warm');
+    root.style.colorScheme = effectiveTheme === 'dark' ? 'dark' : 'light';
   }, [effectiveTheme]);
 
   useEffect(() => {
@@ -69,13 +76,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   }, [theme]);
 
   const toggleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
+    // Cycle light -> dark -> system -> warm -> light
+    const order: Theme[] = ['light', 'dark', 'system', 'warm'];
+    const next = order[(order.indexOf(theme) + 1) % order.length];
+    setTheme(next);
   };
 
   const value: ThemeContextType = {

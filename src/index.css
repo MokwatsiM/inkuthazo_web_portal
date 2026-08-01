@@ -85,6 +85,54 @@
   --shadow-card-hover: 0 12px 35px rgba(0, 0, 0, 0.4);
 }
 
+/*
+ * Warm theme — a warm-tinted variant of LIGHT mode.
+ * The app styles light surfaces with hardcoded Tailwind utilities
+ * (bg-white / bg-gray-50 / bg-gray-100), so we retint those utilities with a
+ * warm amber/sepia wash under .warm. Dark mode is never active here.
+ */
+.warm {
+  color-scheme: light;
+
+  --color-background: #FBF6EF; /* warm paper */
+  --color-surface: #FFFDF9;    /* warm card */
+  --color-sidebar-bg: #F5ECE0;
+
+  --color-text-primary: #3A2E24; /* warm near-black */
+  --color-text-secondary: #6B5A48;
+  --color-text-muted: #9C8B77;
+
+  --color-border: #ECE0D1;
+  --color-border-light: #F4EBDD;
+}
+
+/* Warm page/body background */
+.warm body {
+  background-color: #FBF6EF;
+}
+
+/* Retint the common light surfaces. Scoped to .warm so light/dark are
+   untouched. Not applied inside .dark (warm never coexists with dark). */
+.warm .bg-white {
+  background-color: #FFFDF9 !important;
+}
+.warm .bg-gray-50 {
+  background-color: #FBF6EF !important;
+}
+.warm .bg-gray-100 {
+  background-color: #F5ECE0 !important;
+}
+.warm .bg-gray-200 {
+  background-color: #ECE0D1 !important;
+}
+/* Warm-tint the default light borders for cohesion */
+.warm .border-gray-100 {
+  border-color: #F4EBDD !important;
+}
+.warm .border-gray-200 {
+  border-color: #ECE0D1 !important;
+}
+
 /* Smooth theme transitions */
 * {
   transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;

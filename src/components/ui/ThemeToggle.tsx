@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon, Monitor, Flame } from 'lucide-react';
 import { useTheme, type Theme } from '../../contexts/ThemeContext';
 
 interface ThemeToggleProps {
@@ -18,6 +18,8 @@ export function ThemeToggle({ variant = 'button', showLabels = false }: ThemeTog
         return <Moon className="h-4 w-4" />;
       case 'system':
         return <Monitor className="h-4 w-4" />;
+      case 'warm':
+        return <Flame className="h-4 w-4" />;
     }
   };
 
@@ -29,6 +31,8 @@ export function ThemeToggle({ variant = 'button', showLabels = false }: ThemeTog
         return 'Dark';
       case 'system':
         return 'System';
+      case 'warm':
+        return 'Warm';
     }
   };
 
@@ -52,7 +56,7 @@ export function ThemeToggle({ variant = 'button', showLabels = false }: ThemeTog
   return (
     <div className="relative">
       <div className="flex items-center space-x-1 p-1 bg-surface-2 dark:bg-surface-2-dark rounded-lg border border-line dark:border-line-dark">
-        {(['light', 'dark', 'system'] as Theme[]).map((themeOption) => (
+        {(['light', 'dark', 'system', 'warm'] as Theme[]).map((themeOption) => (
           <button
             key={themeOption}
             onClick={() => setTheme(themeOption)}

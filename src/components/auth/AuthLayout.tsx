@@ -21,7 +21,7 @@ const AuthLayout: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex items-center justify-center mb-6">
           <img
-            src="/logo.png"
+            src="/logo-512.png"
             alt="Inkuthazo Social Club"
             className="h-12 w-12"
           />

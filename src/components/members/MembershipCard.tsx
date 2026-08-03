@@ -1,9 +1,9 @@
-import React, { useRef, useState } from "react";
-import { Download, FileText } from "lucide-react";
 import { format } from "date-fns";
+import { Download, FileText } from "lucide-react";
+import React, { useRef, useState } from "react";
 import type { Member } from "../../types";
-import Button from "../ui/Button";
 import logger from "../../utils/logger";
+import Button from "../ui/Button";
 
 interface MembershipCardProps {
     member: Member;
@@ -261,7 +261,7 @@ const MembershipCard: React.FC<MembershipCardProps> = ({ member }) => {
                     <div className="bg-teal-800 text-white px-2 py-1 flex items-center gap-1.5">
                         <div className="flex-shrink-0 flex items-center justify-center h-5 w-5 rounded-full bg-white/95 overflow-hidden">
                             <img
-                                src="/logo.png"
+                                src="/logo-512.png"
                                 alt="Inkuthazo Logo"
                                 className="h-4 w-4 object-contain"
                                 crossOrigin="anonymous"

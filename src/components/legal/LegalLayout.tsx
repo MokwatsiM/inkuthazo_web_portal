@@ -21,7 +21,7 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
     <header className="border-b border-line dark:border-line-dark">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="Inkuthazo Social Club" className="h-8 w-8" />
+          <img src="/logo-512.png" alt="Inkuthazo Social Club" className="h-8 w-8" />
           <span className="font-bold text-text-primary dark:text-text-primary-dark">
             Inkuthazo Social Club
           </span>

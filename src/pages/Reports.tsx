@@ -3,6 +3,8 @@ import { Download, FileText, AlertCircle, BarChart3, Users } from "lucide-react"
 import Button from "../components/ui/Button";
 import AttendanceReport from "../components/reports/AttendanceReport";
 import { generateReport } from "../utils/reportGenerator";
+import { createPdfPreview, type PdfPreview } from "../utils/pdf/present";
+import PdfPreviewModal from "../components/pdf/PdfPreviewModal";
 import type { ReportType, ReportPeriod } from "../types/report";
 import { useAuth } from "../hooks/useAuth";
 import logger from "../utils/logger";
@@ -19,7 +21,13 @@ const Reports: React.FC = () => {
     percentage: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<PdfPreview | null>(null);
   const { userDetails } = useAuth();
+
+  const closePreview = () => {
+    preview?.revoke();
+    setPreview(null);
+  };
 
   const getReportSteps = (reportType: ReportType) => {
     const baseSteps = [
@@ -65,8 +73,10 @@ const Reports: React.FC = () => {
         setProgress(steps[i]);
 
         if (i === steps.length - 1) {
-          // Final step - actually generate the report
-          await generateReport(reportType, period);
+          // Final step - generate the report and open it in the preview modal
+          // (the user downloads from there).
+          const { doc, filename } = await generateReport(reportType, period);
+          setPreview(createPdfPreview(doc, filename));
         } else {
           // Add delay to show progress (remove this in production if not needed)
           await new Promise(resolve => setTimeout(resolve, 500));
@@ -198,6 +208,14 @@ const Reports: React.FC = () => {
       </div>
       ) : (
         <AttendanceReport />
+      )}
+
+      {preview && (
+        <PdfPreviewModal
+          url={preview.url}
+          filename={preview.filename}
+          onClose={closePreview}
+        />
       )}
     </div>
   );

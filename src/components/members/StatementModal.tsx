@@ -4,6 +4,8 @@ import Modal from '../ui/Modal';
 import { useNotifications } from '../../hooks/useNotifications';
 import { loadStatementData } from '../../services/memberStatementService';
 import { generateMemberStatement } from '../../utils/reportGenerator/memberStatement';
+import { createPdfPreview, type PdfPreview } from '../../utils/pdf/present';
+import PdfPreviewModal from '../pdf/PdfPreviewModal';
 import {
   StatementPeriod,
   getStatementYears,
@@ -32,9 +34,10 @@ const StatementModal: React.FC<StatementModalProps> = ({
   member,
   preloaded,
 }) => {
-  const { showSuccess, showError } = useNotifications();
+  const { showError } = useNotifications();
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [preview, setPreview] = useState<PdfPreview | null>(null);
 
   const years = getStatementYears(member.join_date);
   const period: StatementPeriod =
@@ -44,15 +47,21 @@ const StatementModal: React.FC<StatementModalProps> = ({
     setIsGenerating(true);
     try {
       const data = await loadStatementData(member, preloaded);
-      await generateMemberStatement(data, period);
-      showSuccess('Statement downloaded');
-      onClose();
+      const { doc, filename } = await generateMemberStatement(data, period);
+      // Open the preview; the user downloads from there.
+      setPreview(createPdfPreview(doc, filename));
     } catch (error) {
       logger.error('Error generating member statement:', error);
       showError('Failed to generate statement. Please try again.');
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const closePreview = () => {
+    preview?.revoke();
+    setPreview(null);
+    onClose();
   };
 
   return (
@@ -62,7 +71,7 @@ const StatementModal: React.FC<StatementModalProps> = ({
       title="Download Statement"
       size="small"
       primaryAction={{
-        label: isGenerating ? 'Generating…' : 'Download PDF',
+        label: isGenerating ? 'Generating…' : 'Preview PDF',
         onClick: handleGenerate,
         loading: isGenerating,
       }}
@@ -99,6 +108,14 @@ const StatementModal: React.FC<StatementModalProps> = ({
           </select>
         </div>
       </div>
+
+      {preview && (
+        <PdfPreviewModal
+          url={preview.url}
+          filename={preview.filename}
+          onClose={closePreview}
+        />
+      )}
     </Modal>
   );
 };

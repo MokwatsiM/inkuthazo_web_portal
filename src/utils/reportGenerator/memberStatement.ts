@@ -36,10 +36,15 @@ const lastTableY = (doc: jsPDF): number =>
 const INDIGO: [number, number, number] = [79, 70, 229];
 const rand = (amount: number) => `R ${amount.toFixed(2)}`;
 
+/**
+ * Build the member statement PDF and return the jsPDF doc plus a suggested
+ * filename. The caller decides whether to preview or download it (see
+ * {@link presentPdf}); this keeps the generator side-effect free.
+ */
 export const generateMemberStatement = async (
   data: StatementData,
   period: StatementPeriod
-): Promise<void> => {
+): Promise<{ doc: jsPDF; filename: string }> => {
   const { member } = data;
   const contributions = filterByPeriod(data.contributions, (c) => c.date, period);
   const payouts = filterByPeriod(data.payouts, (p) => p.date, period);
@@ -201,5 +206,6 @@ export const generateMemberStatement = async (
   }
 
   const name = member.full_name.toLowerCase().replace(/\s+/g, '-');
-  doc.save(`${name}-statement-${periodFileSuffix(period)}.pdf`);
+  const filename = `${name}-statement-${periodFileSuffix(period)}.pdf`;
+  return { doc, filename };
 };

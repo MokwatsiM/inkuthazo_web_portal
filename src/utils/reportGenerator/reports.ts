@@ -112,10 +112,14 @@ const addFooter = (doc: jsPDF, pageNumber: number) => {
   );
 };
 
+/**
+ * Build the financial report PDF and return the jsPDF doc plus a suggested
+ * filename. The caller decides whether to preview or download it.
+ */
 export const generateReport = async (
   type: ReportType,
   period: ReportPeriod
-): Promise<void> => {
+): Promise<{ doc: jsPDF; filename: string }> => {
   const doc = new jsPDF();
   let pageNumber = 1;
 
@@ -432,8 +436,8 @@ export const generateReport = async (
     // Add final footer
     addFooter(doc, pageNumber);
 
-    // Save the PDF
-    doc.save(`${type}-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    const filename = `${type}-report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
+    return { doc, filename };
   } catch (error) {
     logger.error("Error generating report:", error);
     throw error;

@@ -1,4 +1,5 @@
 export type NotificationType =
+  | "contribution_submitted"
   | "contribution_approved"
   | "contribution_rejected"
   | "claim_approved"

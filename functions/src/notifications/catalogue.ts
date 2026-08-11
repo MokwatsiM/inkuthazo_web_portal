@@ -33,6 +33,16 @@ export function renderNotification(
   const contributionType = data.contributionType || "contribution";
 
   switch (type) {
+    case "contribution_submitted":
+      // body is plain text; finalize() escapes it for the email HTML.
+      return finalize({
+        title: "New contribution to review",
+        body: `${
+          data.memberName || "A member"
+        } submitted a ${contributionType} contribution of ${amount}. It is pending your review.`,
+        link: "/contributions",
+        ctaLabel: "Review contributions",
+      });
     case "contribution_approved":
       return finalize({
         title: "Contribution approved",

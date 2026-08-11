@@ -17,6 +17,63 @@ const millis = (timestamp: unknown): string => {
 };
 
 /**
+ * New contribution submitted -> notify all admins that a review is needed.
+ * Fans out to every member with role 'admin' (in-app + email each). The
+ * notification key is per-admin + contribution so retries dedupe.
+ */
+export const onContributionCreated = withEmailSecret.firestore
+  .document("contributions/{contributionId}")
+  .onCreate(async (snapshot, context) => {
+    const data = snapshot.data();
+    if (!data || data.status !== "pending" || !data.member_id) return;
+
+    const db = getFirestore();
+
+    // Resolve the submitting member's name for the message.
+    let memberName = "A member";
+    try {
+      const member = (await db.doc(`members/${data.member_id}`).get()).data();
+      if (member?.full_name) memberName = member.full_name;
+    } catch (error) {
+      logger.warn("onContributionCreated: could not load member name", error);
+    }
+
+    const admins = await db
+      .collection("members")
+      .where("role", "==", "admin")
+      .get();
+
+    if (admins.empty) {
+      logger.warn("onContributionCreated: no admins to notify");
+      return;
+    }
+
+    const contributionType = String(data.type || "").replace("_", " ");
+    await Promise.all(
+      admins.docs.map((adminDoc) =>
+        notify({
+          type: "contribution_submitted" as NotificationType,
+          key: `contribution_submitted_${context.params.contributionId}_${adminDoc.id}`,
+          recipientId: adminDoc.id,
+          source: {
+            collection: "contributions",
+            docId: context.params.contributionId,
+          },
+          data: {
+            memberName,
+            amount: formatAmount(data.amount),
+            contributionType,
+          },
+        })
+      )
+    );
+
+    logger.info(
+      `onContributionCreated: notified ${admins.size} admin(s) about ${context.params.contributionId}`
+    );
+  });
+
+/**
  * Contribution review: pending -> approved/rejected
  */
 export const onContributionReviewed = withEmailSecret.firestore

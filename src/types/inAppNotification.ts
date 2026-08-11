@@ -6,6 +6,7 @@ import { Timestamp } from 'firebase/firestore';
  * types in src/types/notification.ts.
  */
 export type InAppNotificationType =
+  | 'contribution_submitted'
   | 'contribution_approved'
   | 'contribution_rejected'
   | 'claim_approved'

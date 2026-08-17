@@ -48,11 +48,11 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({
               )}
               <div className="flex items-center space-x-3">
                 <img
-                  src="/logo.png"
+                  src="/logo-512.png"
                   alt="Logo"
                   className="h-8 w-8 text-brand-600 dark:text-brand-400"
                 />
-                <h1 className="text-xl font-bold text-text-primary dark:text-text-primary-dark">
+                <h1 className="text-xl font-italic text-text-primary dark:text-text-primary-dark">
                   Inkuthazo Portal
                 </h1>
                 {/* Version Badge */}

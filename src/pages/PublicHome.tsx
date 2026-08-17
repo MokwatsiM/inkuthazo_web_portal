@@ -1,13 +1,13 @@
+import {
+    CalendarClock,
+    FileText,
+    HandCoins,
+    ShieldCheck,
+    Users,
+    Wallet,
+} from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-  Users,
-  Wallet,
-  ShieldCheck,
-  HandCoins,
-  CalendarClock,
-  FileText,
-} from "lucide-react";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
 
 /**
@@ -54,9 +54,9 @@ const PublicHome: React.FC = () => (
     <header className="border-b border-line dark:border-line-dark">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Inkuthazo Social Club" className="h-8 w-8" />
-          <span className="font-bold text-text-primary dark:text-text-primary-dark">
-            Inkuthazo Social Club
+          <img src="/logo-512.png" alt="Inkuthazo Social Club" className="h-8 w-8" />
+          <span className="font-italic text-text-primary dark:text-text-primary-dark">
+            Membership Portal
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -75,7 +75,7 @@ const PublicHome: React.FC = () => (
       {/* Hero — clearly states name + purpose */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 text-center">
         <img
-          src="/logo.png"
+          src="/logo-512.png"
           alt="Inkuthazo Social Club"
           className="h-16 w-16 mx-auto mb-6"
         />

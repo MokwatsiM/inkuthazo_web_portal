@@ -1,30 +1,30 @@
+import { endOfMonth, format, startOfMonth, subMonths } from "date-fns";
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    orderBy,
+    query,
+    Timestamp,
+    where,
+} from "firebase/firestore";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  Timestamp,
-  orderBy,
-  doc,
-  getDoc,
-} from "firebase/firestore";
 import { db } from "../../config/firebase";
+import type { ReportPeriod, ReportType } from "../../types/report";
 import { formatDate } from "../dateUtils";
-import type { ReportType, ReportPeriod } from "../../types/report";
 
-import type { Contribution } from "../../types/contribution";
-import type { Payout } from "../../types/payout";
-import type { Expense } from "../../types/expense";
 import type { Member } from "../../types";
+import type { Contribution } from "../../types/contribution";
+import type { Expense } from "../../types/expense";
+import type { Payout } from "../../types/payout";
 import logger from "../logger";
 
 const addLogo = async (doc: jsPDF): Promise<void> => {
   try {
     const img = new Image();
-    img.src = "/logo.png";
+    img.src = "/logo-192.png";
 
     await new Promise((resolve, reject) => {
       img.onload = resolve;
@@ -32,7 +32,7 @@ const addLogo = async (doc: jsPDF): Promise<void> => {
     });
 
     const pageWidth = doc.internal.pageSize.width;
-    const maxWidth = 40;
+    const maxWidth = 30;
     const aspectRatio = img.width / img.height;
     const width = maxWidth;
     const height = width / aspectRatio;

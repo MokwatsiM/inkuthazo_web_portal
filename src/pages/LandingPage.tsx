@@ -1,35 +1,35 @@
 import {
-  Activity,
-  AlertTriangle,
-  ArrowUpRight,
-  Banknote,
-  BarChart3,
-  Calendar,
-  CalendarClock,
-  ClipboardList,
-  Code,
-  CreditCard,
-  FileText,
-  Gift,
-  Package,
-  HandCoins,
-  Home,
-  LogOut,
-  QrCode,
-  Receipt,
-  Settings,
-  Shield,
-  ShieldCheck,
-  TrendingUp,
-  Users,
-  UserX,
+    Activity,
+    AlertTriangle,
+    ArrowUpRight,
+    Banknote,
+    BarChart3,
+    Calendar,
+    CalendarClock,
+    ClipboardList,
+    Code,
+    CreditCard,
+    FileText,
+    Gift,
+    HandCoins,
+    Home,
+    LogOut,
+    Package,
+    QrCode,
+    Receipt,
+    Settings,
+    Shield,
+    ShieldCheck,
+    TrendingUp,
+    Users,
+    UserX,
 } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../components/avatar/Avatar';
+import NotificationBell from '../components/notifications/NotificationBell';
 import Button from '../components/ui/Button';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
-import NotificationBell from '../components/notifications/NotificationBell';
 import { useAuth } from '../hooks/useAuth';
 import { usePermissions } from '../hooks/usePermissions';
 import { ResourceType } from '../types/role';
@@ -94,12 +94,12 @@ const LandingPage: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="flex items-center space-x-2">
                 <img
-                  src="/logo.png"
+                  src="/logo-512.png"
                   alt="Logo"
                   className="h-8 w-8 text-brand-600 dark:text-brand-400"
                 />
-                <h1 className="text-xl font-bold text-text-primary dark:text-text-primary-dark">
-                  Inkuthazo Portal
+                <h1 className="text-xl font-italic text-text-primary dark:text-text-primary-dark">
+                 Inkuthazo Portal
                 </h1>
               </div>
               {/* Version Badge */}

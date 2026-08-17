@@ -59,7 +59,7 @@ export default function ResetPassword() {
         <div>
           <div className="flex items-center justify-center mb-6">
             <img
-              src="/logo.png"
+              src="/logo-512.png"
               alt="Inkuthazo Social Club"
               className="h-12 w-12"
             />

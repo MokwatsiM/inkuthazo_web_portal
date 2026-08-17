@@ -37,7 +37,7 @@ export const loadLogo = async (): Promise<HTMLImageElement> => {
       reject(e);
     };
 
-    img.src = "/logo.png";
+    img.src = "/logo-192.png";
   });
 
   return logoLoadPromise;

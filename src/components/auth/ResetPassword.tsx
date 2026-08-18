@@ -5,6 +5,7 @@ import { Lock } from "lucide-react";
 import { auth } from "../../config/firebase";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import Button from "../ui/Button";
+import Logo from "../ui/Logo";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -58,11 +59,7 @@ export default function ResetPassword() {
       <div className="max-w-md w-full space-y-8 bg-surface dark:bg-surface-dark p-8 rounded-base shadow-card border border-line dark:border-line-dark">
         <div>
           <div className="flex items-center justify-center mb-6">
-            <img
-              src="/logo.png"
-              alt="Inkuthazo Social Club"
-              className="h-12 w-12"
-            />
+            <Logo size="md" />
           </div>
           <h2 className="text-center text-3xl font-extrabold text-text-primary dark:text-text-primary-dark">
             Set new password

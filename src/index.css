@@ -133,9 +133,35 @@
   border-color: #ECE0D1 !important;
 }
 
-/* Smooth theme transitions */
-* {
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+/*
+ * Smooth theme transitions, scoped to surface-bearing elements instead of the
+ * universal selector. Transitioning every node forced a full-tree style
+ * recalc + paint on each theme toggle and ancestor hover; limiting it to the
+ * elements that actually change colour keeps the transition without the cost.
+ */
+a,
+button,
+input,
+select,
+textarea,
+[class*="bg-"],
+[class*="border-"],
+[class*="text-"] {
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
+}
+
+/* Respect users who prefer reduced motion: keep colour feedback but remove
+   movement and long transitions rather than killing all state change. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Custom animations for progress indicators */

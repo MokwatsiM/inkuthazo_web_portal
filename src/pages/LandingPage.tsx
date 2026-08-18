@@ -28,6 +28,7 @@ import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../components/avatar/Avatar';
 import Button from '../components/ui/Button';
+import Logo from '../components/ui/Logo';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import NotificationBell from '../components/notifications/NotificationBell';
 import { useAuth } from '../hooks/useAuth';
@@ -93,11 +94,7 @@ const LandingPage: React.FC = () => {
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="flex items-center space-x-2">
-                <img
-                  src="/logo.png"
-                  alt="Logo"
-                  className="h-8 w-8 text-brand-600 dark:text-brand-400"
-                />
+                <Logo size="sm" />
                 <h1 className="text-xl font-bold text-text-primary dark:text-text-primary-dark">
                   Inkuthazo Portal
                 </h1>

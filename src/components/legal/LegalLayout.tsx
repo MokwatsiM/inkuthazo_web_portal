@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import Logo from "../ui/Logo";
 
 interface LegalLayoutProps {
   title: string;
@@ -21,7 +22,7 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
     <header className="border-b border-line dark:border-line-dark">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="Inkuthazo Social Club" className="h-8 w-8" />
+          <Logo size="sm" />
           <span className="font-bold text-text-primary dark:text-text-primary-dark">
             Inkuthazo Social Club
           </span>

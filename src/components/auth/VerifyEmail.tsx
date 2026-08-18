@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import Button from "../ui/Button";
+import Logo from "../ui/Logo";
 
 /**
  * Shown to a signed-in user whose email is not yet verified. They cannot
@@ -52,7 +53,7 @@ const VerifyEmail: React.FC = () => {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex items-center justify-center mb-6">
-          <img src="/logo.png" alt="Inkuthazo Social Club" className="h-12 w-12" />
+          <Logo size="md" />
         </div>
       </div>
 

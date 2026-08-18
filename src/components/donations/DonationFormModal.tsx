@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { createDonation } from '../../services/donationService';
 import type { Member } from '../../types';
 import type { DonationSource, DonationType } from '../../types/donation';
+import { useModalA11y } from '../../hooks/useModalA11y';
 import logger from '../../utils/logger';
 import Button from '../ui/Button';
 
@@ -16,6 +17,7 @@ interface DonationFormModalProps {
 
 const DonationFormModal: React.FC<DonationFormModalProps> = ({ onClose }) => {
   const { user } = useAuth();
+  const a11y = useModalA11y({ onClose });
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [formData, setFormData] = useState({
@@ -134,17 +136,30 @@ const DonationFormModal: React.FC<DonationFormModalProps> = ({ onClose }) => {
   const isInKind = formData.type === 'in_kind';
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-surface-dark rounded-[20px] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        ref={a11y.ref}
+        {...a11y.dialogProps}
+        aria-labelledby="donation-form-title"
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-surface-dark rounded-[20px] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-surface-dark border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-[20px]">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2
+              id="donation-form-title"
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+            >
               Add Donation/Investment
             </h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+              aria-label="Close"
+              className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>

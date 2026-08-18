@@ -17,6 +17,7 @@ import {
   rentalStatusLabel,
 } from "../../utils/assetDisplay";
 import { getActionableErrorMessage } from "../../utils/errorMessages";
+import { useModalA11y } from "../../hooks/useModalA11y";
 import logger from "../../utils/logger";
 
 interface AssetDetailModalProps {
@@ -31,6 +32,7 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   onUpdate,
 }) => {
   const { user } = useAuth();
+  const a11y = useModalA11y({ onClose });
   const [rentals, setRentals] = useState<AssetRental[]>([]);
   const [loading, setLoading] = useState(true);
   const [returningId, setReturningId] = useState<string | null>(null);
@@ -87,8 +89,17 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-surface-dark rounded-[20px] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        ref={a11y.ref}
+        {...a11y.dialogProps}
+        aria-labelledby="asset-detail-title"
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-surface-dark rounded-[20px] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-surface-dark border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-[20px]">
           <div className="flex items-start justify-between">
@@ -97,7 +108,10 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                 <Package className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2
+                  id="asset-detail-title"
+                  className="text-2xl font-bold text-gray-900 dark:text-white"
+                >
                   {asset.name}
                 </h2>
                 <span
@@ -111,7 +125,8 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+              aria-label="Close"
+              className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>

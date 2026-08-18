@@ -6,6 +6,7 @@ import logger from '../utils/logger';
 import Avatar from './avatar/Avatar';
 import NotificationBell from './notifications/NotificationBell';
 import Button from './ui/Button';
+import Logo from './ui/Logo';
 import { ThemeToggle } from './ui/ThemeToggle';
 
 interface FullScreenLayoutProps {
@@ -47,11 +48,7 @@ const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({
                 </button>
               )}
               <div className="flex items-center space-x-3">
-                <img
-                  src="/logo.png"
-                  alt="Logo"
-                  className="h-8 w-8 text-brand-600 dark:text-brand-400"
-                />
+                <Logo size="sm" />
                 <h1 className="text-xl font-bold text-text-primary dark:text-text-primary-dark">
                   Inkuthazo Portal
                 </h1>

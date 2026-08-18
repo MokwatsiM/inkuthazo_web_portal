@@ -9,6 +9,7 @@ import { rentOutAsset } from "../../services/assetService";
 import type { Asset, RenterType } from "../../types/asset";
 import type { Member } from "../../types";
 import { getActionableErrorMessage } from "../../utils/errorMessages";
+import { useModalA11y } from "../../hooks/useModalA11y";
 import logger from "../../utils/logger";
 
 interface RentAssetModalProps {
@@ -25,6 +26,7 @@ const RentAssetModal: React.FC<RentAssetModalProps> = ({
   onRented,
 }) => {
   const { user } = useAuth();
+  const a11y = useModalA11y({ onClose });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -128,18 +130,30 @@ const RentAssetModal: React.FC<RentAssetModalProps> = ({
   };
 
   const inputClass =
-    "w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-all dark:text-white";
+    "w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-colors dark:text-white";
   const labelClass =
     "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2";
   const isMember = formData.renter_type === "member";
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-surface-dark rounded-[20px] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        ref={a11y.ref}
+        {...a11y.dialogProps}
+        aria-labelledby="rent-asset-title"
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-surface-dark rounded-[20px] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      >
         <div className="sticky top-0 bg-white dark:bg-surface-dark border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-[20px]">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h2
+                id="rent-asset-title"
+                className="text-2xl font-bold text-gray-900 dark:text-white"
+              >
                 Rent Out Asset
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -148,7 +162,8 @@ const RentAssetModal: React.FC<RentAssetModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+              aria-label="Close"
+              className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>

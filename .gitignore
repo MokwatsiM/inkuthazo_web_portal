@@ -31,3 +31,4 @@ functions/lib/
 .emulator-data/
 functions/lib/index.js
 functions/lib/index.js.map
+firebase.json

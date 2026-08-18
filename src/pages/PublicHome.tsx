@@ -9,6 +9,7 @@ import {
   FileText,
 } from "lucide-react";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
+import Logo from "../components/ui/Logo";
 
 /**
  * Public marketing/home page shown to logged-out visitors at "/". Its job is
@@ -54,7 +55,7 @@ const PublicHome: React.FC = () => (
     <header className="border-b border-line dark:border-line-dark">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Inkuthazo Social Club" className="h-8 w-8" />
+          <Logo size="sm" />
           <span className="font-bold text-text-primary dark:text-text-primary-dark">
             Inkuthazo Social Club
           </span>
@@ -74,11 +75,7 @@ const PublicHome: React.FC = () => (
     <main>
       {/* Hero — clearly states name + purpose */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 text-center">
-        <img
-          src="/logo.png"
-          alt="Inkuthazo Social Club"
-          className="h-16 w-16 mx-auto mb-6"
-        />
+        <Logo size="lg" className="mx-auto mb-6" />
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-text-primary dark:text-text-primary-dark">
           Inkuthazo Social Club
         </h1>

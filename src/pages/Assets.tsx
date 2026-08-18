@@ -187,7 +187,7 @@ const Assets: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, category, serial, location..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-all dark:text-white"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-colors dark:text-white"
             />
           </div>
           <select
@@ -195,7 +195,7 @@ const Assets: React.FC = () => {
             onChange={(e) =>
               setStatusFilter(e.target.value as AssetStatus | "all")
             }
-            className="px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-all dark:text-white"
+            className="px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-colors dark:text-white"
           >
             {STATUS_FILTERS.map((f) => (
               <option key={f.value} value={f.value}>
@@ -262,16 +262,18 @@ const Assets: React.FC = () => {
                   )}
                   <button
                     onClick={() => setDetailAsset(asset)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all"
+                    className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
                     title="View details"
+                    aria-label={`View details for ${asset.name}`}
                   >
                     <Eye className="w-5 h-5 text-gray-500" />
                   </button>
                   {canEdit("assets") && (
                     <button
                       onClick={() => setEditingAsset(asset)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all"
+                      className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
                       title="Edit"
+                      aria-label={`Edit ${asset.name}`}
                     >
                       <Edit className="w-5 h-5 text-gray-500" />
                     </button>
@@ -279,8 +281,9 @@ const Assets: React.FC = () => {
                   {canDelete("assets") && (
                     <button
                       onClick={() => handleDelete(asset)}
-                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                      className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                       title="Delete"
+                      aria-label={`Delete ${asset.name}`}
                     >
                       <Trash2 className="w-5 h-5 text-red-500" />
                     </button>

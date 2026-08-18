@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { getFriendlyErrorMessage } from "../../utils/errorMessages";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import Button from "../ui/Button";
+import Logo from "../ui/Logo";
 import logger from "../../utils/logger";
 
 interface CompleteProfileState {
@@ -72,7 +73,7 @@ const CompleteProfile: React.FC = () => {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex items-center justify-center mb-6">
-          <img src="/logo.png" alt="Inkuthazo Social Club" className="h-12 w-12" />
+          <Logo size="md" />
         </div>
         <h2 className="text-center text-3xl font-extrabold text-text-primary dark:text-text-primary-dark">
           Complete your profile

@@ -164,6 +164,69 @@ textarea,
   }
 }
 
+/*
+ * Browser surfaces — the parts the design doesn't draw directly. Left on
+ * defaults, text selection, the caret, form-control accents, and scrollbars
+ * announce "assembled, not built". Theme them from the brand.
+ */
+::selection {
+  background-color: #7c5cfc; /* --color-primary */
+  color: #ffffff;
+}
+
+:root {
+  accent-color: #7c5cfc; /* checkboxes, radios, range, date pickers */
+  caret-color: #7c5cfc;
+}
+.dark {
+  accent-color: #a78bfa; /* --color-primary-light: brighter on dark */
+  caret-color: #a78bfa;
+}
+.warm ::selection {
+  background-color: #c2410c; /* warm terracotta on the sepia world */
+}
+.warm {
+  accent-color: #c2410c;
+  caret-color: #c2410c;
+}
+
+/* Custom scrollbars (WebKit/Blink); Firefox uses scrollbar-color below. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c7c9d1 transparent;
+}
+.dark * {
+  scrollbar-color: #475569 transparent;
+}
+.warm * {
+  scrollbar-color: #d8c8b2 transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #c7c9d1;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a5a8b4;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+}
+.warm ::-webkit-scrollbar-thumb {
+  background-color: #d8c8b2;
+}
+
 /* Custom animations for progress indicators */
 @keyframes progress-indeterminate {
   0% {

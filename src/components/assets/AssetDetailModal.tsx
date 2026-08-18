@@ -126,7 +126,7 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
             <button
               onClick={onClose}
               aria-label="Close"
-              className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+              className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>

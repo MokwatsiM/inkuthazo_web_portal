@@ -262,7 +262,7 @@ const Assets: React.FC = () => {
                   )}
                   <button
                     onClick={() => setDetailAsset(asset)}
-                    className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                    className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                     title="View details"
                     aria-label={`View details for ${asset.name}`}
                   >
@@ -271,7 +271,7 @@ const Assets: React.FC = () => {
                   {canEdit("assets") && (
                     <button
                       onClick={() => setEditingAsset(asset)}
-                      className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                      className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                       title="Edit"
                       aria-label={`Edit ${asset.name}`}
                     >
@@ -281,7 +281,7 @@ const Assets: React.FC = () => {
                   {canDelete("assets") && (
                     <button
                       onClick={() => handleDelete(asset)}
-                      className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                      className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                       title="Delete"
                       aria-label={`Delete ${asset.name}`}
                     >

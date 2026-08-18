@@ -12,10 +12,12 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
+import { assetCategoryVisual } from "../utils/assetCategoryVisual";
 import Button from "../components/ui/Button";
 import KPICard from "../components/ui/KPICard";
 import { useAuth } from "../hooks/useAuth";
 import { usePermissions } from "../hooks/usePermissions";
+import { useNotifications } from "../hooks/useNotifications";
 import {
   getAssets,
   getAllRentals,
@@ -28,11 +30,12 @@ import {
   assetStatusLabel,
   isAssetAvailable,
 } from "../types/asset";
-import { assetStatusBadgeClass } from "../utils/assetDisplay";
+import { assetStatusBadgeClass, formatMoney } from "../utils/assetDisplay";
 import { getActionableErrorMessage } from "../utils/errorMessages";
 import AssetFormModal from "../components/assets/AssetFormModal";
 import RentAssetModal from "../components/assets/RentAssetModal";
 import AssetDetailModal from "../components/assets/AssetDetailModal";
+import { ConfirmModal } from "../components/ui/Modal";
 import logger from "../utils/logger";
 
 const STATUS_FILTERS: Array<{ value: AssetStatus | "all"; label: string }> = [
@@ -46,6 +49,7 @@ const STATUS_FILTERS: Array<{ value: AssetStatus | "all"; label: string }> = [
 const Assets: React.FC = () => {
   const { user } = useAuth();
   const { canCreate, canEdit, canDelete } = usePermissions();
+  const { showSuccess, showError } = useNotifications();
 
   const [assets, setAssets] = useState<Asset[]>([]);
   const [rentals, setRentals] = useState<AssetRental[]>([]);
@@ -59,6 +63,8 @@ const Assets: React.FC = () => {
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [rentingAsset, setRentingAsset] = useState<Asset | null>(null);
   const [detailAsset, setDetailAsset] = useState<Asset | null>(null);
+  const [deletingAsset, setDeletingAsset] = useState<Asset | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -100,23 +106,21 @@ const Assets: React.FC = () => {
     });
   }, [assets, search, statusFilter]);
 
-  const handleDelete = async (asset: Asset) => {
-    if (!user) return;
-    if (
-      !window.confirm(
-        `Delete "${asset.name}"? This cannot be undone. Rental history for this asset is kept.`
-      )
-    ) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!user || !deletingAsset) return;
+    setDeleteLoading(true);
     try {
-      await deleteAsset(asset.id, user.uid, user.email || undefined);
+      await deleteAsset(deletingAsset.id, user.uid, user.email || undefined);
+      showSuccess(`"${deletingAsset.name}" was deleted.`);
+      setDeletingAsset(null);
       await fetchData();
     } catch (err) {
       logger.error("Error deleting asset:", err);
-      window.alert(
+      showError(
         getActionableErrorMessage(err, "Failed to delete asset. Please try again.")
       );
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -150,7 +154,7 @@ const Assets: React.FC = () => {
         />
         <KPICard
           title="Total Value"
-          value={`R ${summary.totalValue.toFixed(2)}`}
+          value={`R ${formatMoney(summary.totalValue)}`}
           subtitle="Current value (excl. retired)"
           icon={Wallet}
           gradient="blue"
@@ -164,7 +168,7 @@ const Assets: React.FC = () => {
         />
         <KPICard
           title="Rental Income"
-          value={`R ${summary.totalRentalIncome.toFixed(2)}`}
+          value={`R ${formatMoney(summary.totalRentalIncome)}`}
           subtitle="Total earned (adds to balance)"
           icon={TrendingUp}
           gradient="green"
@@ -172,13 +176,28 @@ const Assets: React.FC = () => {
       </div>
 
       {error && (
-        <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 text-sm text-red-700 dark:text-red-300">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 text-sm text-red-700 dark:text-red-300"
+        >
           {error}
         </div>
       )}
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            Filter Assets
+          </h3>
+          {!loading && (
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {filteredAssets.length}{" "}
+              {filteredAssets.length === 1 ? "asset" : "assets"}
+            </span>
+          )}
+        </div>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -212,10 +231,49 @@ const Assets: React.FC = () => {
           Loading assets...
         </div>
       ) : filteredAssets.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          {assets.length === 0
-            ? "No assets yet. Add your first asset to get started."
-            : "No assets match your filters."}
+        <div className="flex flex-col items-center text-center py-16 px-6">
+          <div className="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center mb-4">
+            <Package className="w-7 h-7 text-purple-500 dark:text-purple-400" />
+          </div>
+          {assets.length === 0 ? (
+            <>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                No assets yet
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
+                Add the club's movable assets to track their value and record
+                rentals to members or outsiders.
+              </p>
+              {canCreate("assets") && (
+                <Button
+                  icon={Plus}
+                  onClick={() => setShowCreate(true)}
+                  className="mt-5"
+                >
+                  Add your first asset
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                No assets match your filters
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
+                Try a different search term or status.
+              </p>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setSearch("");
+                  setStatusFilter("all");
+                }}
+                className="mt-5"
+              >
+                Clear filters
+              </Button>
+            </>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -226,14 +284,28 @@ const Assets: React.FC = () => {
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
-                    <Package className="w-6 h-6 text-white" />
-                  </div>
+                  {(() => {
+                    const { Icon, tile } = assetCategoryVisual(asset.category);
+                    return (
+                      <div
+                        className={`w-12 h-12 bg-gradient-to-br ${tile} rounded-xl flex items-center justify-center shadow-lg shrink-0`}
+                      >
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                    );
+                  })()}
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
                         {asset.name}
                       </h3>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${assetCategoryVisual(
+                          asset.category
+                        ).chip}`}
+                      >
+                        {assetCategoryLabel(asset.category)}
+                      </span>
                       <span
                         className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${assetStatusBadgeClass(
                           asset.status
@@ -243,8 +315,7 @@ const Assets: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {assetCategoryLabel(asset.category)} · R{" "}
-                      {asset.current_value.toFixed(2)} · bought{" "}
+                      R {formatMoney(asset.current_value)} · bought{" "}
                       {format(asset.purchase_date.toDate(), "MMM yyyy")}
                     </p>
                   </div>
@@ -280,8 +351,9 @@ const Assets: React.FC = () => {
                   )}
                   {canDelete("assets") && (
                     <button
-                      onClick={() => handleDelete(asset)}
-                      className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                      onClick={() => setDeletingAsset(asset)}
+                      disabled={deleteLoading && deletingAsset?.id === asset.id}
+                      className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Delete"
                       aria-label={`Delete ${asset.name}`}
                     >
@@ -323,6 +395,21 @@ const Assets: React.FC = () => {
           onUpdate={fetchData}
         />
       )}
+
+      <ConfirmModal
+        isOpen={!!deletingAsset}
+        onClose={() => !deleteLoading && setDeletingAsset(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete asset"
+        message={
+          deletingAsset
+            ? `Delete "${deletingAsset.name}"? This cannot be undone. Rental history for this asset is kept.`
+            : ""
+        }
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleteLoading}
+      />
     </div>
   );
 };

@@ -15,9 +15,13 @@ import {
   assetStatusBadgeClass,
   rentalStatusBadgeClass,
   rentalStatusLabel,
+  formatMoney,
 } from "../../utils/assetDisplay";
+import { assetCategoryVisual } from "../../utils/assetCategoryVisual";
 import { getActionableErrorMessage } from "../../utils/errorMessages";
 import { useModalA11y } from "../../hooks/useModalA11y";
+import { useNotifications } from "../../hooks/useNotifications";
+import { ConfirmModal } from "../ui/Modal";
 import logger from "../../utils/logger";
 
 interface AssetDetailModalProps {
@@ -32,10 +36,15 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   onUpdate,
 }) => {
   const { user } = useAuth();
+  const { showSuccess } = useNotifications();
   const a11y = useModalA11y({ onClose });
+  const categoryVisual = assetCategoryVisual(asset.category);
   const [rentals, setRentals] = useState<AssetRental[]>([]);
   const [loading, setLoading] = useState(true);
   const [returningId, setReturningId] = useState<string | null>(null);
+  const [confirmingReturn, setConfirmingReturn] = useState<AssetRental | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
 
   const loadRentals = async () => {
@@ -54,16 +63,20 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asset.id]);
 
-  const handleReturn = async (rentalId: string) => {
-    if (!user) return;
-    setReturningId(rentalId);
+  const handleConfirmReturn = async () => {
+    if (!user || !confirmingReturn) return;
+    const rental = confirmingReturn;
+    setReturningId(rental.id);
     setError(null);
     try {
-      await returnAsset(rentalId, new Date(), user.uid, user.email || undefined);
+      await returnAsset(rental.id, new Date(), user.uid, user.email || undefined);
+      setConfirmingReturn(null);
+      showSuccess(`Return recorded for ${rental.renter_name}.`);
       await loadRentals();
       onUpdate(); // asset status changed back to available
     } catch (err) {
       logger.error("Error returning asset:", err);
+      setConfirmingReturn(null);
       setError(
         getActionableErrorMessage(err, "Failed to record return. Please try again.")
       );
@@ -104,8 +117,10 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
         <div className="sticky top-0 bg-white dark:bg-surface-dark border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-[20px]">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Package className="w-7 h-7 text-white" />
+              <div
+                className={`w-14 h-14 bg-gradient-to-br ${categoryVisual.tile} rounded-xl flex items-center justify-center shadow-lg`}
+              >
+                <categoryVisual.Icon className="w-7 h-7 text-white" />
               </div>
               <div>
                 <h2
@@ -147,7 +162,7 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                 Current Value
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                R {asset.current_value.toFixed(2)}
+                R {formatMoney(asset.current_value)}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-4">
@@ -155,7 +170,7 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                 Purchase Price
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                R {asset.purchase_price.toFixed(2)}
+                R {formatMoney(asset.purchase_price)}
               </p>
             </div>
           </div>
@@ -233,7 +248,7 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                               )}`}
                           </p>
                           <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">
-                            Fee: R {rental.rental_fee.toFixed(2)}
+                            Fee: R {formatMoney(rental.rental_fee)}
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-2 shrink-0">
@@ -248,7 +263,7 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                             <Button
                               type="button"
                               variant="secondary"
-                              onClick={() => handleReturn(rental.id)}
+                              onClick={() => setConfirmingReturn(rental)}
                               disabled={returningId === rental.id}
                               loading={returningId === rental.id}
                               className="!py-1 !px-3 text-xs"
@@ -277,6 +292,23 @@ const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmingReturn}
+        onClose={() => setConfirmingReturn(null)}
+        onConfirm={handleConfirmReturn}
+        title="Record return"
+        message={
+          confirmingReturn
+            ? `Mark this rental to ${confirmingReturn.renter_name} (fee R ${confirmingReturn.rental_fee.toFixed(
+                2
+              )}) as returned? The asset becomes available again.`
+            : ""
+        }
+        confirmLabel="Record return"
+        variant="warning"
+        loading={returningId === confirmingReturn?.id}
+      />
     </div>
   );
 };

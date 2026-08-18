@@ -1,5 +1,17 @@
 import type { AssetStatus, RentalStatus } from "../types/asset";
 
+const moneyFormatter = new Intl.NumberFormat("en-ZA", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/**
+ * Format a Rand amount with thousands separators (no currency symbol — the UI
+ * prefixes its own "R"). e.g. 12500 -> "12,500.00".
+ */
+export const formatMoney = (amount: number): string =>
+  moneyFormatter.format(amount || 0);
+
 /** Tailwind badge classes for an asset status. */
 export const assetStatusBadgeClass = (status: AssetStatus): string => {
   const styles: Record<AssetStatus, string> = {

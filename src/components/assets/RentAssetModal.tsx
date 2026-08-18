@@ -9,7 +9,9 @@ import { rentOutAsset } from "../../services/assetService";
 import type { Asset, RenterType } from "../../types/asset";
 import type { Member } from "../../types";
 import { getActionableErrorMessage } from "../../utils/errorMessages";
+import { formatMoney } from "../../utils/assetDisplay";
 import { useModalA11y } from "../../hooks/useModalA11y";
+import { useNotifications } from "../../hooks/useNotifications";
 import logger from "../../utils/logger";
 
 interface RentAssetModalProps {
@@ -18,7 +20,13 @@ interface RentAssetModalProps {
   onRented: () => void;
 }
 
-const today = () => new Date().toISOString().split("T")[0];
+// Local-time YYYY-MM-DD for date inputs (toISOString is UTC and can render
+// the wrong day near midnight in SAST).
+const today = () => {
+  const d = new Date();
+  const offsetMs = d.getTimezoneOffset() * 60 * 1000;
+  return new Date(d.getTime() - offsetMs).toISOString().split("T")[0];
+};
 
 const RentAssetModal: React.FC<RentAssetModalProps> = ({
   asset,
@@ -26,10 +34,16 @@ const RentAssetModal: React.FC<RentAssetModalProps> = ({
   onRented,
 }) => {
   const { user } = useAuth();
+  const { showSuccess } = useNotifications();
   const a11y = useModalA11y({ onClose });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feeConfirmed, setFeeConfirmed] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
+
+  // A fee above this asks for a one-tap confirmation before it posts to the
+  // club balance — cheap insurance against a fat-fingered extra zero.
+  const LARGE_FEE_THRESHOLD = 5000;
 
   const [formData, setFormData] = useState({
     renter_type: "member" as RenterType,
@@ -83,6 +97,8 @@ const RentAssetModal: React.FC<RentAssetModalProps> = ({
       return;
     }
 
+    // Editing the fee re-arms the large-fee confirmation.
+    if (name === "rental_fee") setFeeConfirmed(false);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -93,6 +109,13 @@ const RentAssetModal: React.FC<RentAssetModalProps> = ({
     if (new Date(formData.due_date) < new Date(formData.start_date)) {
       setError("Due date cannot be before the start date.");
       return;
+    }
+
+    const fee = parseFloat(formData.rental_fee) || 0;
+    if (fee >= LARGE_FEE_THRESHOLD && !feeConfirmed) {
+      setFeeConfirmed(true);
+      setError(null);
+      return; // require a second, deliberate submit
     }
 
     setLoading(true);
@@ -117,6 +140,9 @@ const RentAssetModal: React.FC<RentAssetModalProps> = ({
         user.email || undefined
       );
 
+      showSuccess(
+        `${asset.name} rented out to ${formData.renter_name.trim()}.`
+      );
       onRented();
       onClose();
     } catch (err) {
@@ -177,134 +203,156 @@ const RentAssetModal: React.FC<RentAssetModalProps> = ({
             </div>
           )}
 
-          <div>
-            <label className={labelClass}>
-              Renter <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="renter_type"
-              value={formData.renter_type}
-              onChange={handleChange}
-              required
-              className={inputClass}
-            >
-              <option value="member">Member</option>
-              <option value="outsider">Outsider</option>
-            </select>
-          </div>
+          {/* Who's renting */}
+          <fieldset className="space-y-4">
+            <legend className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
+              Who's renting
+            </legend>
 
-          {isMember && (
             <div>
               <label className={labelClass}>
-                Select Member <span className="text-red-500">*</span>
+                Renter <span className="text-red-500">*</span>
               </label>
               <select
-                name="member_id"
-                value={formData.member_id}
+                name="renter_type"
+                value={formData.renter_type}
                 onChange={handleChange}
                 required
                 className={inputClass}
               >
-                <option value="">Select a member...</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.full_name}
-                  </option>
-                ))}
+                <option value="member">Member</option>
+                <option value="outsider">Outsider</option>
               </select>
             </div>
+
+            {isMember && (
+              <div>
+                <label className={labelClass}>
+                  Select Member <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="member_id"
+                  value={formData.member_id}
+                  onChange={handleChange}
+                  required
+                  className={inputClass}
+                >
+                  <option value="">Select a member...</option>
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>
+                  Renter Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="renter_name"
+                  value={formData.renter_name}
+                  onChange={handleChange}
+                  required
+                  disabled={isMember && !!formData.member_id}
+                  className={`${inputClass} disabled:opacity-50`}
+                  placeholder="Enter renter name"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Contact</label>
+                <input
+                  type="text"
+                  name="contact"
+                  value={formData.contact}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="Phone or email"
+                />
+              </div>
+            </div>
+          </fieldset>
+
+          {/* Rental terms */}
+          <fieldset className="space-y-4">
+            <legend className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
+              Rental terms
+            </legend>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className={labelClass}>
+                  Rental Fee (R) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="rental_fee"
+                  value={formData.rental_fee}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  step="0.01"
+                  className={inputClass}
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>
+                  Start Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="start_date"
+                  value={formData.start_date}
+                  onChange={handleChange}
+                  required
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>
+                  Due Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="due_date"
+                  value={formData.due_date}
+                  onChange={handleChange}
+                  required
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 text-xs text-blue-800 dark:text-blue-300">
+              The rental fee is recorded as income and counts toward the club's
+              balance. Set it to 0 if you are lending this asset for free.
+            </div>
+
+            <div>
+              <label className={labelClass}>Notes</label>
+              <textarea
+                name="notes"
+                value={formData.notes}
+                onChange={handleChange}
+                rows={2}
+                className={`${inputClass} resize-none`}
+                placeholder="Any conditions or notes about this rental..."
+              />
+            </div>
+          </fieldset>
+
+          {feeConfirmed && (
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-300">
+              That's a large fee — R {formatMoney(parseFloat(formData.rental_fee) || 0)}{" "}
+              will be added to the club balance. Rent out again to confirm, or
+              adjust the fee.
+            </div>
           )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>
-                Renter Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="renter_name"
-                value={formData.renter_name}
-                onChange={handleChange}
-                required
-                disabled={isMember && !!formData.member_id}
-                className={`${inputClass} disabled:opacity-50`}
-                placeholder="Enter renter name"
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Contact</label>
-              <input
-                type="text"
-                name="contact"
-                value={formData.contact}
-                onChange={handleChange}
-                className={inputClass}
-                placeholder="Phone or email"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className={labelClass}>
-                Rental Fee (R) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                name="rental_fee"
-                value={formData.rental_fee}
-                onChange={handleChange}
-                required
-                min="0"
-                step="0.01"
-                className={inputClass}
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <label className={labelClass}>
-                Start Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                name="start_date"
-                value={formData.start_date}
-                onChange={handleChange}
-                required
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>
-                Due Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                name="due_date"
-                value={formData.due_date}
-                onChange={handleChange}
-                required
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 text-xs text-blue-800 dark:text-blue-300">
-            The rental fee is recorded as income and counts toward the club's
-            balance. Set it to 0 if you are lending this asset for free.
-          </div>
-
-          <div>
-            <label className={labelClass}>Notes</label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows={2}
-              className={`${inputClass} resize-none`}
-              placeholder="Any conditions or notes about this rental..."
-            />
-          </div>
 
           <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
@@ -317,7 +365,7 @@ const RentAssetModal: React.FC<RentAssetModalProps> = ({
               Cancel
             </Button>
             <Button type="submit" disabled={loading} loading={loading} className="flex-1">
-              Rent Out
+              {feeConfirmed ? "Confirm & rent out" : "Rent Out"}
             </Button>
           </div>
         </form>

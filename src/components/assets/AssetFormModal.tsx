@@ -13,6 +13,7 @@ import type {
 } from "../../types/asset";
 import { getActionableErrorMessage } from "../../utils/errorMessages";
 import { useModalA11y } from "../../hooks/useModalA11y";
+import { useNotifications } from "../../hooks/useNotifications";
 import logger from "../../utils/logger";
 
 interface AssetFormModalProps {
@@ -21,8 +22,13 @@ interface AssetFormModalProps {
   onSaved: () => void;
 }
 
-const toDateInput = (ts?: Timestamp) =>
-  (ts ? ts.toDate() : new Date()).toISOString().split("T")[0];
+// Format for <input type="date"> in LOCAL time. toISOString() is UTC, which
+// shifts a date entered near midnight in SAST (UTC+2) to the previous day.
+const toDateInput = (ts?: Timestamp) => {
+  const d = ts ? ts.toDate() : new Date();
+  const offsetMs = d.getTimezoneOffset() * 60 * 1000;
+  return new Date(d.getTime() - offsetMs).toISOString().split("T")[0];
+};
 
 const AssetFormModal: React.FC<AssetFormModalProps> = ({
   asset,
@@ -30,6 +36,7 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
   onSaved,
 }) => {
   const { user } = useAuth();
+  const { showSuccess } = useNotifications();
   const a11y = useModalA11y({ onClose });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +96,11 @@ const AssetFormModal: React.FC<AssetFormModalProps> = ({
         );
       }
 
+      showSuccess(
+        isEditing
+          ? `"${payload.name}" was updated.`
+          : `"${payload.name}" was added.`
+      );
       onSaved();
       onClose();
     } catch (err) {

@@ -72,8 +72,10 @@ const Modal: React.FC<ModalProps> = ({
     const modal = modalRef.current;
     if (!modal) return;
 
+    // Match every focusable control, not just text/radio/checkbox — the old
+    // selector let Tab escape number, date, email, and other input types.
     const focusableElements = modal.querySelectorAll(
-      'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
     );
     const firstElement = focusableElements[0] as HTMLElement;
     const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
@@ -228,7 +230,9 @@ export const ConfirmModal: React.FC<{
       primaryAction={{
         label: confirmLabel,
         onClick: onConfirm,
-        variant: variant,
+        // Modal's primary action only knows primary/danger; a "warning"
+        // confirm (a cautionary but non-destructive action) maps to primary.
+        variant: variant === "danger" ? "danger" : "primary",
         loading: loading,
       }}
       secondaryAction={{

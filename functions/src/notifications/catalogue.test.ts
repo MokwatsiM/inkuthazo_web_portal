@@ -3,6 +3,7 @@ import { renderNotification, emailLayout } from "./catalogue";
 import { NotificationType } from "./types";
 
 const ALL_TYPES: NotificationType[] = [
+  "contribution_submitted",
   "contribution_approved",
   "contribution_rejected",
   "claim_approved",
@@ -21,6 +22,7 @@ const ALL_TYPES: NotificationType[] = [
 
 // Routes registered in src/App.tsx that notifications may deep-link to
 const KNOWN_ROUTES = [
+  "/contributions",
   "/my-contributions",
   "/my-donations",
   "/my-credit",
@@ -48,6 +50,17 @@ describe("renderNotification", () => {
     });
     expect(rendered.body).toContain("R250.00");
     expect(rendered.body).toContain("monthly");
+  });
+
+  it("addresses admins for a submitted contribution and links to review", () => {
+    const rendered = renderNotification("contribution_submitted", {
+      memberName: "Thandi Nkosi",
+      amount: "300.00",
+      contributionType: "monthly",
+    });
+    expect(rendered.body).toContain("Thandi Nkosi");
+    expect(rendered.body).toContain("R300.00");
+    expect(rendered.link).toBe("/contributions");
   });
 
   it("includes reviewer notes when present and omits when absent", () => {

@@ -10,6 +10,7 @@ initializeApp();
 
 // Lifecycle notification triggers (in-app + email)
 export {
+  onContributionCreated,
   onContributionReviewed,
   onClaimReviewed,
   onCreditStatusChanged,

@@ -29,3 +29,5 @@ functions/lib/
 
 # Firebase emulator persisted data (local dev only)
 .emulator-data/
+functions/lib/index.js
+functions/lib/index.js.map

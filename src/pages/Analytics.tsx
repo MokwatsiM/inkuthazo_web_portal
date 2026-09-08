@@ -284,6 +284,17 @@ const Analytics: React.FC = () => {
   const totalContributions = data.contributions.reduce((sum, c) => sum + c.amount, 0);
   const totalClaims = data.claims.reduce((sum, c) => sum + c.amount, 0);
 
+  // Sum of contribution amounts broken down by payment type (registration,
+  // monthly, credit payments, penalties, other) so the metrics show where the
+  // income came from rather than one lumped total.
+  const contributionsByType = data.contributions.reduce(
+    (acc, c) => {
+      acc[c.type] = (acc[c.type] ?? 0) + c.amount;
+      return acc;
+    },
+    {} as Record<Contribution["type"], number>
+  );
+
   const metrics = {
     totalMembers: data.members.length,
     activeMembers: data.members.filter((m) => m.status === "active").length,
@@ -399,6 +410,15 @@ const Analytics: React.FC = () => {
     { id: "Inactive", value: metrics.inactiveMembers, color: "#6b7280" },
     { id: "Approved", value: metrics.approvedMembers, color: "#8b5cf6" },
   ].filter(item => item.value > 0);
+
+  // Contribution income broken down by payment type (amounts).
+  const contributionsByTypeData = [
+    { id: "Monthly", value: contributionsByType.monthly ?? 0, color: "#7c5cfc" },
+    { id: "Registration", value: contributionsByType.registration ?? 0, color: "#10b981" },
+    { id: "Credit payments", value: contributionsByType.credit_payment ?? 0, color: "#3b82f6" },
+    { id: "Penalties", value: contributionsByType.infringement_penalty ?? 0, color: "#f59e0b" },
+    { id: "Other", value: contributionsByType.other ?? 0, color: "#6b7280" },
+  ].filter((item) => item.value > 0);
 
   // Penalty vs Premium breakdown for pie chart
   const penaltyBreakdownData = [
@@ -736,6 +756,80 @@ const Analytics: React.FC = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Contributions by payment type */}
+      <div className="bg-white dark:bg-surface-dark rounded-[20px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
+          Contributions by Type
+        </h3>
+        {contributionsByTypeData.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+            <div className="h-[300px]">
+              <ResponsivePie
+                data={contributionsByTypeData}
+                margin={{ top: 20, right: 80, bottom: 80, left: 80 }}
+                innerRadius={0.4}
+                padAngle={2}
+                cornerRadius={4}
+                activeOuterRadiusOffset={8}
+                colors={{ datum: "data.color" }}
+                borderWidth={2}
+                borderColor={{ from: "color", modifiers: [["darker", 0.3]] }}
+                arcLinkLabelsSkipAngle={12}
+                arcLinkLabelsTextColor={isDark ? "#d1d5db" : "#64748b"}
+                arcLinkLabelsThickness={2}
+                arcLinkLabelsColor={{ from: "color" }}
+                arcLabelsSkipAngle={12}
+                arcLabelsTextColor="#ffffff"
+                tooltip={({ datum }) => (
+                  <div className="bg-white dark:bg-gray-800 p-3 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="font-semibold">{datum.id}</div>
+                    <div className="text-sm">
+                      R {datum.value.toFixed(0)} (
+                      {((datum.value / totalContributions) * 100).toFixed(1)}%)
+                    </div>
+                  </div>
+                )}
+              />
+            </div>
+            {/* Amount breakdown table beside the pie */}
+            <div className="space-y-2">
+              {contributionsByTypeData.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <span
+                      className="inline-block w-3 h-3 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    {item.id}
+                  </span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    R {item.value.toFixed(0)}
+                    <span className="ml-2 text-xs font-normal text-gray-400">
+                      {((item.value / totalContributions) * 100).toFixed(1)}%
+                    </span>
+                  </span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between text-sm pt-2 mt-2 border-t border-gray-100 dark:border-gray-700">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  Total
+                </span>
+                <span className="font-bold text-gray-900 dark:text-white">
+                  R {totalContributions.toFixed(0)}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-gray-500 dark:text-gray-400">
+            No contribution data available for this period
+          </div>
+        )}
       </div>
 
       {/* Premium vs Penalty Analytics */}

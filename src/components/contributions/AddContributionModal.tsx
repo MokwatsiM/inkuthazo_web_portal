@@ -50,6 +50,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
   const [pendingPenalties, setPendingPenalties] = useState<DisciplinaryRecord[]>([]);
   const [selectedPenaltyId, setSelectedPenaltyId] = useState<string>("");
   const [loadingPenalties, setLoadingPenalties] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch active credit when member is selected (to check if they have one)
   useEffect(() => {
@@ -168,6 +169,7 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
       }
     }
 
+    setIsSubmitting(true);
     try {
       // Build contribution data object
       const contributionData: {
@@ -213,6 +215,8 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
       showError(
         getFriendlyErrorMessage(error, "Failed to add contribution")
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -460,10 +464,16 @@ const AddContributionModal: React.FC<AddContributionModalProps> = ({
             </div>
           </div>
           <div className="mt-6 flex justify-end space-x-3">
-            <Button variant="secondary" onClick={onClose}>
+            <Button
+              variant="secondary"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit">Record Contribution</Button>
+            <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
+              {isSubmitting ? "Recording…" : "Record Contribution"}
+            </Button>
           </div>
         </form>
       </div>

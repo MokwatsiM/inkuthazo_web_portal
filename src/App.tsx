@@ -1,6 +1,7 @@
 import React, { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -506,6 +507,7 @@ const App: React.FC = () => {
                   <NotificationContainer />
                   <ConnectionStatus />
                   <AppRoutes />
+                  <Analytics />
                 </SessionProvider>
               </BrowserRouter>
             </AnalyticsProvider>

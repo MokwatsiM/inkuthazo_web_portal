@@ -9,6 +9,7 @@ import {
   TrendingUp,
   CheckCircle,
   AlertCircle,
+  AlertTriangle,
   MessageSquare,
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -203,6 +204,40 @@ const CreditDetailModal: React.FC<CreditDetailModalProps> = ({ credit, onClose, 
               </div>
             </div>
           </div>
+
+          {/* Override Information */}
+          {credit.override && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-800 rounded-xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-amber-900 dark:text-amber-300">
+                  Active-Credit Restriction Overridden
+                </h3>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-amber-700 dark:text-amber-500">Overridden By</p>
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-300">
+                    {credit.override.overridden_by_name}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-amber-700 dark:text-amber-500">Reason</p>
+                  <p className="text-sm text-amber-900 dark:text-amber-300">
+                    {credit.override.reason}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-amber-700 dark:text-amber-500">Overridden On</p>
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-300">
+                    {format(credit.override.overridden_at.toDate(), 'MMMM dd, yyyy HH:mm')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Credit Terms */}
           <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-4">

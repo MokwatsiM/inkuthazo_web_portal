@@ -1,12 +1,13 @@
 // src/components/credits/CreateCreditModal.tsx
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, Calculator } from 'lucide-react';
+import { X, DollarSign, Calculator, AlertTriangle } from 'lucide-react';
 import Button from '../ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { createCredit, getMemberActiveCredit } from '../../services/creditService';
 import { getDocs, collection, query, where } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import type { Member } from '../../types';
+import type { Credit } from '../../types/credit';
 import logger from '../../utils/logger';
 
 interface CreateCreditModalProps {
@@ -27,6 +28,11 @@ const CreateCreditModal: React.FC<CreateCreditModalProps> = ({ onClose, onSucces
     additional_fee: '',
     installments: '3',
   });
+  // When the selected member already has an active credit, block submission
+  // until the admin explicitly overrides with a reason.
+  const [existingActiveCredit, setExistingActiveCredit] = useState<Credit | null>(null);
+  const [overrideReason, setOverrideReason] = useState('');
+  const [checkingActiveCredit, setCheckingActiveCredit] = useState(false);
 
   useEffect(() => {
     fetchMembers();
@@ -54,19 +60,34 @@ const CreateCreditModal: React.FC<CreateCreditModalProps> = ({ onClose, onSucces
     setFormData({ ...formData, [name]: value });
 
     // Auto-fill member name when member is selected
-    if (name === 'member_id' && value) {
+    if (name === 'member_id') {
+      // Reset any previous override state — it only applies to the member
+      // it was checked against.
+      setExistingActiveCredit(null);
+      setOverrideReason('');
+
+      if (!value) {
+        setFormData((prev) => ({ ...prev, member_id: '', member_name: '' }));
+        return;
+      }
+
       const selectedMember = members.find((m) => m.id === value);
-      if (selectedMember) {
-        // Check if member already has an active credit
+      if (!selectedMember) return;
+
+      setFormData((prev) => ({
+        ...prev,
+        member_id: value,
+        member_name: selectedMember.full_name,
+      }));
+
+      // Check if member already has an active credit. Rather than blocking
+      // outright, surface it so an admin can knowingly override with a reason.
+      setCheckingActiveCredit(true);
+      try {
         const activeCredit = await getMemberActiveCredit(value);
-        if (activeCredit) {
-          alert(
-            `${selectedMember.full_name} already has an active credit of R${activeCredit.terms.total_amount.toFixed(2)}. A member can only have one active credit at a time.`
-          );
-          setFormData({ ...formData, member_id: '', member_name: '' });
-          return;
-        }
-        setFormData({ ...formData, member_id: value, member_name: selectedMember.full_name });
+        setExistingActiveCredit(activeCredit);
+      } finally {
+        setCheckingActiveCredit(false);
       }
     }
   };
@@ -106,6 +127,13 @@ const CreateCreditModal: React.FC<CreateCreditModalProps> = ({ onClose, onSucces
       return;
     }
 
+    // The member already has an active credit — an override reason is
+    // required before we allow creating a second one.
+    if (existingActiveCredit && !overrideReason.trim()) {
+      alert('Please provide a reason to override the active-credit restriction');
+      return;
+    }
+
     setLoading(true);
     try {
       await createCredit(
@@ -117,6 +145,12 @@ const CreateCreditModal: React.FC<CreateCreditModalProps> = ({ onClose, onSucces
           principal_amount: principal,
           additional_fee: parseFloat(formData.additional_fee) || 0,
           installments,
+          ...(existingActiveCredit && {
+            override: {
+              reason: overrideReason.trim(),
+              previousActiveCreditId: existingActiveCredit.id,
+            },
+          }),
         },
         user.uid,
         user.email || 'Admin'
@@ -184,9 +218,48 @@ const CreateCreditModal: React.FC<CreateCreditModalProps> = ({ onClose, onSucces
               ))}
             </select>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Members can only have one active credit at a time
+              {checkingActiveCredit
+                ? 'Checking for an existing active credit…'
+                : 'Members can only have one active credit at a time'}
             </p>
           </div>
+
+          {/* Active credit override */}
+          {existingActiveCredit && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-800 rounded-xl p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">
+                    {formData.member_name} already has an active credit
+                  </p>
+                  <p className="text-sm text-amber-800 dark:text-amber-400 mt-1">
+                    R {existingActiveCredit.terms.total_amount.toFixed(2)} total ·{' '}
+                    R {existingActiveCredit.remaining_balance.toFixed(2)} remaining ·{' '}
+                    {existingActiveCredit.reason}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-amber-900 dark:text-amber-300 mb-2">
+                  Reason to override <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={overrideReason}
+                  onChange={(e) => setOverrideReason(e.target.value)}
+                  required
+                  rows={2}
+                  placeholder="Explain why this member needs a second active credit..."
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-amber-300 dark:border-amber-700 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition-all dark:text-white resize-none"
+                />
+                <p className="text-xs text-amber-700 dark:text-amber-500 mt-1">
+                  This will be recorded and the new credit will be flagged as an
+                  override for the chairperson's review.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Reason */}
           <div>
@@ -328,8 +401,17 @@ const CreateCreditModal: React.FC<CreateCreditModalProps> = ({ onClose, onSucces
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} loading={loading} className="flex-1">
-              Create Credit Request
+            <Button
+              type="submit"
+              disabled={
+                loading ||
+                checkingActiveCredit ||
+                (!!existingActiveCredit && !overrideReason.trim())
+              }
+              loading={loading}
+              className="flex-1"
+            >
+              {existingActiveCredit ? 'Override & Create Credit' : 'Create Credit Request'}
             </Button>
           </div>
         </form>

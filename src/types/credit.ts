@@ -28,6 +28,18 @@ export interface CreditReview {
   additional_info_requested?: string; // What info is needed
 }
 
+/**
+ * Present when an admin created this credit despite the member already
+ * having an active credit (normally blocked — one active credit per member).
+ */
+export interface CreditOverride {
+  overridden_by: string;              // Admin user ID who overrode the rule
+  overridden_by_name: string;         // Admin name
+  reason: string;                     // Why the override was necessary
+  overridden_at: Timestamp;
+  previous_active_credit_id: string;  // The active credit that was overridden
+}
+
 export interface CreditPayment {
   id: string;
   contribution_id: string;            // Link to contribution
@@ -59,6 +71,10 @@ export interface Credit {
   created_by: string;
   created_by_name: string;
   created_at: Timestamp;
+
+  // Present if this credit was created despite the member already having an
+  // active credit (admin explicitly overrode the one-active-credit rule).
+  override?: CreditOverride;
 
   // Chairperson review
   review?: CreditReview;
@@ -114,4 +130,13 @@ export interface CreateCreditData {
   principal_amount: number;
   additional_fee: number;
   installments: number;
+  /**
+   * Set when the admin is knowingly creating this credit despite the member
+   * already having an active credit. Requires overrideReason + the id of the
+   * active credit being overridden.
+   */
+  override?: {
+    reason: string;
+    previousActiveCreditId: string;
+  };
 }

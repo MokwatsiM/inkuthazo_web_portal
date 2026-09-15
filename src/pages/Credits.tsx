@@ -251,8 +251,18 @@ const Credits: React.FC = () => {
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {credit.member_name}
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                {credit.member_name}
+                              </span>
+                              {credit.override && (
+                                <span
+                                  title={`Overridden by ${credit.override.overridden_by_name}: ${credit.override.reason}`}
+                                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                                >
+                                  Overridden
+                                </span>
+                              )}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
                               {credit.created_at.toDate().toLocaleDateString()}

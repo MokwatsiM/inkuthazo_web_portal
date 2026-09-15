@@ -22,6 +22,7 @@ import type {
   CreditSummary,
 } from '../types/credit';
 import { addExpense } from './expenseService';
+import { logAuditTrail } from './auditService';
 import logger from '../utils/logger';
 
 const COLLECTION_NAME = 'credits';
@@ -59,9 +60,35 @@ export const createCredit = async (
       payments: [],
       total_paid: 0,
       remaining_balance: total_amount,
+      ...(data.override && {
+        override: {
+          overridden_by: createdBy,
+          overridden_by_name: createdByName,
+          reason: data.override.reason,
+          overridden_at: Timestamp.now(),
+          previous_active_credit_id: data.override.previousActiveCreditId,
+        },
+      }),
     };
 
     const docRef = await addDoc(collection(db, COLLECTION_NAME), creditData);
+
+    if (data.override) {
+      await logAuditTrail(
+        createdBy,
+        'CREDIT_OVERRIDE_CREATE',
+        {
+          credit_id: docRef.id,
+          member_id: data.member_id,
+          member_name: data.member_name,
+          amount: total_amount,
+          reason: data.reason,
+          override_reason: data.override.reason,
+          previous_active_credit_id: data.override.previousActiveCreditId,
+        },
+        createdByName
+      );
+    }
 
     // Log audit trail
     // await logAuditTrail(

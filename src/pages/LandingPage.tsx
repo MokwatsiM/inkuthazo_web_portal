@@ -31,6 +31,7 @@ import Button from '../components/ui/Button';
 import Logo from '../components/ui/Logo';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import NotificationBell from '../components/notifications/NotificationBell';
+import InstallPrompt from '../components/pwa/InstallPrompt';
 import { useAuth } from '../hooks/useAuth';
 import { usePermissions } from '../hooks/usePermissions';
 import { ResourceType } from '../types/role';
@@ -181,6 +182,7 @@ const LandingPage: React.FC = () => {
 
       {/* Grid Navigation */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 -mt-8">
+        <InstallPrompt />
         <div className="mb-8">
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Quick Access Menu</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Navigate to any section of the portal</p>

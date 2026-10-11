@@ -8,6 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import NotificationContainer from "./components/notifications/NotificationContainer";
 import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
 import ConnectionStatus from "./components/ui/ConnectionStatus";
+import UpdatePrompt from "./components/pwa/UpdatePrompt";
 import ErrorBoundary from "./components/error/ErrorBoundary";
 import { initializeConnectionHandler } from "./utils/firebaseConnection";
 // import Layout from "./components/Layout";
@@ -508,6 +509,7 @@ const App: React.FC = () => {
                   <ConnectionStatus />
                   <AppRoutes />
                   <VercelAnalytics />
+                  <UpdatePrompt />
                 </SessionProvider>
               </BrowserRouter>
             </AnalyticsProvider>

@@ -1,37 +1,37 @@
 import {
-  Activity,
-  AlertTriangle,
-  ArrowUpRight,
-  Banknote,
-  BarChart3,
-  Calendar,
-  CalendarClock,
-  ClipboardList,
-  Code,
-  CreditCard,
-  FileText,
-  Gift,
-  Package,
-  HandCoins,
-  Home,
-  LogOut,
-  QrCode,
-  Receipt,
-  Settings,
-  Shield,
-  ShieldCheck,
-  TrendingUp,
-  Users,
-  UserX,
+    Activity,
+    AlertTriangle,
+    ArrowUpRight,
+    Banknote,
+    BarChart3,
+    Calendar,
+    CalendarClock,
+    ClipboardList,
+    Code,
+    CreditCard,
+    FileText,
+    Gift,
+    HandCoins,
+    Home,
+    LogOut,
+    Package,
+    QrCode,
+    Receipt,
+    Settings,
+    Shield,
+    ShieldCheck,
+    TrendingUp,
+    Users,
+    UserX,
 } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../components/avatar/Avatar';
+import NotificationBell from '../components/notifications/NotificationBell';
+import InstallPrompt from '../components/pwa/InstallPrompt';
 import Button from '../components/ui/Button';
 import Logo from '../components/ui/Logo';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
-import NotificationBell from '../components/notifications/NotificationBell';
-import InstallPrompt from '../components/pwa/InstallPrompt';
 import { useAuth } from '../hooks/useAuth';
 import { usePermissions } from '../hooks/usePermissions';
 import { ResourceType } from '../types/role';
@@ -223,30 +223,7 @@ const LandingPage: React.FC = () => {
           })}
         </div>
 
-        {/* Visual Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <div className="rounded-[20px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300">
-            <img
-              src="/group_photo.jpg"
-              alt="Club photo"
-              className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-          <div className="rounded-[20px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300">
-            <img
-              src="/group_photo_2.jpg"
-              alt="Club event"
-              className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-          <div className="rounded-[20px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_35px_rgba(0,0,0,0.08)] transition-all duration-300">
-            <img
-              src="/group_3.jpeg"
-              alt="Club gathering"
-              className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-        </div>
+       
       </main>
     </div>
   );

@@ -9,8 +9,10 @@ import { generateContributionPatternsPdfReport, generateContributionPatternsExce
 import { generateFinancialHealthPdfReport, generateFinancialHealthExcelReport, generateFinancialHealthCsvReport } from './financialHealthReport';
 import { generateArrearsPdfReport, generateArrearsExcelReport, generateArrearsCsvReport } from './arrearsReport';
 import { generateComparativeAnalysisPDF, generateComparativeAnalysisExcel, generateComparativeAnalysisCSV } from './comparativeAnalysisReport';
+import { generateCreditStatusPdfReport, generateCreditStatusExcelReport, generateCreditStatusCsvReport } from './creditStatusReport';
 
 export * from './types';
+export * from './creditStatusReport';
 export * from './cashFlowReport';
 export * from './contributionPatternsReport';
 export * from './financialHealthReport';
@@ -77,6 +79,19 @@ export async function generateReport(
         await generateArrearsExcelReport(data.arrears, params);
       } else if (params.format === 'csv') {
         await generateArrearsCsvReport(data.arrears, params);
+      }
+      break;
+
+    case 'credits':
+      if (!data.creditStatus) {
+        throw new Error('Credit status data is required for this report type');
+      }
+      if (params.format === 'pdf') {
+        await generateCreditStatusPdfReport(data.creditStatus, params);
+      } else if (params.format === 'excel') {
+        await generateCreditStatusExcelReport(data.creditStatus, params);
+      } else if (params.format === 'csv') {
+        await generateCreditStatusCsvReport(data.creditStatus, params);
       }
       break;
 

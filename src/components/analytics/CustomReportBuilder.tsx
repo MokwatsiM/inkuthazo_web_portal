@@ -9,7 +9,7 @@ interface ReportTemplate {
 }
 
 interface ReportParams {
-  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'arrears' | 'custom';
+  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'arrears' | 'credits' | 'custom';
   dateRange: {
     start: Date;
     end: Date;
@@ -19,6 +19,8 @@ interface ReportParams {
   includeRecommendations: boolean;
   format: 'pdf' | 'excel' | 'csv';
   customMetrics?: string[];
+  // For credit status reports
+  creditStatusFilter?: 'all' | 'outstanding' | 'settled';
   // For comparative reports
   comparisonPeriods?: {
     period1Start: Date;
@@ -154,6 +156,23 @@ const REPORT_TEMPLATES: ReportTemplate[] = [
       includeMetrics: true,
       includeRecommendations: false,
       format: 'pdf',
+    },
+  },
+  {
+    id: 'credit-status',
+    name: 'Member Credit Status',
+    description: 'Members with outstanding credit and members who have settled',
+    defaultParams: {
+      reportType: 'credits',
+      dateRange: {
+        start: new Date(new Date().getFullYear(), 0, 1),
+        end: new Date(),
+      },
+      includeCharts: false,
+      includeMetrics: true,
+      includeRecommendations: false,
+      format: 'pdf',
+      creditStatusFilter: 'all',
     },
   },
 ];
@@ -346,8 +365,40 @@ const CustomReportBuilder = React.memo<CustomReportBuilderProps>(({
               <option value="patterns">Contribution Patterns</option>
               <option value="comparative">Comparative Analysis</option>
               <option value="arrears">Members in Arrears</option>
+              <option value="credits">Member Credit Status</option>
             </select>
           </div>
+
+          {/* Status filter for credit status reports */}
+          {reportParams.reportType === 'credits' && (
+            <div>
+              <label
+                htmlFor="credit-status-filter"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Credit Status
+              </label>
+              <select
+                id="credit-status-filter"
+                value={reportParams.creditStatusFilter ?? 'all'}
+                onChange={(e) =>
+                  handleParamChange(
+                    'creditStatusFilter',
+                    e.target.value as NonNullable<ReportParams['creditStatusFilter']>
+                  )
+                }
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">Outstanding &amp; settled</option>
+                <option value="outstanding">Outstanding only</option>
+                <option value="settled">Settled only</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Outstanding includes active and defaulted credits. Credits still
+                awaiting review aren't included, since nothing has been paid out yet.
+              </p>
+            </div>
+          )}
 
           {/* Period Selector for Comparative Reports */}
           {reportParams.reportType === 'comparative' && (

@@ -7,7 +7,13 @@ import ContributionPatterns from '../components/analytics/ContributionPatterns';
 import ComparativeAnalysis from '../components/analytics/ComparativeAnalysis';
 import CustomReportBuilder from '../components/analytics/CustomReportBuilder';
 import { useNavigate } from 'react-router-dom';
-import { generateReport, ReportParams, collectArrearsData } from '../services/reportGenerationService';
+import {
+  generateReport,
+  ReportParams,
+  collectArrearsData,
+  collectCreditStatusData,
+} from '../services/reportGenerationService';
+import { getCredits } from '../services/creditService';
 import logger from '../utils/logger';
 
 type TabId = 'overview' | 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'reports';
@@ -110,6 +116,17 @@ const AdvancedAnalytics = React.memo(() => {
           reportData.arrears = await collectArrearsData(members, contributions);
           break;
 
+        case 'credits': {
+          // Credits are fetched on demand, only when this report is requested
+          const credits = await getCredits();
+          reportData.creditStatus = collectCreditStatusData(
+            credits,
+            members,
+            params.creditStatusFilter ?? 'all'
+          );
+          break;
+        }
+
         case 'comparative':
           // If custom periods are provided, fetch fresh comparative data
           if (params.comparisonPeriods) {
@@ -128,7 +145,7 @@ const AdvancedAnalytics = React.memo(() => {
 
         case 'churn':
         case 'custom':
-          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, Financial Health, Arrears, and Comparative reports are available.`);
+          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, Financial Health, Arrears, Credit Status, and Comparative reports are available.`);
 
         default:
           throw new Error(`Unknown report type: ${params.reportType}`);

@@ -6,7 +6,7 @@ import type { CashFlowForecast, ContributionPatternAnalysis, FinancialHealthScor
 // ==================== TYPES ====================
 
 export interface ReportParams {
-  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'arrears' | 'custom';
+  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'arrears' | 'credits' | 'custom';
   dateRange: {
     start: Date;
     end: Date;
@@ -17,6 +17,8 @@ export interface ReportParams {
   format: 'pdf' | 'excel' | 'csv';
   customMetrics?: string[];
   periodDescription?: string; // For comparative reports: e.g., "This Quarter vs Last Quarter"
+  // For credit status reports: which credits to include
+  creditStatusFilter?: CreditStatusFilter;
   // For comparative reports - custom period comparison
   comparisonPeriods?: {
     period1Start: Date;
@@ -49,11 +51,51 @@ export interface ArrearsReportData {
   generatedAt: Date;
 }
 
+/**
+ * Credit status report filter.
+ * - outstanding: money still owed (active or defaulted credits)
+ * - settled: fully repaid credits
+ * - all: both of the above (credits not yet disbursed are never included)
+ */
+export type CreditStatusFilter = 'all' | 'outstanding' | 'settled';
+
+export interface MemberCreditLine {
+  creditId: string;
+  memberId: string;
+  memberName: string;
+  email: string;
+  phoneNumber: string;
+  reason: string;
+  status: 'active' | 'defaulted' | 'settled';
+  issuedDate: Date | null;
+  totalAmount: number;
+  totalPaid: number;
+  remainingBalance: number;
+  installments: number;
+  installmentsPaid: number;
+  lastPaymentDate: Date | null;
+  settledDate: Date | null;
+  overridden: boolean;
+}
+
+export interface CreditStatusReportData {
+  filter: CreditStatusFilter;
+  credits: MemberCreditLine[];
+  outstandingCount: number;
+  outstandingBalance: number;
+  settledCount: number;
+  settledAmount: number;
+  defaultedCount: number;
+  membersWithOutstanding: number;
+  generatedAt: Date;
+}
+
 export interface ReportData {
   cashFlowForecast?: CashFlowForecast | null;
   contributionPatterns?: ContributionPatternAnalysis | null;
   financialHealth?: FinancialHealthScore | null;
   arrears?: ArrearsReportData | null;
+  creditStatus?: CreditStatusReportData | null;
   comparativeAnalysis?: ComparativeAnalysis | null;
   // Additional report data types will be added as we implement more reports
 }

@@ -68,7 +68,14 @@
     "tsx": "^4.23.1",
     "typescript": "^5.7.2",
     "vite": "^6.2.1",
-    "vitest": "^4.1.10"
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^4.1.10",
+    "workbox-cacheable-response": "^7.4.1",
+    "workbox-core": "^7.4.1",
+    "workbox-expiration": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1"
   },
   "optionalDependencies": {
     "@rollup/rollup-darwin-arm64": "^4.60.1"

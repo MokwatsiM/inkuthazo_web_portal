@@ -150,34 +150,7 @@ const LandingPage: React.FC = () => {
             className="w-full h-full object-cover opacity-10 dark:opacity-5"
           />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Welcome Banner */}
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-[24px] p-8 md:p-12 text-white shadow-xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-3">
-              Welcome back, {userDetails?.full_name?.split(' ')[0] || "User"}!
-            </h1>
-            <p className="text-lg text-purple-100 mb-6">
-              {userDetails?.role === 'admin'
-                ? 'Administrator Dashboard'
-                : userDetails?.role === 'chairperson'
-                  ? 'Chairperson Dashboard'
-                  : 'Member Portal'} •
-              {userDetails?.join_date
-                ? ` Member since ${new Date(userDetails.join_date.toDate()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
-                : ''}
-            </p>
-            <div className="flex gap-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
-                <p className="text-sm text-purple-100">Today</p>
-                <p className="text-xl font-bold">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
-                <p className="text-sm text-purple-100">Status</p>
-                <p className="text-xl font-bold">Active</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </section>
 
       {/* Grid Navigation */}

@@ -28,6 +28,8 @@ import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { initializeApp } from 'firebase/app';
+import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
 
 declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<string | { url: string; revision: string | null }>;
@@ -108,3 +110,51 @@ self.addEventListener('message', (event) => {
 // On the very first install, take control of open tabs right away (there is
 // no older version to protect, and nothing reloads).
 clientsClaim();
+
+// ---- Push notifications (R6) ------------------------------------------------
+// notify() sends data-only messages ({ title, body, link }) so this worker is
+// the single place that displays them (a `notification` payload would also be
+// auto-displayed by the browser and show twice). Only the public web config is
+// needed here; foreground messages are handled in the page (PushManager).
+const firebaseApp = initializeApp({
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+});
+
+onBackgroundMessage(getMessaging(firebaseApp), (payload) => {
+  const data = payload.data ?? {};
+  return self.registration.showNotification(data.title || 'Inkuthazo', {
+    body: data.body ?? '',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    // Same-key notifications replace each other instead of stacking
+    tag: data.tag || undefined,
+    data: { link: data.link || '/home' },
+  });
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const link: string = event.notification.data?.link || '/home';
+  const target = new URL(link, self.location.origin);
+  // Only ever open pages of this app, whatever the payload says
+  if (target.origin !== self.location.origin) return;
+
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      for (const client of windows) {
+        if (new URL(client.url).origin === self.location.origin && 'focus' in client) {
+          await client.focus();
+          if ('navigate' in client) await client.navigate(target.href);
+          return;
+        }
+      }
+      await self.clients.openWindow(target.href);
+    })()
+  );
+});

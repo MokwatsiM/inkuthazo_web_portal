@@ -60,21 +60,21 @@ with message; back online → data refreshes; sign out → IndexedDB cleared;
 
 ## Phase 3 — Push notifications (R5, R6, R7)
 
-- [ ] **T3.1** `firestore.rules`: `members/{uid}/push_tokens/{token}` owner
+- [x] **T3.1** `firestore.rules`: `members/{uid}/push_tokens/{token}` owner
   read/write; add rules tests. *(R5 · D6)*
-- [ ] **T3.2** `Member.push_notifications?: boolean` in `src/types/index.ts`. *(R5 · D6)*
-- [ ] **T3.3** `src/services/pushService.ts`: `isPushSupported`,
+- [x] **T3.2** `Member.push_notifications?: boolean` in `src/types/index.ts`. *(R5 · D6)*
+- [x] **T3.3** `src/services/pushService.ts`: `isPushSupported`,
   `enablePush`, `disablePush`, `listenForegroundMessages`; unit tests for
   platform detection. *(R5, R6 AC6.4 · D6)*
-- [ ] **T3.4** Push toggle on the member's own profile in `MemberDetail.tsx`
+- [x] **T3.4** Push toggle on the member's own profile in `MemberDetail.tsx`
   (on / off / unsupported-iOS / blocked states). *(R5 · D6)*
-- [ ] **T3.5** `src/sw.ts`: `onBackgroundMessage` + `notificationclick`
+- [x] **T3.5** `src/sw.ts`: `onBackgroundMessage` + `notificationclick`
   (focus or open `link`). *(R6 AC6.2, AC6.3 · D6)*
-- [ ] **T3.6** `notify.ts`: FCM fan-out to the member's tokens when
+- [x] **T3.6** `notify.ts`: FCM fan-out to the member's tokens when
   `push_notifications !== false`; best effort; prune invalid tokens; unit
   tests with mocked `getMessaging`. *(R6 · D6)*
-- [ ] **T3.7** Sign-out removes this device's token (extend T2.3). *(R7 AC7.2 · D5)*
-- [ ] **T3.8** Deploy functions + rules.
+- [x] **T3.7** Sign-out removes this device's token (extend T2.3). *(R7 AC7.2 · D5)*
+- [ ] **T3.8** Deploy functions + rules (`firebase deploy --only functions,firestore:rules`).
 
 **Verify Phase 3:** enable push on Android Chrome and an installed iPhone
 app → as admin approve that member's contribution → push arrives with the app

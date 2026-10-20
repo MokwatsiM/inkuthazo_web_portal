@@ -28,6 +28,8 @@ export interface Member {
   dependants?: Dependant[];
   /** Lifecycle email notifications; undefined means opted in */
   email_notifications?: boolean;
+  /** Phone push notifications; undefined means enabled once a device registers */
+  push_notifications?: boolean;
 }
 
 export interface MemberDetail extends Member {

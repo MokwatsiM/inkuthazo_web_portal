@@ -120,6 +120,12 @@ service cloud.firestore {
       );
 
       allow delete: if canDelete('members');
+
+      // Device push tokens (FCM). Owners manage their own devices; Cloud
+      // Functions read them through the Admin SDK, which bypasses rules.
+      match /push_tokens/{tokenId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
       // Disciplinary records collection

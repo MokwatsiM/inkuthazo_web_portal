@@ -1,22 +1,35 @@
+import {
+    Activity,
+    AlertTriangle,
+    ArrowDown,
+    ArrowUp,
+    BarChart3,
+    Calendar,
+    Clock,
+    Database,
+    DollarSign,
+    Eye,
+    Landmark,
+    Mail,
+    PlusCircle,
+    Settings,
+    TrendingUp,
+    UserPlus,
+    Users
+} from "lucide-react";
 import React, { useEffect, useState } from "react";
+import BankStatementImportModal from "../components/contributions/BankStatementImportModal";
+import BulkImportModal from "../components/contributions/BulkImportModal";
+import ActivityFeed from "../components/dashboard/ActivityFeed";
+import AttendanceStats from "../components/dashboard/AttendanceStats";
 import DashboardBarChart from "../components/dashboard/DashboardBarChart";
 import DashboardPieChart from "../components/dashboard/DashboardPieChart";
-import { useAuth } from "../hooks/useAuth";
-import { useDashboardData } from "../hooks/useDashboardData";
-import KPICard from "../components/ui/KPICard";
-import ActivityFeed from "../components/dashboard/ActivityFeed";
 import QuickActions from "../components/dashboard/QuickActions";
 import UpcomingEvents from "../components/dashboard/UpcomingEvents";
-import AttendanceStats from "../components/dashboard/AttendanceStats";
-import BulkImportModal from "../components/contributions/BulkImportModal";
-import BankStatementImportModal from "../components/contributions/BankStatementImportModal";
+import KPICard from "../components/ui/KPICard";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
-import {
-  Users, DollarSign, TrendingUp, Calendar, UserPlus,
-  PlusCircle, BarChart3, Settings, Mail, Clock,
-  AlertTriangle, Eye, Activity, ArrowUp, ArrowDown,
-  Database, Landmark
-} from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import { useDashboardData } from "../hooks/useDashboardData";
 
 const COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
@@ -241,17 +254,7 @@ const Dashboard: React.FC = () => {
   const renderMemberDashboard = () => (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-[20px] p-8 text-white shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">
-          Welcome back, {userDetails?.full_name?.split(' ')[0] || "Member"}!
-        </h1>
-        <p className="text-purple-100">
-          {userDetails?.join_date
-            ? `Member since ${new Date(userDetails.join_date.toDate()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
-            : "Member"}
-        </p>
-      </div>
-
+     
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <KPICard

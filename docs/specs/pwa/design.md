@@ -138,8 +138,9 @@ opens a new window (AC6.3).
 **Server — `functions/src/notifications/notify.ts`:** after writing the
 in-app doc and attempting email, if `member.push_notifications !== false`,
 read `members/{id}/push_tokens`, call
-`getMessaging().sendEachForMulticast({ tokens, notification: { title, body },
-data: { link }, webpush: { fcmOptions: { link } } })`. Best effort: errors are
+`getMessaging().sendEachForMulticast({ tokens, data: { title, body, link, tag },
+webpush: { fcmOptions: { link } } })`. **Data-only on purpose:** the service
+worker displays the notification, so a `notification` payload would show twice. Best effort: errors are
 logged, never thrown (AC6.6). Tokens whose result error is
 `messaging/registration-token-not-registered` or
 `messaging/invalid-registration-token` are deleted (AC6.7). The push payload

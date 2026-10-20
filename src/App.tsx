@@ -9,6 +9,7 @@ import NotificationContainer from "./components/notifications/NotificationContai
 import AnalyticsProvider from "./components/analytics/AnalyticsProvider";
 import ConnectionStatus from "./components/ui/ConnectionStatus";
 import UpdatePrompt from "./components/pwa/UpdatePrompt";
+import PushManager from "./components/pwa/PushManager";
 import ErrorBoundary from "./components/error/ErrorBoundary";
 import { initializeConnectionHandler } from "./utils/firebaseConnection";
 // import Layout from "./components/Layout";
@@ -510,6 +511,7 @@ const App: React.FC = () => {
                   <AppRoutes />
                   <VercelAnalytics />
                   <UpdatePrompt />
+                  <PushManager />
                 </SessionProvider>
               </BrowserRouter>
             </AnalyticsProvider>

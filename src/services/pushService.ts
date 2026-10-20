@@ -15,6 +15,9 @@ import {
 import { app, db } from "../config/firebase";
 import { isIos, isStandalone } from "../components/pwa/platform";
 import logger from "../utils/logger";
+import { resolvePushState, type PushState } from "./pushState";
+
+export type { PushState };
 
 /**
  * Phone push notifications via Firebase Cloud Messaging
@@ -26,36 +29,11 @@ import logger from "../utils/logger";
 const TOKEN_KEY = "push-token";
 const SW_READY_TIMEOUT_MS = 5000;
 
-export type PushState =
-  /** Browser can't do web push at all */
-  | "unsupported"
-  /** iPhone/iPad: push only works once added to the Home Screen */
-  | "needs-install"
-  /** Member denied the browser permission prompt */
-  | "blocked"
-  | "off"
-  | "on";
-
 export const hasPushApis = (): boolean =>
   typeof window !== "undefined" &&
   "Notification" in window &&
   "serviceWorker" in navigator &&
   "PushManager" in window;
-
-/** Pure decision used by the profile toggle; kept separate so it is testable. */
-export const resolvePushState = (input: {
-  hasApis: boolean;
-  ios: boolean;
-  standalone: boolean;
-  permission: NotificationPermission | "none";
-  preference: boolean | undefined;
-}): PushState => {
-  if (input.ios && !input.standalone) return "needs-install";
-  if (!input.hasApis) return "unsupported";
-  if (input.permission === "denied") return "blocked";
-  if (input.permission === "granted" && input.preference === true) return "on";
-  return "off";
-};
 
 export const getPushState = async (
   preference: boolean | undefined

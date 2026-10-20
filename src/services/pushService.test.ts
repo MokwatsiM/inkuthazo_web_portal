@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolvePushState } from "./pushService";
+import { resolvePushState } from "./pushState";
 
 const base = {
   hasApis: true,

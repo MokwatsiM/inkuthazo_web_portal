@@ -25,6 +25,7 @@ import type { Payout } from "../types/payout";
 import { InvoiceGeneratorWithProgress } from "../components/invoice/InvoiceGenerator";
 import ClaimsSection from "../components/claims/ClaimsSection";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
+import PushToggle from "../components/pwa/PushToggle";
 import EmptyState from "../components/ui/EmptyState";
 import Button from "../components/ui/Button";
 import { Ghost, Edit, FileText, ChevronRight, CreditCard, Clock, LogOut } from "lucide-react";
@@ -419,6 +420,14 @@ const MemberDetail: React.FC = () => {
                     />
                   </button>
                 </div>
+                <PushToggle
+                  memberId={member.id}
+                  preference={member.push_notifications}
+                  onChanged={async () => {
+                    await fetchMemberData();
+                    await refreshUserDetails();
+                  }}
+                />
               </div>
             </section>
           )}

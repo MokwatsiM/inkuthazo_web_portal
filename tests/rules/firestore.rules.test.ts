@@ -388,3 +388,27 @@ describe('notifications collection', () => {
     await assertSucceeds(approvedDb().doc(notifId).delete());
   });
 });
+
+describe('members/{uid}/push_tokens', () => {
+  const tokenPath = (uid: string) => `members/${uid}/push_tokens/tok-1`;
+  const token = { token: 'tok-1', platform: 'android' };
+
+  it('lets a member manage their own device tokens', async () => {
+    await assertSucceeds(approvedDb().doc(tokenPath(APPROVED_UID)).set(token));
+    await assertSucceeds(approvedDb().doc(tokenPath(APPROVED_UID)).get());
+    await assertSucceeds(approvedDb().doc(tokenPath(APPROVED_UID)).delete());
+  });
+
+  it("blocks reading or writing someone else's tokens", async () => {
+    await assertFails(approvedDb().doc(tokenPath(PENDING_UID)).set(token));
+    await assertFails(approvedDb().doc(tokenPath(PENDING_UID)).get());
+  });
+
+  it('does not let admins read member tokens', async () => {
+    await assertFails(adminDb().doc(tokenPath(APPROVED_UID)).get());
+  });
+
+  it('blocks signed-out access', async () => {
+    await assertFails(anonDb().doc(tokenPath(APPROVED_UID)).get());
+  });
+});

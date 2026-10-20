@@ -316,6 +316,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const signOut = async (): Promise<void> => {
     try {
+      // Stop this device receiving the member's pushes (must happen while
+      // still signed in; best effort, never blocks sign-out).
+      if (auth.currentUser) {
+        const { removeThisDeviceToken } = await import("../services/pushService");
+        await removeThisDeviceToken(auth.currentUser.uid);
+      }
       await firebaseSignOut(auth);
       setUserDetails(null);
       setDetailsLoaded(false);

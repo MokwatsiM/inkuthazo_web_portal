@@ -3,6 +3,7 @@ import { logger } from "firebase-functions/logger";
 import { NotificationEvent } from "./types";
 import { renderNotification, emailLayout } from "./catalogue";
 import { sendBrevoEmail, APP_URL } from "./brevo";
+import { sendPush } from "./push";
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -13,9 +14,8 @@ const ALREADY_EXISTS = 6;
  * Single choke point for all lifecycle notifications:
  * 1. writes the durable in-app notification doc (idempotent via create()
  *    on a deterministic id — trigger retries dedupe automatically);
- * 2. sends the email best-effort (a failed send never fails the trigger).
- *
- * Future FCM push fan-out slots in here too.
+ * 2. sends a phone push (FCM) best-effort to the member's devices;
+ * 3. sends the email best-effort (a failed send never fails the trigger).
  */
 export async function notify(
   event: NotificationEvent,
@@ -46,14 +46,27 @@ export async function notify(
     throw error;
   }
 
+  let member: FirebaseFirestore.DocumentData | undefined;
+  try {
+    member = (await db.doc(`members/${event.recipientId}`).get()).data();
+  } catch (error) {
+    logger.error(`Notification ${event.key}: member lookup failed`, error);
+  }
+
+  // Push goes out for every notification, including those whose callers send
+  // their own email (sendEmail: false) — it is a separate channel.
+  await sendPush(event.recipientId, member, {
+    title: rendered.title,
+    body: rendered.body,
+    link: rendered.link,
+    tag: event.key,
+  });
+
   // Callers that send their own richer email (e.g. arrears statements)
   // opt out of the default one
   if (!sendEmail) return;
 
   try {
-    const member = (
-      await db.doc(`members/${event.recipientId}`).get()
-    ).data();
     if (!member?.email) {
       logger.warn(`No email for member ${event.recipientId}, in-app only`);
       return;

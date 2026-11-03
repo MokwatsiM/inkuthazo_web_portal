@@ -6,7 +6,7 @@ import type { CashFlowForecast, ContributionPatternAnalysis, FinancialHealthScor
 // ==================== TYPES ====================
 
 export interface ReportParams {
-  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'arrears' | 'credits' | 'custom';
+  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'arrears' | 'credits' | 'disciplinary' | 'custom';
   dateRange: {
     start: Date;
     end: Date;
@@ -19,6 +19,8 @@ export interface ReportParams {
   periodDescription?: string; // For comparative reports: e.g., "This Quarter vs Last Quarter"
   // For credit status reports: which credits to include
   creditStatusFilter?: CreditStatusFilter;
+  // For disciplinary reports: which records to include
+  disciplinaryStatusFilter?: DisciplinaryStatusFilter;
   // For comparative reports - custom period comparison
   comparisonPeriods?: {
     period1Start: Date;
@@ -90,12 +92,50 @@ export interface CreditStatusReportData {
   generatedAt: Date;
 }
 
+/**
+ * Disciplinary report filter.
+ * - open: unresolved records (status 'pending')
+ * - resolved: records the committee has closed
+ * - all: both
+ */
+export type DisciplinaryStatusFilter = 'all' | 'open' | 'resolved';
+
+export interface DisciplinaryRecordLine {
+  recordId: string;
+  memberId: string;
+  memberName: string;
+  email: string;
+  phoneNumber: string;
+  infringementType: string;
+  description: string;
+  incidentDate: Date | null;
+  penaltyAmount: number;
+  status: 'open' | 'resolved';
+  recordedDate: Date | null;
+  resolvedDate: Date | null;
+  resolutionNotes: string;
+}
+
+export interface DisciplinaryReportData {
+  filter: DisciplinaryStatusFilter;
+  records: DisciplinaryRecordLine[];
+  /** Incident-date window the records were limited to, if any */
+  period: { start: Date; end: Date } | null;
+  openCount: number;
+  openPenalties: number;
+  resolvedCount: number;
+  resolvedPenalties: number;
+  membersWithOpenRecords: number;
+  generatedAt: Date;
+}
+
 export interface ReportData {
   cashFlowForecast?: CashFlowForecast | null;
   contributionPatterns?: ContributionPatternAnalysis | null;
   financialHealth?: FinancialHealthScore | null;
   arrears?: ArrearsReportData | null;
   creditStatus?: CreditStatusReportData | null;
+  disciplinary?: DisciplinaryReportData | null;
   comparativeAnalysis?: ComparativeAnalysis | null;
   // Additional report data types will be added as we implement more reports
 }

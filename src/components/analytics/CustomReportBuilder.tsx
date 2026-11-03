@@ -9,7 +9,7 @@ interface ReportTemplate {
 }
 
 interface ReportParams {
-  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'arrears' | 'credits' | 'custom';
+  reportType: 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'arrears' | 'credits' | 'disciplinary' | 'custom';
   dateRange: {
     start: Date;
     end: Date;
@@ -21,6 +21,7 @@ interface ReportParams {
   customMetrics?: string[];
   // For credit status reports
   creditStatusFilter?: 'all' | 'outstanding' | 'settled';
+  disciplinaryStatusFilter?: 'all' | 'open' | 'resolved';
   // For comparative reports
   comparisonPeriods?: {
     period1Start: Date;
@@ -173,6 +174,24 @@ const REPORT_TEMPLATES: ReportTemplate[] = [
       includeRecommendations: false,
       format: 'pdf',
       creditStatusFilter: 'all',
+    },
+  },
+  {
+    id: 'disciplinary-records',
+    name: 'Disciplinary Records',
+    description: 'Open and resolved disciplinary records with details and penalties',
+    defaultParams: {
+      reportType: 'disciplinary',
+      dateRange: {
+        // Wide default so long-unresolved records still show up
+        start: new Date(new Date().getFullYear() - 2, 0, 1),
+        end: new Date(),
+      },
+      includeCharts: false,
+      includeMetrics: true,
+      includeRecommendations: false,
+      format: 'pdf',
+      disciplinaryStatusFilter: 'all',
     },
   },
 ];
@@ -366,6 +385,7 @@ const CustomReportBuilder = React.memo<CustomReportBuilderProps>(({
               <option value="comparative">Comparative Analysis</option>
               <option value="arrears">Members in Arrears</option>
               <option value="credits">Member Credit Status</option>
+              <option value="disciplinary">Disciplinary Records</option>
             </select>
           </div>
 
@@ -396,6 +416,37 @@ const CustomReportBuilder = React.memo<CustomReportBuilderProps>(({
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 Outstanding includes active and defaulted credits. Credits still
                 awaiting review aren't included, since nothing has been paid out yet.
+              </p>
+            </div>
+          )}
+
+          {/* Status filter for disciplinary reports */}
+          {reportParams.reportType === 'disciplinary' && (
+            <div>
+              <label
+                htmlFor="disciplinary-status-filter"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Record Status
+              </label>
+              <select
+                id="disciplinary-status-filter"
+                value={reportParams.disciplinaryStatusFilter ?? 'all'}
+                onChange={(e) =>
+                  handleParamChange(
+                    'disciplinaryStatusFilter',
+                    e.target.value as NonNullable<ReportParams['disciplinaryStatusFilter']>
+                  )
+                }
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">Open &amp; resolved</option>
+                <option value="open">Open (unresolved) only</option>
+                <option value="resolved">Resolved only</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Each record includes the infringement, its details and any penalty. Only
+                incidents within the start and end dates below are included.
               </p>
             </div>
           )}

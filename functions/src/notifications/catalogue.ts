@@ -152,7 +152,54 @@ export function renderNotification(
         link: "/my-credit",
         ctaLabel: "View my credit",
       });
+    case "disciplinary_recorded": {
+      const infringement = data.infringementType || "an infringement";
+      const penalty = data.penaltyAmount ? `R${data.penaltyAmount}` : "";
+      const body =
+        `A disciplinary record was added to your profile for ${infringement}` +
+        `${data.date ? ` on ${data.date}` : ""}.` +
+        (penalty ? ` A penalty of ${penalty} applies.` : "");
+      return finalize({
+        title: "Disciplinary record added",
+        body,
+        link: "/home",
+        ctaLabel: "Open the portal",
+        emailBodyHtml: buildDisciplinaryRecordHtml(data),
+      });
+    }
   }
+}
+
+/**
+ * Details table for the disciplinary-record email: infringement, date,
+ * description and penalty. Pure — unit-testable.
+ */
+export function buildDisciplinaryRecordHtml(data: Record<string, string>): string {
+  const row = (label: string, value: string, emphasis = false) => `<tr>
+        <th style="padding:8px 12px;text-align:left;vertical-align:top;border-bottom:1px solid #e5e7eb;background-color:#f9fafb;width:35%;">${label}</th>
+        <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;${
+          emphasis ? "font-weight:bold;color:#dc2626;" : ""
+        }">${value}</td>
+      </tr>`;
+
+  return `<p>Dear ${escapeHtml(data.memberName || "member")},</p>
+    <p>A disciplinary record has been added to your membership profile.
+    The details are below:</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;border-collapse:collapse;margin:16px 0;">
+      ${row("Infringement", escapeHtml(data.infringementType || "—"))}
+      ${row("Date", escapeHtml(data.date || "—"))}
+      ${row("Details", escapeHtml(data.description || "—").replace(/\n/g, "<br>"))}
+      ${row(
+        "Penalty",
+        data.penaltyAmount ? `R${escapeHtml(data.penaltyAmount)}` : "No penalty",
+        Boolean(data.penaltyAmount)
+      )}
+    </table>
+    <p>${
+      data.penaltyAmount
+        ? "Please settle the penalty with the treasurer. "
+        : ""
+    }If you believe this record is incorrect, please contact the committee.</p>`;
 }
 
 const finalize = (input: {
@@ -160,10 +207,12 @@ const finalize = (input: {
   body: string;
   link: string;
   ctaLabel: string;
+  /** Richer email body; defaults to the escaped plain-text body */
+  emailBodyHtml?: string;
 }): RenderedNotification => ({
   ...input,
   emailSubject: `Inkuthazo: ${input.title}`,
-  emailBodyHtml: `<p>${escapeHtml(input.body)}</p>`,
+  emailBodyHtml: input.emailBodyHtml ?? `<p>${escapeHtml(input.body)}</p>`,
 });
 
 /**

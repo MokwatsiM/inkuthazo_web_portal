@@ -12,8 +12,10 @@ import {
   ReportParams,
   collectArrearsData,
   collectCreditStatusData,
+  collectDisciplinaryData,
 } from '../services/reportGenerationService';
 import { getCredits } from '../services/creditService';
+import { getDisciplinaryRecords } from '../services/disciplinaryService';
 import logger from '../utils/logger';
 
 type TabId = 'overview' | 'cash-flow' | 'churn' | 'health' | 'patterns' | 'comparative' | 'reports';
@@ -127,6 +129,18 @@ const AdvancedAnalytics = React.memo(() => {
           break;
         }
 
+        case 'disciplinary': {
+          // Records are fetched on demand, only when this report is requested
+          const records = await getDisciplinaryRecords();
+          reportData.disciplinary = collectDisciplinaryData(
+            records,
+            members,
+            params.disciplinaryStatusFilter ?? 'all',
+            params.dateRange
+          );
+          break;
+        }
+
         case 'comparative':
           // If custom periods are provided, fetch fresh comparative data
           if (params.comparisonPeriods) {
@@ -145,7 +159,7 @@ const AdvancedAnalytics = React.memo(() => {
 
         case 'churn':
         case 'custom':
-          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, Financial Health, Arrears, Credit Status, and Comparative reports are available.`);
+          throw new Error(`Report type "${params.reportType}" is not yet implemented. Currently Cash Flow, Contribution Patterns, Financial Health, Arrears, Credit Status, Disciplinary, and Comparative reports are available.`);
 
         default:
           throw new Error(`Unknown report type: ${params.reportType}`);

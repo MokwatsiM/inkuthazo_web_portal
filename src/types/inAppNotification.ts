@@ -20,7 +20,8 @@ export type InAppNotificationType =
   | 'member_approved'
   | 'hosting_reminder'
   | 'arrears_notice'
-  | 'credit_notice';
+  | 'credit_notice'
+  | 'disciplinary_recorded';
 
 export interface InAppNotification {
   id: string;

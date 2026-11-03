@@ -18,6 +18,7 @@ const ALL_TYPES: NotificationType[] = [
   "hosting_reminder",
   "arrears_notice",
   "credit_notice",
+  "disciplinary_recorded",
 ];
 
 // Routes registered in src/App.tsx that notifications may deep-link to
@@ -180,5 +181,36 @@ describe("emailLayout", () => {
     expect(html).toContain("Open portal");
     expect(html).toContain('href="https://example.com/home"');
     expect(html).toContain("Inkuthazo Social Club");
+  });
+});
+
+describe("disciplinary_recorded", () => {
+  const data = {
+    memberName: "Thandi Nkosi",
+    infringementType: "Late attendance",
+    description: "Arrived <late> to the March meeting",
+    date: "4 March 2026",
+    penaltyAmount: "150.00",
+  };
+
+  it("summarises the infringement and penalty for in-app and push", () => {
+    const rendered = renderNotification("disciplinary_recorded", data);
+    expect(rendered.body).toContain("Late attendance");
+    expect(rendered.body).toContain("4 March 2026");
+    expect(rendered.body).toContain("R150.00");
+  });
+
+  it("emails the full details, escaped", () => {
+    const html = renderNotification("disciplinary_recorded", data).emailBodyHtml;
+    expect(html).toContain("Thandi Nkosi");
+    expect(html).toContain("Arrived &lt;late&gt; to the March meeting");
+    expect(html).toContain("R150.00");
+    expect(html).not.toContain("<late>");
+  });
+
+  it("says there is no penalty when none was set", () => {
+    const rendered = renderNotification("disciplinary_recorded", { ...data, penaltyAmount: "" });
+    expect(rendered.body).not.toContain("penalty");
+    expect(rendered.emailBodyHtml).toContain("No penalty");
   });
 });

@@ -149,3 +149,19 @@ export const getAllDisciplinaryRecords = async (): Promise<
     throw error;
   }
 };
+
+/**
+ * All disciplinary records without per-record member lookups (callers that
+ * already hold the member list, e.g. reports, join names themselves).
+ */
+export const getDisciplinaryRecords = async (): Promise<DisciplinaryRecord[]> => {
+  try {
+    const snapshot = await getDocs(
+      query(collection(db, "disciplinary_records"), orderBy("created_at", "desc"))
+    );
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as DisciplinaryRecord[];
+  } catch (error) {
+    logger.error("Error fetching disciplinary records:", error);
+    throw error;
+  }
+};

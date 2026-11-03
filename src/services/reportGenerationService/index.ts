@@ -10,9 +10,11 @@ import { generateFinancialHealthPdfReport, generateFinancialHealthExcelReport, g
 import { generateArrearsPdfReport, generateArrearsExcelReport, generateArrearsCsvReport } from './arrearsReport';
 import { generateComparativeAnalysisPDF, generateComparativeAnalysisExcel, generateComparativeAnalysisCSV } from './comparativeAnalysisReport';
 import { generateCreditStatusPdfReport, generateCreditStatusExcelReport, generateCreditStatusCsvReport } from './creditStatusReport';
+import { generateDisciplinaryPdfReport, generateDisciplinaryExcelReport, generateDisciplinaryCsvReport } from './disciplinaryReport';
 
 export * from './types';
 export * from './creditStatusReport';
+export * from './disciplinaryReport';
 export * from './cashFlowReport';
 export * from './contributionPatternsReport';
 export * from './financialHealthReport';
@@ -92,6 +94,19 @@ export async function generateReport(
         await generateCreditStatusExcelReport(data.creditStatus, params);
       } else if (params.format === 'csv') {
         await generateCreditStatusCsvReport(data.creditStatus, params);
+      }
+      break;
+
+    case 'disciplinary':
+      if (!data.disciplinary) {
+        throw new Error('Disciplinary data is required for this report type');
+      }
+      if (params.format === 'pdf') {
+        await generateDisciplinaryPdfReport(data.disciplinary, params);
+      } else if (params.format === 'excel') {
+        await generateDisciplinaryExcelReport(data.disciplinary, params);
+      } else if (params.format === 'csv') {
+        await generateDisciplinaryCsvReport(data.disciplinary, params);
       }
       break;
 

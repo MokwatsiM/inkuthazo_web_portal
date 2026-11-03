@@ -16,6 +16,7 @@ export {
   onCreditStatusChanged,
   onDonationReviewed,
   onMemberApproved,
+  onDisciplinaryRecordCreated,
   hostingReminder,
 } from "./notifications/triggers";
 

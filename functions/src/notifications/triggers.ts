@@ -244,3 +244,51 @@ export const hostingReminder = withEmailSecret.pubsub
       });
     }
   });
+
+const formatDay = (timestamp: unknown): string => {
+  const value = timestamp as { toDate?: () => Date } | undefined;
+  return value?.toDate
+    ? value.toDate().toLocaleDateString("en-ZA", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "Africa/Johannesburg",
+      })
+    : "";
+};
+
+/**
+ * New disciplinary record -> tell the member (in-app + push + email with the
+ * infringement details and penalty amount).
+ */
+export const onDisciplinaryRecordCreated = withEmailSecret.firestore
+  .document("disciplinary_records/{recordId}")
+  .onCreate(async (snapshot, context) => {
+    const record = snapshot.data();
+    if (!record?.member_id) return;
+
+    let memberName = "";
+    try {
+      const member = await getFirestore().doc(`members/${record.member_id}`).get();
+      memberName = member.data()?.full_name || "";
+    } catch (error) {
+      logger.warn("onDisciplinaryRecordCreated: could not load member name", error);
+    }
+
+    await notify({
+      type: "disciplinary_recorded",
+      key: `disciplinary_recorded_${context.params.recordId}`,
+      recipientId: record.member_id,
+      source: { collection: "disciplinary_records", docId: context.params.recordId },
+      data: {
+        memberName,
+        infringementType: record.infringement_type || "",
+        description: record.description || "",
+        date: formatDay(record.date),
+        penaltyAmount:
+          typeof record.penalty_amount === "number" && record.penalty_amount > 0
+            ? formatAmount(record.penalty_amount)
+            : "",
+      },
+    });
+  });
